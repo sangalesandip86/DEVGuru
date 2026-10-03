@@ -1,0 +1,22 @@
+id: EPIC-1
+title: Intraday VaR for portfolio managers
+requirement_id: REQ-1
+objective: Give each portfolio manager an intraday, trustworthy VaR figure for their books.
+business_outcome: PMs see their book's VaR refreshed during the day and can tell how fresh it is.
+success_metrics:
+  - Median VaR staleness under 5 minutes during trading hours
+scope:
+  - Intraday VaR calculation for equity and FX books
+  - Read API for VaR by portfolio
+  - Dashboard tile showing VaR and its as-of time
+out_of_scope:
+  - Fixed-income books (methodology not yet validated intraday)
+  - Alerting on limit breaches (separate epic)
+features:
+  - id: FEAT-1
+    title: VaR read API
+  - id: FEAT-2
+    title: VaR dashboard tile
+milestone_ids: [MS-1]
+risks:
+  - Intraday position feed latency is not yet measured (see spike ST-3)

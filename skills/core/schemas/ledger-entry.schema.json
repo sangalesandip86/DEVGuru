@@ -1,0 +1,372 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://adlc.local/schemas/ledger-entry.schema.json",
+  "title": "Evidence Ledger Entry",
+  "description": "One append-only, hash-chained entry in the Evidence Ledger (plan §4.3). Fields marked server-derived in the description are rejected if supplied by a caller.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "entry_id",
+    "run_id",
+    "actor_type",
+    "actor_id",
+    "tool",
+    "classification",
+    "trust_level",
+    "source_type",
+    "content",
+    "platform_release_sha",
+    "timestamp",
+    "prev_hash",
+    "entry_hash"
+  ],
+  "properties": {
+    "entry_id": {
+      "type": "string",
+      "pattern": "^ENTRY-[0-9A-Za-z]+$",
+      "description": "Server-assigned."
+    },
+    "run_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "change_set_id": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "Null for platform-level operations; forge-native form is <owner>/<repo>#<issue>."
+    },
+    "actor_type": {
+      "enum": [
+        "HUMAN",
+        "AGENT",
+        "SYSTEM"
+      ],
+      "description": "Server-derived."
+    },
+    "actor_id": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Server-derived."
+    },
+    "agent_role": {
+      "enum": [
+        "product-owner",
+        "architect",
+        "developer",
+        "qa-derive",
+        "qa-diagnose",
+        "security-reviewer",
+        "code-reviewer"
+      ],
+      "description": "Server-derived; present only when actor_type is AGENT."
+    },
+    "model_id": {
+      "type": "string"
+    },
+    "tool": {
+      "enum": [
+        "claude-code",
+        "copilot"
+      ]
+    },
+    "classification": {
+      "enum": [
+        "FACT",
+        "INFERENCE",
+        "ASSUMPTION",
+        "PROPOSAL",
+        "QUESTION",
+        "DECISION",
+        "RISK"
+      ]
+    },
+    "trust_level": {
+      "enum": [
+        "SYSTEM",
+        "ORGANIZATIONAL",
+        "REPOSITORY",
+        "EXTERNAL_STRUCTURED",
+        "EXTERNAL_UNSTRUCTURED"
+      ],
+      "description": "Server-derived from source_type; never caller-supplied."
+    },
+    "source_type": {
+      "type": "string",
+      "minLength": 1
+    },
+    "content": {
+      "type": "string",
+      "minLength": 1
+    },
+    "source": {
+      "type": "string",
+      "minLength": 1
+    },
+    "input_references": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^ENTRY-[0-9A-Za-z]+$"
+      },
+      "uniqueItems": true
+    },
+    "output_references": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "decision_ids": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^ENTRY-[0-9A-Za-z]+$"
+      }
+    },
+    "lifecycle_state": {
+      "enum": [
+        "DRAFT",
+        "PROPOSED",
+        "REVIEWED",
+        "VERIFIED",
+        "APPROVED",
+        "REJECTED"
+      ]
+    },
+    "snapshot_id": {
+      "type": "string"
+    },
+    "parent_entry_id": {
+      "type": "string",
+      "pattern": "^ENTRY-[0-9A-Za-z]+$"
+    },
+    "outcome_status": {
+      "enum": [
+        "CHALLENGED"
+      ]
+    },
+    "platform_release_sha": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{7,64}$"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "signal_source": {
+      "enum": [
+        "AGENT",
+        "REVIEWER",
+        "HUMAN",
+        "PRODUCTION"
+      ]
+    },
+    "impact": {
+      "enum": [
+        "LOW",
+        "MEDIUM",
+        "HIGH"
+      ]
+    },
+    "expires_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "invalidated_by": {
+      "type": "string"
+    },
+    "blocking": {
+      "type": "boolean"
+    },
+    "question_state": {
+      "enum": [
+        "OPEN",
+        "ANSWERED",
+        "EXPIRED"
+      ]
+    },
+    "addressed_to": {
+      "type": "string"
+    },
+    "options": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 2,
+      "description": "Explicit options for a QUESTION (never ask empty-handed)."
+    },
+    "proposed_default": {
+      "type": [
+        "string",
+        "object",
+        "array"
+      ],
+      "description": "Proposed default or draft payload for a QUESTION (e.g. a short schema-valid draft for data questions)."
+    },
+    "severity": {
+      "enum": [
+        "LOW",
+        "MEDIUM",
+        "HIGH",
+        "CRITICAL"
+      ]
+    },
+    "reason_code": {
+      "enum": [
+        "UNRESOLVED_DEPENDENCY",
+        "UNKNOWN_BLAST_RADIUS",
+        "SENSITIVE_PATH",
+        "COMPATIBILITY_UNKNOWN"
+      ]
+    },
+    "prev_hash": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "entry_hash": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "classification": {
+            "const": "FACT"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "source"
+        ],
+        "properties": {
+          "actor_type": {
+            "const": "SYSTEM"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "classification": {
+            "const": "INFERENCE"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "input_references"
+        ],
+        "properties": {
+          "input_references": {
+            "minItems": 1
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "classification": {
+            "const": "ASSUMPTION"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "impact",
+          "expires_at"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "classification": {
+            "const": "QUESTION"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "blocking",
+          "question_state",
+          "addressed_to",
+          "options",
+          "proposed_default"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "actor_type": {
+            "const": "AGENT"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "agent_role",
+          "model_id"
+        ]
+      }
+    },
+    {
+      "if": {
+        "required": [
+          "lifecycle_state"
+        ],
+        "properties": {
+          "lifecycle_state": {
+            "const": "VERIFIED"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "actor_type": {
+            "const": "SYSTEM"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "required": [
+          "lifecycle_state"
+        ],
+        "properties": {
+          "lifecycle_state": {
+            "const": "APPROVED"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "actor_type": {
+            "const": "HUMAN"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "required": [
+          "outcome_status"
+        ]
+      },
+      "then": {
+        "required": [
+          "parent_entry_id"
+        ]
+      }
+    }
+  ]
+}

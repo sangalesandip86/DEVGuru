@@ -1,0 +1,194 @@
+# Definition of Done — plan v3.1 §4.12. Evaluated by
+# skills/enforcement/ci-checks/planning-gates/completion_gate.py (SYSTEM CI job).
+#
+# CONTROL FILE — never agent-writable. Item format: see dor-policy.yaml header.
+# Extra item fields used here:
+#   variant  standard | spike | any   — which DoD variant (story-types.yaml dod_variant) it belongs to
+#   stage    DONE (default) | ACCEPTED — ACCEPTED items gate DONE → ACCEPTED only
+#
+# tier_gates: machine gates that must be VERIFIED (from CI, ingested by the server) for the
+# story's effective tier (plan §5.4). Gate names match the `gate` field of evidence.gates[].
+
+version: 1
+stage: DONE
+
+tier_gates:
+  LOW: [ci]
+  MEDIUM: [ci, unit-tests]
+  HIGH: [ci, unit-tests, sast, sca]
+  CRITICAL: [ci, unit-tests, sast, sca, staged-rollout]
+
+items:
+  # ---------------------------------------------------------------- both variants
+  - id: ready_at_current_ac
+    description: The story passed the readiness gate at its CURRENT AC hash (AC freeze — a story whose AC changed after READY cannot be DONE).
+    applies: mandatory
+    variant: any
+    check: STRUCTURAL
+    function: ready_at_current_ac
+
+  # ---------------------------------------------------------------- standard variant
+  - id: change_sets_integrated
+    description: At least one Change Set implements the story and every linked Change Set is INTEGRATED (observed merge).
+    applies: mandatory
+    variant: standard
+    check: STRUCTURAL
+    function: change_sets_integrated
+
+  - id: ac_covered
+    description: Every automated AC is covered by at least one passing test (ac-coverage VERIFIED).
+    applies: mandatory
+    variant: standard
+    check: STRUCTURAL
+    function: automated_ac_covered
+
+  - id: manual_ac_verified
+    description: Every manual AC has a verification record from qa-diagnose or a human, against the current AC hash.
+    applies: mandatory
+    variant: standard
+    check: JUDGMENT
+    role: qa-diagnose
+    per_manual_ac: true
+    pin_ac_hash: true
+
+  - id: tier_gates_verified
+    description: All machine gates required for the effective tier are VERIFIED.
+    applies: mandatory
+    variant: standard
+    check: STRUCTURAL
+    function: tier_gates_verified
+
+  - id: secret_scan_clean
+    description: Secret scanning is VERIFIED clean.
+    applies:
+      when:
+        not_type: [DOCUMENTATION]
+    variant: standard
+    check: STRUCTURAL
+    function: secret_scan_clean
+
+  - id: within_scope
+    description: Changed paths stay within affected_paths (when declared) and do not exceed the story's effective tier.
+    applies: mandatory
+    variant: standard
+    check: STRUCTURAL
+    function: diff_within_scope
+
+  - id: no_blocking_questions
+    description: No OPEN blocking QUESTION linked to the story.
+    applies: mandatory
+    variant: any
+    check: STRUCTURAL
+    function: no_open_blocking_questions
+
+  - id: no_risky_assumptions
+    description: No unexpired ASSUMPTION with impact above LOW linked to the story.
+    applies: mandatory
+    variant: any
+    check: STRUCTURAL
+    function: no_unexpired_risky_assumptions
+
+  - id: code_review_accept
+    description: code-reviewer REVIEWED with ACCEPT.
+    applies: mandatory
+    variant: standard
+    check: JUDGMENT
+    role: code-reviewer
+
+  - id: contract_compatibility
+    description: Contract compatibility VERIFIED against recorded deployed versions.
+    applies:
+      when_any:
+        - type: [API_CONTRACT]
+        - touches: [api_contracts]
+    variant: standard
+    check: STRUCTURAL
+    function: gate_verified
+    gate: contract-compatibility
+
+  - id: migration_rollback_tested
+    description: Migration rollback test VERIFIED.
+    applies:
+      when_any:
+        - type: [DATA_MIGRATION]
+        - touches: [data_migration]
+    variant: standard
+    check: STRUCTURAL
+    function: gate_verified
+    gate: rollback-test
+
+  - id: accessibility_checked
+    description: Automated accessibility checks VERIFIED.
+    applies:
+      when_any:
+        - type: [UI_STORY]
+        - touches: [ui]
+    variant: standard
+    check: STRUCTURAL
+    function: gate_verified
+    gate: accessibility
+
+  - id: security_review_accept
+    description: security-reviewer REVIEWED with ACCEPT (a REJECT blocks within the security domain; only a human lifts it).
+    applies:
+      when_any:
+        - type: [SECURITY_STORY]
+        - tier_at_least: HIGH
+    variant: standard
+    check: JUDGMENT
+    role: security-reviewer
+
+  - id: observability_reviewed
+    description: Logging/metrics/tracing required by the story are present.
+    applies:
+      when_any:
+        - type: [INFRASTRUCTURE]
+        - tier_at_least: HIGH
+    variant: standard
+    check: JUDGMENT
+    role: code-reviewer
+
+  - id: docs_updated
+    description: API/event documentation updated for the contract change.
+    applies:
+      when_any:
+        - type: [API_CONTRACT, DOCUMENTATION]
+    variant: standard
+    check: JUDGMENT
+    role: code-reviewer
+
+  # ---------------------------------------------------------------- spike variant
+  - id: spike_decision_recorded
+    description: A DECISION entry answers the spike question and an ADR is merged.
+    applies: mandatory
+    variant: spike
+    check: STRUCTURAL
+    function: spike_decision_recorded
+
+  - id: spike_follow_ups
+    description: Follow-up stories exist in plans/ with follow_up_of set to the spike.
+    applies: mandatory
+    variant: spike
+    check: STRUCTURAL
+    function: spike_follow_ups_exist
+
+  - id: spike_no_production_code
+    description: No production code merged from the spike (merged Change Sets touch only docs/ADR/plan paths).
+    applies: mandatory
+    variant: spike
+    check: STRUCTURAL
+    function: spike_no_production_code
+
+  # ---------------------------------------------------------------- DONE → ACCEPTED
+  - id: po_acceptance
+    description: Human product owner accepted the delivered story.
+    applies:
+      when_any:
+        - type: [FEATURE_STORY, UI_STORY]
+          tier_at_least: MEDIUM
+        - tier_at_least: HIGH
+          not_type: [SPIKE]
+    variant: any
+    stage: ACCEPTED
+    check: APPROVAL
+    approver: human:product-owner

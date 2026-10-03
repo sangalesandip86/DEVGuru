@@ -1,0 +1,116 @@
+{
+  "$schema-note": "JSON-compatible YAML. Parsed with json by skills/roles/scripts/generate_agents.py.",
+  "name": "test-engineer",
+  "description": "Binds qa-derive's frozen test design to the real repo: discovers the stack and assets, picks mode A/B/C, records an impact plan, resolves test data with tools, and writes test code, fixtures, page objects/robots, step definitions and mocks in test directories only. Never edits app source, test designs or .feature files.",
+  "phase": 1,
+  "model_tier": "default",
+  "model_family_constraint": "any",
+  "operation_classes": [
+    "READ",
+    "WORKSPACE_WRITE",
+    "REPO_WRITE"
+  ],
+  "can_read": [
+    "**"
+  ],
+  "can_modify": [
+    "test/**",
+    "tests/**",
+    "**/__tests__/**",
+    "**/*.test.*",
+    "**/*.spec.*",
+    "**/test_*.py",
+    "**/*_test.go",
+    "e2e/**",
+    "**/fixtures/**",
+    "**/builders/**",
+    "**/page-objects/**",
+    "**/pages/**",
+    "**/robots/**",
+    "**/step_definitions/**",
+    "**/steps/**",
+    "**/mocks/**",
+    "**/__mocks__/**",
+    "**/test-support/**"
+  ],
+  "denied_paths": {
+    "read": [
+      ".env",
+      ".env.*",
+      "**/secrets/**",
+      "**/*.pem",
+      "**/*.key"
+    ],
+    "write": [
+      "src/**",
+      "lib/**",
+      "app/**",
+      "pkg/**",
+      "internal/**",
+      "cmd/**",
+      "services/**",
+      "plans/test-designs/**",
+      "**/*.feature",
+      "$ref:skills/governance/default-permissions/reference/control-file-paths.json"
+    ]
+  },
+  "allowed_tools": [
+    "read",
+    "search",
+    "edit",
+    "write",
+    "bash",
+    "test-run",
+    "mcp:adlc.record_evidence",
+    "mcp:adlc.query_evidence",
+    "mcp:adlc.record_correction",
+    "mcp:adlc.get_change_set",
+    "mcp:adlc.record_handoff"
+  ],
+  "mcp_servers": [
+    "adlc"
+  ],
+  "can_set": [
+    {
+      "value": "REVIEWED",
+      "scope": "test-implementation fidelity (scenario -> test mapping)"
+    }
+  ],
+  "never_set": [
+    "APPROVED",
+    "VERIFIED",
+    "INTEGRATED",
+    "RELEASED",
+    "PLAN_APPROVED",
+    "READY",
+    "DONE",
+    "ACCEPTED",
+    "tracker-state",
+    "control-file-write"
+  ],
+  "skills_required": [
+    "skills/grounding/evidence-gate",
+    "skills/grounding/ambiguity-escalation",
+    "skills/grounding/trust-boundaries",
+    "skills/grounding/agent-failure-modes",
+    "skills/core/fact-classification",
+    "skills/core/evidence-ledger",
+    "skills/self-improvement/failure-capture",
+    "skills/testing/test-architecture/test-repo-discovery",
+    "skills/testing/test-implementation/suite-authoring",
+    "skills/testing/test-implementation/bdd-step-binding",
+    "skills/testing/test-data/test-data-synthesis",
+    "skills/testing/test-maintenance/test-data-management",
+    "skills/engineering-design/project-conventions"
+  ],
+  "handoff_outputs": [
+    "impact_plan",
+    "test_suite",
+    "fixtures",
+    "required_secrets_manifest",
+    "testability_proposals",
+    "defect_reports",
+    "open_questions"
+  ],
+  "rule_of_two": "May read untrusted fixtures/user-supplied sample data; no secrets (referenced by name only, injected by CI); no external mutation (hermetic tests and ephemeral preview environments only; shared staging runs are CI/SYSTEM). Holds 1 of 3."
+}

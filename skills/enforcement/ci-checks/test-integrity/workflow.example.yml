@@ -1,0 +1,80 @@
+# Example GitHub Actions workflow for the test-integrity checks (plan §4.13, ADR 0003).
+# It lives here as an EXAMPLE. The real file goes under .github/workflows/, which is a
+# control file: installing or changing it is CRITICAL tier and requires human approval.
+# Every job runs as the CI (SYSTEM) identity; its results are ingested as FACT -> VERIFIED.
+name: test-integrity
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+env:
+  CHECKS: skills/enforcement/ci-checks/test-integrity   # path inside the org-managed platform checkout
+
+jobs:
+  integrity-guard:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0, path: head }
+      - uses: actions/checkout@v4
+        with: { ref: "${{ github.event.pull_request.base.sha }}", path: base }
+      - uses: actions/checkout@v4
+        with: { repository: my-org/adlc-platform, path: platform }   # org-managed, not repo-editable
+      - name: AC IDs whose hash changed (from plan-lint)
+        run: |
+          python platform/skills/enforcement/ci-checks/planning-gates/plan_lint.py head/plans --changed-ac-against base/plans > ac-changed.json
+      - name: Test integrity guard
+        run: |
+          python platform/$CHECKS/test_integrity_guard.py --base base --head head \
+            --ac-changed-file ac-changed.json \
+            --overrides head/.adlc/integrity-overrides.json > integrity.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with: { name: integrity, path: integrity.json }
+
+  fixture-pii-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with: { repository: my-org/adlc-platform, path: platform }
+      - run: python platform/$CHECKS/fixture_pii_scan.py . > pii.json
+
+  no-fixed-sleep:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with: { repository: my-org/adlc-platform, path: platform }
+      - run: python platform/$CHECKS/no_fixed_sleep_check.py . --config platform/config/no-sleep-allow.json
+
+  bdd-dry-run:
+    # Undefined or ambiguous steps fail the build (step deduplication, plan §4.13).
+    runs-on: ubuntu-latest
+    if: hashFiles('**/*.feature') != ''
+    steps:
+      - uses: actions/checkout@v4
+      - run: npm ci && npx cucumber-js --dry-run --strict   # adapt: mvn -Dcucumber.execution.dry-run=true test, behave --dry-run
+
+  red-green:
+    # See red_green_check.md. Runs only the NEW tests on base (red) and head (green).
+    runs-on: ubuntu-latest
+    needs: integrity-guard
+    steps:
+      - run: echo "stack-specific; see red_green_check.md"
+
+  new-test-flake-gate:
+    # See new_test_flake_gate.md. Five random-order reruns of new/changed tests -> flaky-detector.
+    runs-on: ubuntu-latest
+    needs: integrity-guard
+    steps:
+      - run: echo "stack-specific; see new_test_flake_gate.md"
+
+  mutation-diff-scoped:
+    # Mutation testing only on changed lines: Stryker (--mutate from git diff), PIT (scmMutationCoverage),
+    # mutmut (--paths-to-mutate), cargo-mutants (--in-diff). Score threshold per tier lives in dod-policy.yaml.
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "stack-specific; e.g. npx stryker run --mutate $(git diff --name-only origin/main -- 'src/**/*.ts' | paste -sd,)"

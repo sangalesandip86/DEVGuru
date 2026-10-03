@@ -1,0 +1,422 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://devguru.local/schemas/changeset.schema.json",
+  "title": "Change Set",
+  "type": "object",
+  "required": [
+    "id",
+    "system",
+    "requirements",
+    "repositories",
+    "status",
+    "risk_tier",
+    "risk_tier_history",
+    "gates"
+  ],
+  "additionalProperties": false,
+  "$defs": {
+    "status": {
+      "enum": [
+        "DRAFT",
+        "SCOPED",
+        "PLANNED",
+        "PLAN_APPROVED",
+        "EXECUTING",
+        "VERIFYING",
+        "INTEGRATED",
+        "RELEASED",
+        "BLOCKED",
+        "FAILED",
+        "CANCELLED",
+        "ROLLED_BACK"
+      ]
+    },
+    "tier": {
+      "enum": [
+        "LOW",
+        "MEDIUM",
+        "HIGH",
+        "CRITICAL"
+      ]
+    },
+    "role": {
+      "enum": [
+        "product-owner",
+        "architect",
+        "developer",
+        "qa-derive",
+        "qa-diagnose",
+        "security-reviewer",
+        "code-reviewer"
+      ]
+    },
+    "task": {
+      "type": "object",
+      "required": [
+        "id",
+        "owner_role",
+        "attempts",
+        "status"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^TASK-[0-9]+$"
+        },
+        "title": {
+          "type": "string"
+        },
+        "repo": {
+          "type": "string"
+        },
+        "depends_on": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "owner_role": {
+          "$ref": "#/$defs/role"
+        },
+        "worktree": {
+          "type": "string"
+        },
+        "branch": {
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "PENDING",
+            "RUNNING",
+            "CHECKPOINTED",
+            "DONE",
+            "BLOCKED",
+            "FAILED"
+          ]
+        },
+        "attempts": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 3
+        },
+        "operation_classes": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "READ",
+              "WORKSPACE_WRITE",
+              "REPO_WRITE"
+            ]
+          }
+        },
+        "checkpoint": {
+          "type": "object",
+          "required": [
+            "commit_sha",
+            "ledger_cursor",
+            "snapshot_id"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "commit_sha": {
+              "type": "string"
+            },
+            "ledger_cursor": {
+              "type": "string"
+            },
+            "snapshot_id": {
+              "type": "string"
+            },
+            "timestamp": {
+              "type": "string",
+              "format": "date-time"
+            }
+          }
+        },
+        "ac_refs": {
+          "type": "array",
+          "description": "Acceptance criteria this task implements (v3.1 \u00a74.12), e.g. ST-101/AC-2",
+          "items": {
+            "type": "string",
+            "pattern": "^ST-[0-9]+/AC-[0-9]+$"
+          }
+        }
+      }
+    }
+  },
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^CS-[0-9]+$"
+    },
+    "system": {
+      "type": "string"
+    },
+    "initiative": {
+      "type": "string"
+    },
+    "requirements": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "text",
+          "source"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "text": {
+            "type": "string"
+          },
+          "acceptance_criteria": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "source": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "story_refs": {
+      "type": "array",
+      "description": "Stories this Change Set implements; many-to-many with stories (v3.1 \u00a74.12). Phase 1 forge-native: derived from 'Implements: ST-n' in the PR body.",
+      "items": {
+        "type": "string",
+        "pattern": "^ST-[0-9]+$"
+      },
+      "uniqueItems": true
+    },
+    "repositories": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "repo",
+          "base_branch"
+        ],
+        "properties": {
+          "repo": {
+            "type": "string"
+          },
+          "base_branch": {
+            "type": "string"
+          },
+          "pinned_sha": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "contracts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "contract_id",
+          "version",
+          "role"
+        ],
+        "properties": {
+          "contract_id": {
+            "type": "string"
+          },
+          "version": {
+            "type": "string"
+          },
+          "role": {
+            "enum": [
+              "provider",
+              "consumer"
+            ]
+          }
+        }
+      }
+    },
+    "environments": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "name"
+        ],
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "state_ref": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "status": {
+      "$ref": "#/$defs/status"
+    },
+    "status_before_blocked": {
+      "$ref": "#/$defs/status"
+    },
+    "risk_tier": {
+      "$ref": "#/$defs/tier"
+    },
+    "risk_tier_history": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "tier",
+          "actor_id",
+          "timestamp"
+        ],
+        "properties": {
+          "tier": {
+            "$ref": "#/$defs/tier"
+          },
+          "reason_code": {
+            "enum": [
+              "UNRESOLVED_DEPENDENCY",
+              "UNKNOWN_BLAST_RADIUS",
+              "SENSITIVE_PATH",
+              "COMPATIBILITY_UNKNOWN",
+              "HUMAN_DOWNGRADE",
+              "INITIAL"
+            ]
+          },
+          "actor_id": {
+            "type": "string"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      }
+    },
+    "snapshot_id": {
+      "type": "string"
+    },
+    "parent_id": {
+      "type": "string"
+    },
+    "depends_on": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "tasks": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/task"
+      }
+    },
+    "questions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "entry_id",
+          "state",
+          "blocking"
+        ],
+        "properties": {
+          "entry_id": {
+            "type": "string"
+          },
+          "state": {
+            "enum": [
+              "OPEN",
+              "ANSWERED",
+              "EXPIRED"
+            ]
+          },
+          "blocking": {
+            "type": "boolean"
+          }
+        }
+      }
+    },
+    "assumptions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "entry_id",
+          "impact",
+          "expires_at"
+        ],
+        "properties": {
+          "entry_id": {
+            "type": "string"
+          },
+          "impact": {
+            "enum": [
+              "LOW",
+              "MEDIUM",
+              "HIGH"
+            ]
+          },
+          "expires_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      }
+    },
+    "gates": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "gate",
+          "status"
+        ],
+        "properties": {
+          "gate": {
+            "type": "string"
+          },
+          "required_by_tier": {
+            "$ref": "#/$defs/tier"
+          },
+          "status": {
+            "enum": [
+              "PENDING",
+              "REVIEWED",
+              "VERIFIED",
+              "APPROVED",
+              "REJECTED"
+            ]
+          },
+          "evidence_entry_id": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "forge_refs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "repo": {
+            "type": "string"
+          },
+          "issue": {
+            "type": "integer"
+          },
+          "pr": {
+            "type": "integer"
+          }
+        }
+      }
+    }
+  }
+}

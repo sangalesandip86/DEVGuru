@@ -1,0 +1,18 @@
+# Service -> repository map. Feeds adlc.workspace.yaml (a map, not a permission grant).
+# A service whose repo does not exist yet has exists: false. workspace-resolver then offers
+# --request-remote, and a human or CI creates the repo via repo-bootstrap.
+system: payments
+planning_repo: acme-plans
+services:
+  - name: payments-api
+    repo: payments-svc
+    exists: true
+    roles: [app]
+    owner_team: payments
+    contracts: [INT-1]
+  - name: ledger-publisher
+    repo: payments-ledger-publisher
+    exists: false
+    roles: [app]
+    owner_team: payments
+    contracts: [INT-2]

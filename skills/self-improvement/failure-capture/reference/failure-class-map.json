@@ -1,0 +1,459 @@
+{
+  "$comment": "Deterministic check-id -> failure_class map (ADR 0006). Key = '<checker>:<finding id>'. class null = process state, never an incident. A test asserts every DoR/DoD item and integrity finding code in the repo is mapped.",
+  "version": 1,
+  "taxonomy": "failure-taxonomy.md",
+  "classes": [
+    "INCOMPLETE_ARTIFACT",
+    "UNTESTABLE_CRITERIA",
+    "MISSING_NEGATIVE_CASE",
+    "TRACEABILITY_GAP",
+    "UNRESOLVED_DEPENDENCY",
+    "UNRESOLVED_AMBIGUITY",
+    "OVERSIZED_CHANGE",
+    "MISSING_SAFEGUARD",
+    "UNDECLARED_DEVIATION",
+    "SCOPE_CREEP",
+    "UNAUTHORIZED_ACTION",
+    "WEAKENED_TEST",
+    "INEFFECTIVE_TEST",
+    "NONDETERMINISTIC_TEST",
+    "SENSITIVE_DATA_EXPOSURE",
+    "UNSOURCED_CLAIM",
+    "INVALID_OUTPUT",
+    "INCORRECT_BEHAVIOR",
+    "DESIGN_DEFECT",
+    "NON_CONVERGENCE"
+  ],
+  "map": {
+    "dor:schema_valid": {
+      "class": "INVALID_OUTPUT",
+      "source": "skills/product-planning/policies/dor-policy.yaml"
+    },
+    "dor:objective_stated": {
+      "class": "INCOMPLETE_ARTIFACT",
+      "source": "skills/product-planning/policies/dor-policy.yaml"
+    },
+    "dor:value_statement": {
+      "class": "INCOMPLETE_ARTIFACT",
+      "source": "skills/product-planning/policies/dor-policy.yaml"
+    },
+    "dor:persona_identified": {
+      "class": "INCOMPLETE_ARTIFACT",
+      "source": "skills/product-planning/policies/dor-policy.yaml"
+    },
+    "dor:scope_defined": {
+      "class": "INCOMPLETE_ARTIFACT",
+      "source": "skills/product-planning/policies/dor-policy.yaml"
+    },
+    "dor:ac_standard": {
+      "class": "UNTESTABLE_CRITERIA",
+      "source": "skills/product-planning/policies/dor-policy.yaml"
+    },
+    "dor:negative_ac": {
+      "class": "MISSING_NEGATIVE_CASE",
+      "source": "skills/product-planning/policies/dor-policy.yaml"
+    },
+    "dor:nfr_quantified": {
+      "class": "UNTESTABLE_CRITERIA",
+      "source": "skills/product-planning/policies/dor-policy.yaml"
+    },
+    "dor:traceability": {
+      "class": "TRACEABILITY_GAP",
+      "source": "skills/product-planning/policies/dor-policy.yaml"
+    },
+    "dor:dependencies_resolved": {
+      "class": "UNRESOLVED_DEPENDENCY",
+      "source": "skills/product-planning/policies/dor-policy.yaml"
+    },
+    "dor:no_blocking_questions": {
+      "class": "UNRESOLVED_AMBIGUITY",
+      "source": "skills/product-planning/policies/dor-policy.yaml"
+    },
+    "dor:no_risky_assumptions": {
+      "class": "UNRESOLVED_AMBIGUITY",
+      "source": "skills/product-planning/policies/dor-policy.yaml"
+    },
+    "dor:size_ok": {
+      "class": "OVERSIZED_CHANGE",
+      "source": "skills/product-planning/policies/dor-policy.yaml"
+    },
+    "dor:security_considerations": {
+      "class": "MISSING_SAFEGUARD",
+      "source": "skills/product-planning/policies/dor-policy.yaml"
+    },
+    "dor:threat_statement": {
+      "class": "MISSING_SAFEGUARD",
+      "source": "skills/product-planning/policies/dor-policy.yaml"
+    },
+    "dor:contracts_identified": {
+      "class": "UNRESOLVED_DEPENDENCY",
+      "source": "skills/product-planning/policies/dor-policy.yaml"
+    },
+    "dor:ux_defined": {
+      "class": "INCOMPLETE_ARTIFACT",
+      "source": "skills/product-planning/policies/dor-policy.yaml"
+    },
+    "dor:accessibility_ac": {
+      "class": "MISSING_SAFEGUARD",
+      "source": "skills/product-planning/policies/dor-policy.yaml"
+    },
+    "dor:rollback_plan": {
+      "class": "MISSING_SAFEGUARD",
+      "source": "skills/product-planning/policies/dor-policy.yaml"
+    },
+    "dor:nfrs_identified": {
+      "class": "MISSING_SAFEGUARD",
+      "source": "skills/product-planning/policies/dor-policy.yaml"
+    },
+    "dor:bug_reproduction": {
+      "class": "INCOMPLETE_ARTIFACT",
+      "source": "skills/product-planning/policies/dor-policy.yaml"
+    },
+    "dor:no_behaviour_change_ac": {
+      "class": "INCOMPLETE_ARTIFACT",
+      "source": "skills/product-planning/policies/dor-policy.yaml"
+    },
+    "dor:spike_framed": {
+      "class": "INCOMPLETE_ARTIFACT",
+      "source": "skills/product-planning/policies/dor-policy.yaml"
+    },
+    "dor:qa_testability": {
+      "class": "UNTESTABLE_CRITERIA",
+      "source": "skills/product-planning/policies/dor-policy.yaml"
+    },
+    "dor:developer_feasibility": {
+      "class": "OVERSIZED_CHANGE",
+      "source": "skills/product-planning/policies/dor-policy.yaml",
+      "note": "JUDGMENT item; a REJECT that is not about size uses the reviewer's class and note"
+    },
+    "dor:architect_contract_review": {
+      "class": "DESIGN_DEFECT",
+      "source": "skills/product-planning/policies/dor-policy.yaml"
+    },
+    "dor:security_design_review": {
+      "class": "MISSING_SAFEGUARD",
+      "source": "skills/product-planning/policies/dor-policy.yaml"
+    },
+    "dor:scope_approval": {
+      "class": null,
+      "source": "skills/product-planning/policies/dor-policy.yaml",
+      "note": "process state: awaiting an approval or aggregate of other mapped checks; not a skill failure"
+    },
+    "dod:ready_at_current_ac": {
+      "class": null,
+      "source": "skills/product-planning/policies/dod-policy.yaml",
+      "note": "AC changed after READY; re-readiness is process state"
+    },
+    "dod:change_sets_integrated": {
+      "class": null,
+      "source": "skills/product-planning/policies/dod-policy.yaml",
+      "note": "process state: awaiting an approval or aggregate of other mapped checks; not a skill failure"
+    },
+    "dod:ac_covered": {
+      "class": "TRACEABILITY_GAP",
+      "source": "skills/product-planning/policies/dod-policy.yaml"
+    },
+    "dod:manual_ac_verified": {
+      "class": "TRACEABILITY_GAP",
+      "source": "skills/product-planning/policies/dod-policy.yaml"
+    },
+    "dod:tier_gates_verified": {
+      "class": null,
+      "source": "skills/product-planning/policies/dod-policy.yaml",
+      "note": "process state: awaiting an approval or aggregate of other mapped checks; not a skill failure"
+    },
+    "dod:secret_scan_clean": {
+      "class": "SENSITIVE_DATA_EXPOSURE",
+      "source": "skills/product-planning/policies/dod-policy.yaml"
+    },
+    "dod:within_scope": {
+      "class": "SCOPE_CREEP",
+      "source": "skills/product-planning/policies/dod-policy.yaml"
+    },
+    "dod:no_blocking_questions": {
+      "class": "UNRESOLVED_AMBIGUITY",
+      "source": "skills/product-planning/policies/dod-policy.yaml"
+    },
+    "dod:no_risky_assumptions": {
+      "class": "UNRESOLVED_AMBIGUITY",
+      "source": "skills/product-planning/policies/dod-policy.yaml"
+    },
+    "dod:code_review_accept": {
+      "class": "DESIGN_DEFECT",
+      "source": "skills/product-planning/policies/dod-policy.yaml"
+    },
+    "dod:contract_compatibility": {
+      "class": "UNRESOLVED_DEPENDENCY",
+      "source": "skills/product-planning/policies/dod-policy.yaml"
+    },
+    "dod:migration_rollback_tested": {
+      "class": "MISSING_SAFEGUARD",
+      "source": "skills/product-planning/policies/dod-policy.yaml"
+    },
+    "dod:accessibility_checked": {
+      "class": "MISSING_SAFEGUARD",
+      "source": "skills/product-planning/policies/dod-policy.yaml"
+    },
+    "dod:security_review_accept": {
+      "class": "MISSING_SAFEGUARD",
+      "source": "skills/product-planning/policies/dod-policy.yaml"
+    },
+    "dod:observability_reviewed": {
+      "class": "MISSING_SAFEGUARD",
+      "source": "skills/product-planning/policies/dod-policy.yaml"
+    },
+    "dod:docs_updated": {
+      "class": "INCOMPLETE_ARTIFACT",
+      "source": "skills/product-planning/policies/dod-policy.yaml"
+    },
+    "dod:spike_decision_recorded": {
+      "class": "INCOMPLETE_ARTIFACT",
+      "source": "skills/product-planning/policies/dod-policy.yaml"
+    },
+    "dod:spike_follow_ups": {
+      "class": "INCOMPLETE_ARTIFACT",
+      "source": "skills/product-planning/policies/dod-policy.yaml"
+    },
+    "dod:spike_no_production_code": {
+      "class": "SCOPE_CREEP",
+      "source": "skills/product-planning/policies/dod-policy.yaml"
+    },
+    "dod:po_acceptance": {
+      "class": null,
+      "source": "skills/product-planning/policies/dod-policy.yaml",
+      "note": "process state: awaiting an approval or aggregate of other mapped checks; not a skill failure"
+    },
+    "test-integrity:ASSERTION_REMOVED": {
+      "class": "WEAKENED_TEST",
+      "source": "skills/enforcement/ci-checks/test-integrity/test_integrity_guard.py"
+    },
+    "test-integrity:EXAMPLE_ROWS_REMOVED": {
+      "class": "WEAKENED_TEST",
+      "source": "skills/enforcement/ci-checks/test-integrity/test_integrity_guard.py"
+    },
+    "test-integrity:EXPECTATION_CHANGED": {
+      "class": "WEAKENED_TEST",
+      "source": "skills/enforcement/ci-checks/test-integrity/test_integrity_guard.py"
+    },
+    "test-integrity:FOCUS_ADDED": {
+      "class": "WEAKENED_TEST",
+      "source": "skills/enforcement/ci-checks/test-integrity/test_integrity_guard.py"
+    },
+    "test-integrity:SKIP_ADDED": {
+      "class": "WEAKENED_TEST",
+      "source": "skills/enforcement/ci-checks/test-integrity/test_integrity_guard.py"
+    },
+    "test-integrity:SNAPSHOT_MASS_UPDATE": {
+      "class": "WEAKENED_TEST",
+      "source": "skills/enforcement/ci-checks/test-integrity/test_integrity_guard.py"
+    },
+    "test-integrity:SWALLOWED_ASSERTION": {
+      "class": "WEAKENED_TEST",
+      "source": "skills/enforcement/ci-checks/test-integrity/test_integrity_guard.py"
+    },
+    "test-integrity:TEST_FILE_DELETED": {
+      "class": "WEAKENED_TEST",
+      "source": "skills/enforcement/ci-checks/test-integrity/test_integrity_guard.py"
+    },
+    "test-integrity:TEST_REMOVED": {
+      "class": "WEAKENED_TEST",
+      "source": "skills/enforcement/ci-checks/test-integrity/test_integrity_guard.py"
+    },
+    "test-integrity:TEST_RENAMED_OR_REPLACED": {
+      "class": "WEAKENED_TEST",
+      "source": "skills/enforcement/ci-checks/test-integrity/test_integrity_guard.py"
+    },
+    "test-integrity:TIMEOUT_OR_TOLERANCE_LOOSENED": {
+      "class": "WEAKENED_TEST",
+      "source": "skills/enforcement/ci-checks/test-integrity/test_integrity_guard.py"
+    },
+    "test-integrity:NO_ASSERTIONS": {
+      "class": "INEFFECTIVE_TEST",
+      "source": "skills/enforcement/ci-checks/test-integrity/test_integrity_guard.py"
+    },
+    "test-integrity:SUT_MOCKED": {
+      "class": "INEFFECTIVE_TEST",
+      "source": "skills/enforcement/ci-checks/test-integrity/test_integrity_guard.py"
+    },
+    "no-fixed-sleep:js-wait-for-timeout": {
+      "class": "NONDETERMINISTIC_TEST",
+      "source": "skills/enforcement/ci-checks/test-integrity/no_fixed_sleep_check.py"
+    },
+    "no-fixed-sleep:js-cy-wait-number": {
+      "class": "NONDETERMINISTIC_TEST",
+      "source": "skills/enforcement/ci-checks/test-integrity/no_fixed_sleep_check.py"
+    },
+    "no-fixed-sleep:js-settimeout": {
+      "class": "NONDETERMINISTIC_TEST",
+      "source": "skills/enforcement/ci-checks/test-integrity/no_fixed_sleep_check.py"
+    },
+    "no-fixed-sleep:js-pause": {
+      "class": "NONDETERMINISTIC_TEST",
+      "source": "skills/enforcement/ci-checks/test-integrity/no_fixed_sleep_check.py"
+    },
+    "no-fixed-sleep:py-time-sleep": {
+      "class": "NONDETERMINISTIC_TEST",
+      "source": "skills/enforcement/ci-checks/test-integrity/no_fixed_sleep_check.py"
+    },
+    "no-fixed-sleep:py-asyncio-sleep": {
+      "class": "NONDETERMINISTIC_TEST",
+      "source": "skills/enforcement/ci-checks/test-integrity/no_fixed_sleep_check.py"
+    },
+    "no-fixed-sleep:py-wait-for-timeout": {
+      "class": "NONDETERMINISTIC_TEST",
+      "source": "skills/enforcement/ci-checks/test-integrity/no_fixed_sleep_check.py"
+    },
+    "no-fixed-sleep:jvm-thread-sleep": {
+      "class": "NONDETERMINISTIC_TEST",
+      "source": "skills/enforcement/ci-checks/test-integrity/no_fixed_sleep_check.py"
+    },
+    "no-fixed-sleep:dart-future-delayed": {
+      "class": "NONDETERMINISTIC_TEST",
+      "source": "skills/enforcement/ci-checks/test-integrity/no_fixed_sleep_check.py"
+    },
+    "no-fixed-sleep:go-time-sleep": {
+      "class": "NONDETERMINISTIC_TEST",
+      "source": "skills/enforcement/ci-checks/test-integrity/no_fixed_sleep_check.py"
+    },
+    "no-fixed-sleep:cs-sleep": {
+      "class": "NONDETERMINISTIC_TEST",
+      "source": "skills/enforcement/ci-checks/test-integrity/no_fixed_sleep_check.py"
+    },
+    "no-fixed-sleep:swift-sleep": {
+      "class": "NONDETERMINISTIC_TEST",
+      "source": "skills/enforcement/ci-checks/test-integrity/no_fixed_sleep_check.py"
+    },
+    "no-fixed-sleep:rb-sleep": {
+      "class": "NONDETERMINISTIC_TEST",
+      "source": "skills/enforcement/ci-checks/test-integrity/no_fixed_sleep_check.py"
+    },
+    "fixture-pii:EMAIL": {
+      "class": "SENSITIVE_DATA_EXPOSURE",
+      "source": "skills/enforcement/ci-checks/test-integrity/fixture_pii_scan.py"
+    },
+    "fixture-pii:PAN": {
+      "class": "SENSITIVE_DATA_EXPOSURE",
+      "source": "skills/enforcement/ci-checks/test-integrity/fixture_pii_scan.py"
+    },
+    "fixture-pii:IBAN": {
+      "class": "SENSITIVE_DATA_EXPOSURE",
+      "source": "skills/enforcement/ci-checks/test-integrity/fixture_pii_scan.py"
+    },
+    "fixture-pii:SSN": {
+      "class": "SENSITIVE_DATA_EXPOSURE",
+      "source": "skills/enforcement/ci-checks/test-integrity/fixture_pii_scan.py"
+    },
+    "fixture-pii:PHONE": {
+      "class": "SENSITIVE_DATA_EXPOSURE",
+      "source": "skills/enforcement/ci-checks/test-integrity/fixture_pii_scan.py"
+    },
+    "fixture-pii:PUBLIC_IP": {
+      "class": "SENSITIVE_DATA_EXPOSURE",
+      "source": "skills/enforcement/ci-checks/test-integrity/fixture_pii_scan.py"
+    },
+    "fixture-pii:SECRET_LIKE": {
+      "class": "SENSITIVE_DATA_EXPOSURE",
+      "source": "skills/enforcement/ci-checks/test-integrity/fixture_pii_scan.py"
+    },
+    "ac-coverage:uncovered_automated": {
+      "class": "TRACEABILITY_GAP",
+      "source": "skills/enforcement/ci-checks/planning-gates/ac_coverage.py"
+    },
+    "ac-coverage:untagged_tests": {
+      "class": "TRACEABILITY_GAP",
+      "source": "skills/enforcement/ci-checks/planning-gates/ac_coverage.py"
+    },
+    "plan-lint:error": {
+      "class": "INVALID_OUTPUT",
+      "source": "skills/enforcement/ci-checks/planning-gates/plan_lint.py"
+    },
+    "plan-lint:freeze_violations": {
+      "class": "SCOPE_CREEP",
+      "source": "skills/enforcement/ci-checks/planning-gates/plan_lint.py"
+    },
+    "dependency-decision:missing_decision": {
+      "class": "UNDECLARED_DEVIATION",
+      "source": "skills/enforcement/ci-checks/dependency-decision-check/check_dependency_decisions.py"
+    },
+    "control-file-guard:deny": {
+      "class": "UNAUTHORIZED_ACTION",
+      "source": "skills/enforcement/hooks/control-file-guard/control_file_guard.py"
+    },
+    "control-file-policy:control_files_changed": {
+      "class": "UNAUTHORIZED_ACTION",
+      "source": "skills/enforcement/ci-checks/control-file-policy-check/flag_control_file_changes.py"
+    },
+    "failure-mode:ITERATION_CAP": {
+      "class": "NON_CONVERGENCE",
+      "source": "skills/grounding/agent-failure-modes/reference/failure-catalog.md"
+    },
+    "failure-mode:HANDOFF_CYCLE_CAP": {
+      "class": "NON_CONVERGENCE",
+      "source": "skills/grounding/agent-failure-modes/reference/failure-catalog.md"
+    },
+    "failure-mode:CONTEXT_EXHAUSTED": {
+      "class": "NON_CONVERGENCE",
+      "source": "skills/grounding/agent-failure-modes/reference/failure-catalog.md"
+    },
+    "failure-mode:INVALID_OUTPUT": {
+      "class": "INVALID_OUTPUT",
+      "source": "skills/grounding/agent-failure-modes/reference/failure-catalog.md"
+    },
+    "failure-mode:SCOPE_VIOLATION": {
+      "class": "SCOPE_CREEP",
+      "source": "skills/grounding/agent-failure-modes/reference/failure-catalog.md"
+    },
+    "failure-mode:PERMISSION_DENIAL": {
+      "class": "UNAUTHORIZED_ACTION",
+      "source": "skills/grounding/agent-failure-modes/reference/failure-catalog.md"
+    },
+    "failure-mode:TOOL_FAILURE_PERSISTENT": {
+      "class": null,
+      "source": "skills/grounding/agent-failure-modes/reference/failure-catalog.md",
+      "note": "infrastructure failure; recorded as an efficiency signal, not a skill failure"
+    },
+    "failure-mode:SESSION_CRASH": {
+      "class": null,
+      "source": "skills/grounding/agent-failure-modes/reference/failure-catalog.md",
+      "note": "infrastructure failure; RESUME, not a skill failure"
+    },
+    "failure-mode:SECURITY_REJECT": {
+      "class": "MISSING_SAFEGUARD",
+      "source": "skills/grounding/agent-failure-modes/reference/failure-catalog.md"
+    },
+    "evidence-gate:FAIL": {
+      "class": "UNSOURCED_CLAIM",
+      "source": "skills/grounding/evidence-gate/SKILL.md"
+    },
+    "ci-tests:criteria_test_failed": {
+      "class": "INCORRECT_BEHAVIOR",
+      "source": "CI test results ingested as VERIFIED/FAILED"
+    },
+    "production:incident": {
+      "class": "INCORRECT_BEHAVIOR",
+      "source": "skills/self-improvement/failure-capture/reference/production-feedback.md"
+    },
+    "production:rollback": {
+      "class": "INCORRECT_BEHAVIOR",
+      "source": "skills/self-improvement/failure-capture/reference/production-feedback.md"
+    },
+    "production:perf_regression": {
+      "class": "INCORRECT_BEHAVIOR",
+      "source": "skills/self-improvement/failure-capture/reference/production-feedback.md"
+    },
+    "risk-tiering:size_cap_exceeded": {
+      "class": "OVERSIZED_CHANGE",
+      "source": "skills/change-management/risk-tiering"
+    },
+    "trust-boundaries:secret_pasted": {
+      "class": "SENSITIVE_DATA_EXPOSURE",
+      "source": "skills/grounding/trust-boundaries/SKILL.md",
+      "note": "user pasted a secret into a session; incident records kind/name only, never the value"
+    },
+    "skill-router:mandatory_near_miss": {
+      "class": "INCOMPLETE_ARTIFACT",
+      "source": "skills/skill-routing/skill-router/reference/two-phase-routing.md",
+      "note": "Phase 2 applied a mandatory binding Phase 1's keyword match missed; skill = skill-routing/skill-router"
+    }
+  }
+}

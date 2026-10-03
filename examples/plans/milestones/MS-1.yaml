@@ -1,0 +1,24 @@
+# A milestone is an OUTCOME checkpoint on the time axis — not "backend done".
+id: MS-1
+name: PMs see intraday VaR for equity books
+objective: First usable intraday risk view for the equity desk.
+business_outcome: An equity PM can open the dashboard during trading hours and see their book's VaR with its as-of time.
+success_criteria:
+  - Equity desk PMs (pilot group of 6) use the tile on at least 3 trading days
+  - Displayed VaR is within 1% of the batch figure for the same snapshot
+epic_ids: [EPIC-1]
+story_ids: [ST-1, ST-2, ST-3]
+out_of_scope:
+  - FX books (MS-2)
+entry_criteria:
+  - Spike ST-3 has answered the calculation-latency question
+exit_criteria:
+  - id: MS-1/EX-1
+    description: ST-1 and ST-2 are DONE
+    check: STRUCTURAL
+  - id: MS-1/EX-2
+    description: Pilot PMs confirm the figure is usable for intraday decisions
+    check: APPROVAL
+    approver: human:product-owner
+target_release: risk-platform 2026.11
+target_date: "2026-11-20"

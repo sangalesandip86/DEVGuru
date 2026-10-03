@@ -1,0 +1,13 @@
+{
+  "$comment": "GitHub Copilot hooks.json (.github/hooks/). Copilot has no org-managed hook layer equivalent to Claude Code managed settings: protect .github/hooks/** with CODEOWNERS + a branch ruleset requiring platform-owner review, and run ci-checks/ as a required status check. {{ADLC_ENFORCEMENT_DIR}} is replaced at install time.",
+  "version": 1,
+  "hooks": {
+    "preToolUse": [
+      { "type": "command", "bash": "python3 \"{{ADLC_ENFORCEMENT_DIR}}/hooks/config-change-logger/config_change_logger.py\"", "powershell": "python \"{{ADLC_ENFORCEMENT_DIR}}/hooks/config-change-logger/config_change_logger.py\"", "timeoutSec": 10 },
+      { "type": "command", "bash": "python3 \"{{ADLC_ENFORCEMENT_DIR}}/hooks/control-file-guard/control_file_guard.py\"", "powershell": "python \"{{ADLC_ENFORCEMENT_DIR}}/hooks/control-file-guard/control_file_guard.py\"", "timeoutSec": 10 }
+    ],
+    "postToolUse": [
+      { "type": "command", "bash": "python3 \"{{ADLC_ENFORCEMENT_DIR}}/hooks/fact-writer-hooks/fact_writer.py\"", "powershell": "python \"{{ADLC_ENFORCEMENT_DIR}}/hooks/fact-writer-hooks/fact_writer.py\"", "timeoutSec": 15 }
+    ]
+  }
+}

@@ -1,0 +1,56 @@
+{
+  "$comment": "Canonical list of platform control files (plan \u00a74.1 control-files, \u00a74.11 control-file-policy). Single source of truth: hooks, managed-settings templates and CI checks read or are generated from this file. Globs are repo-relative, forward slashes, '**' matches any depth.",
+  "version": 1,
+  "risk_tier": "CRITICAL",
+  "requires_human_approval": true,
+  "categories": {
+    "agent-config": [
+      ".claude/**",
+      ".github/agents/**",
+      ".github/skills/**",
+      ".github/instructions/**",
+      ".github/copilot-instructions.md"
+    ],
+    "hooks": [
+      ".claude/hooks/**",
+      ".claude/settings.json",
+      ".claude/settings.local.json",
+      ".github/hooks/**"
+    ],
+    "mcp-config": [
+      ".mcp.json",
+      "**/.mcp.json",
+      ".vscode/mcp.json"
+    ],
+    "instruction-files": [
+      "AGENTS.md",
+      "**/AGENTS.md",
+      "CLAUDE.md",
+      "**/CLAUDE.md",
+      "CLAUDE.local.md",
+      "**/CLAUDE.local.md"
+    ],
+    "ownership-and-rulesets": [
+      "CODEOWNERS",
+      ".github/CODEOWNERS",
+      "docs/CODEOWNERS",
+      ".github/rulesets/**"
+    ],
+    "ci-workflows": [
+      ".github/workflows/**",
+      ".gitlab-ci.yml",
+      "azure-pipelines.yml",
+      "Jenkinsfile"
+    ],
+    "platform-definitions": [
+      "skills/**",
+      "dist/**"
+    ],
+    "planning-policies": [
+      "skills/product-planning/policies/**"
+    ]
+  },
+  "explicit_reasons": {
+    "skills/product-planning/policies/**": "DoR/DoD/story-type policy (plan v3.1 \u00a74.12, \u00a75.6) must never be agent-weakenable. Listed explicitly so it stays protected even if 'skills/**' is ever narrowed."
+  }
+}

@@ -1,0 +1,114 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://adlc.local/schemas/workspace-manifest.schema.json",
+  "title": "adlc.workspace.yaml",
+  "description": "A MAP of the repositories a system's work spans (plan v3.1 §4.14). It is NOT a permission grant: scope comes only from the Change Set and the agent's role permissions, so editing this file can never widen what an agent may touch. Not a control file; changes go through a normal PR.",
+  "type": "object",
+  "required": [
+    "version",
+    "system",
+    "repos"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "version": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "system": {
+      "type": "string",
+      "minLength": 1
+    },
+    "draft": {
+      "type": "boolean",
+      "description": "true until a human has reviewed the map (set by --init-local)."
+    },
+    "repos": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/repo"
+      },
+      "minItems": 1
+    },
+    "source_refs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "ref",
+          "trust_level"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "ref": {
+            "type": "string",
+            "minLength": 1,
+            "description": "doc:<doc-id>@<hash12>#<anchor>, repo@sha:path, issue URL, or ledger ENTRY id"
+          },
+          "trust_level": {
+            "enum": [
+              "SYSTEM",
+              "ORGANIZATIONAL",
+              "REPOSITORY",
+              "EXTERNAL_STRUCTURED",
+              "EXTERNAL_UNSTRUCTURED"
+            ]
+          },
+          "note": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "$defs": {
+    "repo": {
+      "type": "object",
+      "required": [
+        "name",
+        "roles"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9._-]+$"
+        },
+        "roles": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "app",
+              "planning",
+              "tests",
+              "contracts",
+              "infra"
+            ]
+          },
+          "minItems": 1
+        },
+        "path": {
+          "type": "string",
+          "description": "local path, relative to the manifest's directory"
+        },
+        "url": {
+          "type": "string"
+        },
+        "default_branch": {
+          "type": "string"
+        },
+        "plans_dir": {
+          "type": "string",
+          "description": "for role planning; default 'plans'"
+        },
+        "service": {
+          "type": "string",
+          "description": "service name from architecture/service-map.yaml"
+        }
+      }
+    }
+  }
+}

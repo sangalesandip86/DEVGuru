@@ -1,0 +1,45 @@
+# Example GitHub Actions workflow. Copy to .github/workflows/control-file-policy-check.yml in
+# each enrolled repo (that path is itself a control file: CODEOWNERS-reviewed, CRITICAL tier).
+# Make "control-file-policy-check" a required status check in the org ruleset.
+name: control-file-policy-check
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  control-file-policy-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # The platform repo is checked out read-only at a pinned SHA — never "latest" (plan §1).
+      - uses: actions/checkout@v4
+        with:
+          repository: YOUR-ORG/adlc-platform
+          ref: PINNED_PLATFORM_RELEASE_SHA
+          path: .adlc-platform
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Managed-settings template is current
+        run: python .adlc-platform/skills/enforcement/managed-settings/generate_deny_list.py --check
+
+      - name: Managed settings deny every control-file glob
+        run: python .adlc-platform/skills/enforcement/ci-checks/control-file-policy-check/check_control_file_policy.py
+
+      - name: Every AGENTS.md has a CLAUDE.md shim
+        run: python .adlc-platform/skills/enforcement/ci-checks/control-file-policy-check/check_agents_md_shim.py --root .
+
+      - name: Control-file changes are flagged CRITICAL
+        if: github.event_name == 'pull_request'
+        run: |
+          git fetch --depth=1 origin "${{ github.base_ref }}"
+          git diff --name-only "origin/${{ github.base_ref }}"...HEAD > changed.txt
+          python .adlc-platform/skills/enforcement/ci-checks/control-file-policy-check/flag_control_file_changes.py changed.txt

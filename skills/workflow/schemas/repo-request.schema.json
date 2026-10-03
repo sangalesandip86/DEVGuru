@@ -1,0 +1,157 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://adlc.local/schemas/repo-request.schema.json",
+  "title": "repo-request.yaml",
+  "description": "A request to create a REMOTE repository. An agent (or human) writes it; only a human or an approved CI workflow executes it, via skills/workflow/repo-bootstrap/scripts/create_repo_from_request.py. Creating a remote repo is EXTERNAL_MUTATION, which agents never perform (plan §4.5 operation classes, §5.9).",
+  "type": "object",
+  "required": [
+    "version",
+    "org",
+    "name",
+    "owner_team",
+    "visibility",
+    "roles",
+    "template",
+    "default_branch",
+    "branch_protection",
+    "codeowners_owner",
+    "requested_by",
+    "justification"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "version": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "org": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9-]+$"
+    },
+    "name": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9._-]{1,99}$"
+    },
+    "system": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "owner_team": {
+      "type": "string",
+      "minLength": 1
+    },
+    "visibility": {
+      "enum": [
+        "private",
+        "internal",
+        "public"
+      ]
+    },
+    "roles": {
+      "type": "array",
+      "items": {
+        "enum": [
+          "app",
+          "planning",
+          "tests",
+          "contracts",
+          "infra"
+        ]
+      },
+      "minItems": 1
+    },
+    "template": {
+      "enum": [
+        "repo-bootstrap"
+      ]
+    },
+    "default_branch": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9._/-]+$"
+    },
+    "branch_protection": {
+      "type": "object",
+      "required": [
+        "required_reviews",
+        "require_codeowners",
+        "required_checks"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "required_reviews": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "require_codeowners": {
+          "enum": [
+            true
+          ]
+        },
+        "required_checks": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "dismiss_stale_reviews": {
+          "type": "boolean"
+        }
+      }
+    },
+    "codeowners_owner": {
+      "type": "string",
+      "pattern": "^@[A-Za-z0-9-]+(/[A-Za-z0-9._-]+)?$"
+    },
+    "requested_by": {
+      "type": "string",
+      "minLength": 1,
+      "description": "actor id, e.g. agent:product-planner or human:jdoe"
+    },
+    "justification": {
+      "type": "string",
+      "minLength": 10
+    },
+    "source_refs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "ref",
+          "trust_level"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "ref": {
+            "type": "string",
+            "minLength": 1,
+            "description": "doc:<doc-id>@<hash12>#<anchor>, repo@sha:path, issue URL, or ledger ENTRY id"
+          },
+          "trust_level": {
+            "enum": [
+              "SYSTEM",
+              "ORGANIZATIONAL",
+              "REPOSITORY",
+              "EXTERNAL_STRUCTURED",
+              "EXTERNAL_UNSTRUCTURED"
+            ]
+          },
+          "note": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "tech_lead_owner": {
+      "type": "string",
+      "pattern": "^@[A-Za-z0-9-]+(/[A-Za-z0-9._-]+)?$",
+      "description": "CODEOWNERS owner for dependency manifests and docs/adr/** (human:tech-lead APPROVAL for new dependencies/boundaries, ADR 0005). If absent the rendered CODEOWNERS keeps the @<tech-lead-team> placeholder and --execute refuses."
+    },
+    "platform_owner": {
+      "type": "string",
+      "pattern": "^@[A-Za-z0-9-]+(/[A-Za-z0-9._-]+)?$",
+      "description": "CODEOWNERS owner for platform control files (AGENTS.md, CLAUDE.md, CODEOWNERS, .github/). If absent the @<platform-team> placeholder remains and --execute refuses."
+    }
+  }
+}

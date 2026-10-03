@@ -1,0 +1,37 @@
+# Follow-up created by the ST-3 spike. Still being drafted: it is expected to be NOT_READY.
+id: ST-4
+title: Compute parametric VaR intraday for equity books every 5 minutes
+type: TECHNICAL_STORY
+objective: Run the parametric VaR calculation chosen in the ST-3 spike on a 5-minute schedule.
+value_statement: so that the read API always has a VaR no older than 5 minutes
+requirement_id: REQ-1
+epic_id: EPIC-1
+follow_up_of: ST-3
+scope:
+  - Scheduled parametric VaR job for equity books
+out_of_scope:
+  - FX books
+affected_paths:
+  - services/risk-engine/src/intraday/**
+acceptance_criteria:
+  - id: ST-4/AC-1
+    given: the intraday position feed has updated
+    when: the scheduler fires
+    then: a new VaR is stored for each equity book within 60 seconds
+    kind: functional
+    verification: automated
+touches:
+  ui: false
+  api_contracts: []
+  data_migration: false
+  infra: false
+data_classification: CONFIDENTIAL
+size: M
+source_refs:
+  - ref: risk-platform@9d1e004:docs/adr/0007-intraday-var-method.md
+    trust_level: REPOSITORY
+dependencies:
+  - ref: intraday-position-feed
+    kind: external
+    status: UNRESOLVED
+    note: feed SLA not yet confirmed by the positions team

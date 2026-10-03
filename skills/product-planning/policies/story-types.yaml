@@ -1,0 +1,102 @@
+# Story types — plan v3.1 §4.12.
+#
+# CONTROL FILE. Listed in skills/governance/default-permissions/reference/control-file-paths.json
+# (skills/**) and therefore denied to agents by managed settings + control-file-guard. A change
+# here is CRITICAL tier and needs human approval.
+#
+# Format: YAML subset understood by skills/enforcement/ci-checks/planning-gates/minyaml.py
+# (block maps/lists, one-line flow lists, quoted/plain scalars, comments). No anchors or tags.
+#
+# tier_floor: minimum effective tier for the type. Effective tier =
+#   max(tier_floor, path-based tier of affected_paths, declared risk_tier).
+#   A floor can RAISE the tier; nothing here can lower it. `null` = no floor.
+# required_roles: roles whose evidence the DoR/DoD will ask for (informational; the items
+#   themselves live in dor-policy.yaml / dod-policy.yaml).
+# dod_variant: `standard` or `spike` (a SPIKE ships knowledge, not production code).
+
+version: 1
+
+types:
+  FEATURE_STORY:
+    description: User-visible behaviour that delivers value to a named persona.
+    tier_floor: null
+    required_roles: [qa-derive, developer, code-reviewer]
+    adds: [persona and value statement, PO acceptance at MEDIUM+]
+    dod_variant: standard
+
+  UI_STORY:
+    description: A change whose primary surface is the user interface.
+    tier_floor: null
+    required_roles: [qa-derive, developer, code-reviewer]
+    adds: [UX expectations, accessibility acceptance criterion, visual-regression and accessibility evidence, PO acceptance at MEDIUM+]
+    dod_variant: standard
+
+  API_CONTRACT:
+    description: Adds or changes a public/shared API, event or schema contract.
+    tier_floor: HIGH
+    required_roles: [qa-derive, developer, architect, code-reviewer, security-reviewer]
+    adds: [contract identified in touches.api_contracts, architect REVIEWED, compatibility-check VERIFIED, consumer impact]
+    dod_variant: standard
+
+  DATA_MIGRATION:
+    description: Changes persisted data shape or content (schema migration, backfill, re-key).
+    tier_floor: HIGH
+    required_roles: [qa-derive, developer, code-reviewer, security-reviewer]
+    adds: [rollback plan, rollback test VERIFIED, data-integrity checks, staged rollout]
+    dod_variant: standard
+
+  SECURITY_STORY:
+    description: Implements or changes a security control, or remediates a vulnerability.
+    tier_floor: HIGH
+    required_roles: [qa-derive, developer, code-reviewer, security-reviewer]
+    adds: [threat statement, security-reviewer REVIEWED ACCEPT, security-testing VERIFIED]
+    dod_variant: standard
+
+  INFRASTRUCTURE:
+    description: IaC, runtime platform, networking, CI runners, base images.
+    tier_floor: MEDIUM
+    required_roles: [developer, code-reviewer]
+    adds: [IaC plan output attached, rollback plan, observability review]
+    dod_variant: standard
+
+  TECHNICAL_STORY:
+    description: Internal technical work with no intended behaviour change visible to users.
+    tier_floor: null
+    required_roles: [qa-derive, developer, code-reviewer]
+    adds: [no-behaviour-change criterion backed by an unchanged test suite VERIFIED]
+    dod_variant: standard
+
+  REFACTOR:
+    description: Restructures code without changing behaviour.
+    tier_floor: null
+    required_roles: [qa-derive, developer, code-reviewer]
+    adds: [no-behaviour-change criterion backed by an unchanged test suite VERIFIED]
+    dod_variant: standard
+
+  BUG_FIX:
+    description: Corrects behaviour that deviates from an accepted requirement.
+    tier_floor: null
+    required_roles: [qa-derive, developer, code-reviewer]
+    adds: [reproduction criterion (failing test first), regression test]
+    dod_variant: standard
+
+  SPIKE:
+    description: Time-boxed investigation that answers one question; output is knowledge, not production code.
+    tier_floor: null
+    required_roles: [developer]
+    adds: [question and time-box, DECISION entry + merged ADR, follow-up stories, no production code merged]
+    dod_variant: spike
+
+  TEST_AUTOMATION:
+    description: Adds or repairs automated tests for existing acceptance criteria.
+    tier_floor: null
+    required_roles: [qa-derive, developer, code-reviewer]
+    adds: [names the AC IDs the new tests cover]
+    dod_variant: standard
+
+  DOCUMENTATION:
+    description: Documentation-only change.
+    tier_floor: LOW
+    required_roles: [code-reviewer]
+    adds: [docs check]
+    dod_variant: standard

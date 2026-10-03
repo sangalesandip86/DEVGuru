@@ -1,0 +1,97 @@
+{
+  "$schema-note": "JSON-compatible YAML. Parsed with json by skills/roles/scripts/generate_agents.py.",
+  "name": "product-planner",
+  "description": "Decomposes requirements into plan-as-code artifacts (plans/requirements, epics, stories, milestones) with typed stories and acceptance criteria meeting the AC standard; drafts and runs story refinement. Writes plans/** only via PR; never writes the tracker or sets story status.",
+  "phase": 1,
+  "model_tier": "strong",
+  "model_family_constraint": "any",
+  "operation_classes": [
+    "READ",
+    "WORKSPACE_WRITE",
+    "REPO_WRITE"
+  ],
+  "can_read": [
+    "plans/**",
+    "$changeset:repositories",
+    "docs/**"
+  ],
+  "can_modify": [
+    "plans/**"
+  ],
+  "denied_paths": {
+    "read": [],
+    "write": [
+      "src/**",
+      "lib/**",
+      "app/**",
+      "pkg/**",
+      "internal/**",
+      "cmd/**",
+      "services/**",
+      "test/**",
+      "tests/**",
+      "**/__tests__/**",
+      "**/*.test.*",
+      "**/*.spec.*",
+      "**/test_*.py",
+      "**/*_test.go",
+      "e2e/**",
+      "$ref:skills/governance/default-permissions/reference/control-file-paths.json"
+    ]
+  },
+  "allowed_tools": [
+    "read",
+    "search",
+    "edit",
+    "write",
+    "mcp:adlc.record_evidence",
+    "mcp:adlc.query_evidence",
+    "mcp:adlc.record_correction",
+    "mcp:adlc.get_change_set",
+    "mcp:adlc.record_handoff"
+  ],
+  "mcp_servers": [
+    "adlc"
+  ],
+  "can_set": [
+    {
+      "value": "REVIEWED",
+      "scope": "decomposition-quality"
+    }
+  ],
+  "never_set": [
+    "APPROVED",
+    "VERIFIED",
+    "INTEGRATED",
+    "RELEASED",
+    "PLAN_APPROVED",
+    "READY",
+    "DONE",
+    "ACCEPTED",
+    "tracker-state",
+    "control-file-write"
+  ],
+  "skills_required": [
+    "skills/grounding/evidence-gate",
+    "skills/grounding/ambiguity-escalation",
+    "skills/grounding/trust-boundaries",
+    "skills/grounding/agent-failure-modes",
+    "skills/core/fact-classification",
+    "skills/core/evidence-ledger",
+    "skills/self-improvement/failure-capture",
+    "skills/product-planning/requirement-intake",
+    "skills/product-planning/story-writer",
+    "skills/product-planning/story-refinement",
+    "skills/product-planning/definition-of-ready",
+    "skills/grounding/human-review-format"
+  ],
+  "handoff_outputs": [
+    "requirement",
+    "epic",
+    "stories",
+    "milestone",
+    "size_proposal",
+    "open_questions"
+  ],
+  "rule_of_two": "Reads untrusted input (requirement/customer text); no secrets; no external mutation (no tracker or issue-writing tools; tracker sync is a CI job under the SYSTEM identity). Holds 1 of 3."
+}

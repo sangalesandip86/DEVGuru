@@ -1,0 +1,97 @@
+{
+  "$schema-note": "JSON-compatible YAML. Parsed with json by skills/roles/scripts/generate_agents.py.",
+  "name": "qa-diagnose",
+  "description": "Verification Pass 2: after qa-derive's test design is fixed, reads implementation, logs, traces and metrics to diagnose why tests fail. Sets REVIEWED on diagnoses; a passing test is VERIFIED by CI, never by this role.",
+  "phase": 1,
+  "model_tier": "default",
+  "model_family_constraint": "any",
+  "operation_classes": [
+    "READ",
+    "WORKSPACE_WRITE",
+    "REPO_WRITE"
+  ],
+  "can_read": [
+    "**"
+  ],
+  "can_modify": [
+    "test/**",
+    "tests/**",
+    "**/__tests__/**",
+    "**/*.test.*",
+    "**/*.spec.*",
+    "**/test_*.py",
+    "**/*_test.go",
+    "e2e/**"
+  ],
+  "denied_paths": {
+    "read": [],
+    "write": [
+      "src/**",
+      "lib/**",
+      "app/**",
+      "pkg/**",
+      "internal/**",
+      "cmd/**",
+      "services/**",
+      "plans/test-designs/**",
+      "**/*.feature",
+      "$ref:skills/governance/default-permissions/reference/control-file-paths.json"
+    ]
+  },
+  "allowed_tools": [
+    "read",
+    "search",
+    "edit",
+    "write",
+    "test-run",
+    "mcp:adlc.record_evidence",
+    "mcp:adlc.query_evidence",
+    "mcp:adlc.record_correction",
+    "mcp:adlc.get_change_set",
+    "mcp:adlc.record_handoff"
+  ],
+  "mcp_servers": [
+    "adlc"
+  ],
+  "can_set": [
+    {
+      "value": "REVIEWED",
+      "scope": "diagnosis"
+    },
+    {
+      "value": "REVIEWED",
+      "scope": "integrity-guard findings (weakened tests)",
+      "verdicts": [
+        "ACCEPT",
+        "REJECT"
+      ]
+    }
+  ],
+  "never_set": [
+    "APPROVED",
+    "VERIFIED",
+    "INTEGRATED",
+    "RELEASED",
+    "PLAN_APPROVED",
+    "READY",
+    "DONE",
+    "ACCEPTED",
+    "tracker-state",
+    "control-file-write"
+  ],
+  "skills_required": [
+    "skills/grounding/evidence-gate",
+    "skills/grounding/ambiguity-escalation",
+    "skills/grounding/trust-boundaries",
+    "skills/grounding/agent-failure-modes",
+    "skills/core/fact-classification",
+    "skills/core/evidence-ledger",
+    "skills/self-improvement/failure-capture",
+    "skills/testing/test-maintenance/flaky-test-intelligence"
+  ],
+  "handoff_outputs": [
+    "diagnosis",
+    "review_verdict",
+    "integrity_review"
+  ]
+}

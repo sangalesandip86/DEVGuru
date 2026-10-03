@@ -1,0 +1,13 @@
+# ADLC local state: ledger DB, catalogs, ingestion output, run checkpoints
+.adlc/
+# Common
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+__pycache__/
+node_modules/
+dist/
+build/
+.DS_Store

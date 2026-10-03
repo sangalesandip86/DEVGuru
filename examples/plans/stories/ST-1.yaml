@@ -1,0 +1,65 @@
+id: ST-1
+title: Show current VaR for my book on the risk dashboard
+type: FEATURE_STORY
+objective: A portfolio manager sees the latest intraday VaR for a book they manage, with its as-of time.
+persona: Equity portfolio manager
+value_statement: so that I can judge intraday risk before limits are breached instead of waiting for the overnight report
+requirement_id: REQ-1
+epic_id: EPIC-1
+feature_id: FEAT-2
+milestone_ids: [MS-1]
+scope:
+  - VaR tile on the existing risk dashboard for books the user is entitled to
+  - As-of timestamp next to the figure
+out_of_scope:
+  - Drill-down by asset class (separate story)
+  - Historical VaR chart
+affected_paths:
+  - web/src/risk-dashboard/var-tile/**
+acceptance_criteria:
+  - id: ST-1/AC-1
+    given: a PM entitled to book EQ-LON-01 whose latest VaR is 1,250,000 USD as of 10:42 UTC
+    when: the PM opens the risk dashboard
+    then: the VaR tile shows "1,250,000 USD" and "as of 10:42 UTC"
+    kind: functional
+    verification: automated
+  - id: ST-1/AC-2
+    given: the latest VaR for the book is older than 15 minutes
+    when: the PM views the tile
+    then: the tile shows a "stale" badge and the age in minutes
+    kind: negative
+    verification: automated
+  - id: ST-1/AC-3
+    given: the VaR read API returns an error
+    when: the PM opens the dashboard
+    then: the tile shows "VaR unavailable" and no number, and the error is logged with the request id
+    kind: negative
+    verification: automated
+  - id: ST-1/AC-4
+    given: a screen-reader user on the dashboard
+    when: focus reaches the VaR tile
+    then: the figure, currency, as-of time and stale state are announced; contrast ratio is at least 4.5:1
+    kind: nfr
+    verification: manual
+    tags: [accessibility]
+touches:
+  ui: true
+  api_contracts: []
+  data_migration: false
+  infra: false
+data_classification: CONFIDENTIAL
+security_considerations: Tile renders only books returned by the entitlement service; no VaR value is cached client-side beyond the session.
+ux: Design risk-platform@3f9c2ab:design/var-tile.fig.md — tile in the top row, badge colours from the design system.
+size: S
+size_basis:
+  predicted_changed_lines: 140
+  repos: 1
+source_refs:
+  - ref: https://tracker.example.com/issues/4211
+    trust_level: EXTERNAL_UNSTRUCTURED
+dependencies:
+  - ref: ST-2
+    kind: story
+    status: RESOLVED
+    evidence_level: DECLARED
+    note: tile consumes the ST-2 endpoint; contract agreed in ST-2 refinement

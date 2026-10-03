@@ -1,0 +1,9 @@
+{
+  "notes": "Workspace map (plan v3.1 §4.14). A MAP, not a permission grant: scope comes from the Change Set and role permissions. Add the other repos of this system as they are created.",
+  "version": 1,
+  "system": "{{system}}",
+  "draft": true,
+  "repos": [
+    {"name": "{{name}}", "roles": {{roles_json}}, "path": ".", "url": "https://github.com/{{org}}/{{name}}", "default_branch": "{{default_branch}}"}
+  ]
+}

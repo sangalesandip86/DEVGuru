@@ -1,0 +1,90 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://adlc.local/schemas/lesson.schema.json",
+  "title": "Self-Improvement Lesson",
+  "description": "ADR 0006 §2. One lesson per (skill, step, failure_class) cluster: sanitized, abstract, in skill terms, shareable at ORG scope only after human APPROVED. Checked by scripts/lesson_lint.py and scripts/sanitize_check.py.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "lesson_id", "skill", "step", "failure_class", "occurrences", "what_failed", "advice",
+    "remedy_kind", "repro", "last_fired", "scope", "status", "sanitization"
+  ],
+  "properties": {
+    "lesson_id": { "type": "string", "pattern": "^LES-[0-9A-Za-z]+$" },
+    "skill": { "type": "string", "pattern": "^[a-z0-9-]+(/[a-z0-9-]+)+$" },
+    "step": { "type": "string", "minLength": 1, "maxLength": 120 },
+    "failure_class": {
+      "enum": [
+        "INCOMPLETE_ARTIFACT", "UNTESTABLE_CRITERIA", "MISSING_NEGATIVE_CASE", "TRACEABILITY_GAP",
+        "UNRESOLVED_DEPENDENCY", "UNRESOLVED_AMBIGUITY", "OVERSIZED_CHANGE", "MISSING_SAFEGUARD",
+        "UNDECLARED_DEVIATION", "SCOPE_CREEP", "UNAUTHORIZED_ACTION", "WEAKENED_TEST",
+        "INEFFECTIVE_TEST", "NONDETERMINISTIC_TEST", "SENSITIVE_DATA_EXPOSURE", "UNSOURCED_CLAIM",
+        "INVALID_OUTPUT", "INCORRECT_BEHAVIOR", "DESIGN_DEFECT", "NON_CONVERGENCE"
+      ]
+    },
+    "occurrences": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["incidents", "change_sets", "projects"],
+      "properties": {
+        "incidents": { "type": "integer", "minimum": 1 },
+        "change_sets": { "type": "integer", "minimum": 1 },
+        "projects": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "what_failed": { "type": "string", "minLength": 10, "maxLength": 200 },
+    "advice": { "type": "string", "minLength": 10, "maxLength": 280 },
+    "check": { "type": "string", "maxLength": 200, "description": "Mechanical form of the advice, if one exists." },
+    "remedy_kind": { "enum": ["GATE", "LINT", "SKILL_TEXT", "EXAMPLE"] },
+    "remedy_target": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["location"],
+      "properties": {
+        "location": { "type": "string", "minLength": 1, "description": "Policy/check path for GATE/LINT; SKILL.md section or reference file for SKILL_TEXT/EXAMPLE." },
+        "replaces_or_merges": { "type": "string", "minLength": 1, "description": "Required for SKILL_TEXT/EXAMPLE: the existing text this replaces or merges into." },
+        "rationale": { "type": "string", "maxLength": 280, "description": "Required when `check` exists but the remedy is SKILL_TEXT/EXAMPLE." }
+      }
+    },
+    "repro": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["evals_path", "eval_id", "fails_on_current", "passes_on_revision"],
+      "properties": {
+        "evals_path": { "type": "string", "minLength": 1 },
+        "eval_id": { "type": ["integer", "string"] },
+        "fails_on_current": { "type": ["boolean", "null"], "description": "null until run" },
+        "passes_on_revision": { "type": ["boolean", "null"] }
+      }
+    },
+    "last_fired": { "type": "string", "format": "date" },
+    "scope": { "enum": ["PROJECT", "ORG"] },
+    "status": { "enum": ["DRAFT", "REVIEWED", "APPROVED", "REJECTED", "RETIRED"] },
+    "sanitization": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["result", "checked_at"],
+      "properties": {
+        "result": { "enum": ["PASS", "FAIL", "NOT_RUN"] },
+        "checked_at": { "type": ["string", "null"] }
+      }
+    },
+    "drafted_by_role": { "type": "string", "description": "Reviewer agent role that drafted the lesson; never the role whose output failed." },
+    "approved_by": { "type": "string", "pattern": "^human:[a-z0-9-]+$" },
+    "platform_release_sha": { "type": "string", "pattern": "^[0-9a-f]{7,64}$" }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "scope": { "const": "ORG" } } },
+      "then": { "required": ["approved_by"], "properties": { "status": { "const": "APPROVED" }, "sanitization": { "properties": { "result": { "const": "PASS" } } } } }
+    },
+    {
+      "if": { "properties": { "status": { "const": "APPROVED" } } },
+      "then": { "required": ["approved_by", "remedy_target"], "properties": { "repro": { "properties": { "fails_on_current": { "const": true }, "passes_on_revision": { "const": true } } } } }
+    },
+    {
+      "if": { "properties": { "remedy_kind": { "enum": ["SKILL_TEXT", "EXAMPLE"] } } },
+      "then": { "required": ["remedy_target"], "properties": { "remedy_target": { "required": ["location", "replaces_or_merges"] } } }
+    }
+  ]
+}

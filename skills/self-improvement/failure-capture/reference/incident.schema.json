@@ -1,0 +1,99 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://adlc.local/schemas/incident.schema.json",
+  "title": "Self-Improvement Incident (signal only)",
+  "description": "ADR 0006. An incident carries a signal and local ledger pointers only: no task text, files, or free-text use-case content. The only prose is an optional sanitized note (<=280 chars) by the reviewer or human who caught the failure. x-not-equal is a platform keyword checked by the evidence_ledger module and skills/self-improvement/scripts/_schema_lite.py.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "incident_id", "signal_type", "signal_source", "skill", "step", "failure_class",
+    "agent_role", "verification_strength", "pattern_eligible", "evidence_refs",
+    "platform_release_sha", "recorded_at", "status"
+  ],
+  "properties": {
+    "incident_id": { "type": "string", "pattern": "^INC-[0-9A-Za-z]+$" },
+    "parent_incident_id": { "type": "string", "pattern": "^INC-[0-9A-Za-z]+$", "description": "Status changes are new rows that reference the original." },
+    "signal_type": { "enum": ["negative", "positive", "unverified-positive", "efficiency", "production"] },
+    "signal_source": { "enum": ["AGENT", "REVIEWER", "HUMAN", "PRODUCTION"] },
+    "skill": { "type": "string", "pattern": "^[a-z0-9-]+(/[a-z0-9-]+)+$", "description": "Catalog path under skills/, e.g. product-planning/story-writer." },
+    "step": { "type": "string", "minLength": 1, "maxLength": 120, "description": "Heading or numbered step of that skill's SKILL.md, e.g. 'Procedure 4 — write acceptance criteria'." },
+    "failure_class": {
+      "enum": [
+        null,
+        "INCOMPLETE_ARTIFACT", "UNTESTABLE_CRITERIA", "MISSING_NEGATIVE_CASE", "TRACEABILITY_GAP",
+        "UNRESOLVED_DEPENDENCY", "UNRESOLVED_AMBIGUITY", "OVERSIZED_CHANGE", "MISSING_SAFEGUARD",
+        "UNDECLARED_DEVIATION", "SCOPE_CREEP", "UNAUTHORIZED_ACTION", "WEAKENED_TEST",
+        "INEFFECTIVE_TEST", "NONDETERMINISTIC_TEST", "SENSITIVE_DATA_EXPOSURE", "UNSOURCED_CLAIM",
+        "INVALID_OUTPUT", "INCORRECT_BEHAVIOR", "DESIGN_DEFECT", "NON_CONVERGENCE"
+      ],
+      "description": "From failure-class-map.json via check_id; picked by the catching reviewer/human only when check_id is null. null for positive/efficiency signals."
+    },
+    "check_id": { "type": ["string", "null"], "pattern": "^[a-z-]+:[A-Za-z0-9_.-]+$", "description": "Key into failure-class-map.json; null = judgment-only failure." },
+    "agent_role": {
+      "enum": ["product-owner", "product-planner", "architect", "developer", "qa-derive", "qa-diagnose", "test-engineer", "security-reviewer", "code-reviewer"],
+      "description": "Role of the agent whose output failed (server-derived from the evidence entries)."
+    },
+    "tool": { "enum": ["claude-code", "copilot"] },
+    "verification_strength": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["changed_code_coverage", "acceptance_criteria_exercised"],
+      "properties": {
+        "changed_code_coverage": { "type": ["number", "null"], "minimum": 0, "maximum": 1 },
+        "acceptance_criteria_exercised": { "type": "boolean" }
+      }
+    },
+    "pattern_eligible": { "type": "boolean" },
+    "evidence_refs": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": { "type": "string", "pattern": "^ENTRY-[0-9A-Za-z]+$" },
+      "description": "Local ledger entry_ids only. They resolve only inside the project's ledger."
+    },
+    "note": { "type": "string", "minLength": 1, "maxLength": 280, "description": "Skill-terms note for judgment-only failures. Never authored by the failing agent." },
+    "note_author_role": {
+      "type": "string",
+      "pattern": "^(human:[a-z-]+|product-owner|product-planner|architect|developer|qa-derive|qa-diagnose|test-engineer|security-reviewer|code-reviewer)$"
+    },
+    "note_sanitize": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["result", "checked_at"],
+      "properties": {
+        "result": { "const": "PASS" },
+        "checked_at": { "type": "string", "format": "date-time" }
+      }
+    },
+    "platform_release_sha": { "type": "string", "pattern": "^[0-9a-f]{7,64}$" },
+    "recorded_at": { "type": "string", "format": "date-time" },
+    "status": { "enum": ["OPEN", "CLUSTERED", "CONVERTED", "DISMISSED"] }
+  },
+  "x-not-equal": [["note_author_role", "agent_role"]],
+  "allOf": [
+    {
+      "if": { "required": ["note"] },
+      "then": { "required": ["note_author_role", "note_sanitize"] }
+    },
+    {
+      "if": { "required": ["check_id"], "properties": { "check_id": { "const": null } } },
+      "then": { "required": ["note"] }
+    },
+    {
+      "if": { "properties": { "signal_type": { "enum": ["negative", "production"] } } },
+      "then": { "required": ["check_id"], "properties": { "failure_class": { "type": "string" } } }
+    },
+    {
+      "if": { "properties": { "signal_type": { "enum": ["positive", "unverified-positive", "efficiency"] } } },
+      "then": { "properties": { "failure_class": { "const": null } } }
+    },
+    {
+      "if": { "properties": { "signal_type": { "const": "unverified-positive" } } },
+      "then": { "properties": { "pattern_eligible": { "const": false } } }
+    },
+    {
+      "if": { "properties": { "signal_type": { "const": "positive" } } },
+      "then": { "properties": { "verification_strength": { "properties": { "acceptance_criteria_exercised": { "const": true }, "changed_code_coverage": { "type": "number" } } } } }
+    }
+  ]
+}

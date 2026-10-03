@@ -1,0 +1,17 @@
+# STRIDE threat model per trust-boundary crossing in c4/containers.md.
+# Unmitigated threats with severity HIGH or above are RISK ledger entries.
+# category: Spoofing / Tampering / Repudiation / Information disclosure / Denial of service / Elevation of privilege
+# status: planned / implemented / accepted-risk (accepted-risk needs a human approval)
+threats:
+  - id: TM-1
+    flow: "support agent -> payments-api"
+    category: Elevation of privilege
+    threat: An agent issues a refund above their approval limit
+    severity: HIGH
+    mitigation: Server-side limit check per role (PER-1 permissions); audit log entry per refund
+    verification: Negative AC on the refund story; security-reviewer REVIEWED
+    owner: payments
+    status: planned
+    source_refs:
+      - ref: "acme-plans@<sha>:plans/intake/personas.yaml#PER-1"
+        trust_level: REPOSITORY

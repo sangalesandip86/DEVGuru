@@ -1,0 +1,249 @@
+# Definition of Ready — plan v3.1 §4.12. Evaluated by
+# skills/enforcement/ci-checks/planning-gates/readiness_gate.py (SYSTEM CI job).
+#
+# CONTROL FILE — never agent-writable (managed-settings deny + control-file-guard).
+# An agent that can weaken the DoR has no DoR.
+#
+# Item fields
+#   id           stable identifier (reported by the gate, referenced by reviews' `item`)
+#   description  human-readable criterion
+#   applies      `mandatory`, or a mapping with one of:
+#                  when:     {cond}            all keys must hold
+#                  when_any: [{cond}, {cond}]  at least one cond must hold
+#                cond keys: type, not_type (lists of story types); tier_at_least (effective
+#                tier); touches (list of touches flags — any truthy); data_classification (list);
+#                size (list)
+#   check        STRUCTURAL | JUDGMENT | APPROVAL
+#     STRUCTURAL  `function` names a deterministic check in planning_lib.STRUCTURAL_CHECKS.
+#                 A pass is machine evidence (VERIFIED).
+#     JUDGMENT    `role` must have recorded REVIEWED with verdict ACCEPT for this item.
+#                 `pin_ac_hash: true` → the review must carry the story's CURRENT AC hash.
+#                 Never satisfied by structural data or by a SYSTEM actor.
+#     APPROVAL    `approver` (human:<role>) must have an authenticated HUMAN approval event.
+#
+# The gate checks that the required KIND of evidence exists from the required actor. It never
+# makes a judgment itself.
+
+version: 1
+stage: READY
+
+items:
+  # ---------------------------------------------------------------- mandatory, structural
+  - id: schema_valid
+    description: Story file validates against story.schema.json (no status field, AC IDs well-formed).
+    applies: mandatory
+    check: STRUCTURAL
+    function: schema_valid
+
+  - id: objective_stated
+    description: Objective is stated.
+    applies: mandatory
+    check: STRUCTURAL
+    function: has_objective
+
+  - id: value_statement
+    description: Business value is stated ("so that ...").
+    applies:
+      when:
+        not_type: [SPIKE, DOCUMENTATION]
+    check: STRUCTURAL
+    function: has_value_statement
+
+  - id: persona_identified
+    description: User/persona is identified.
+    applies:
+      when:
+        type: [FEATURE_STORY, UI_STORY]
+    check: STRUCTURAL
+    function: has_persona
+
+  - id: scope_defined
+    description: Scope and explicit out-of-scope are defined.
+    applies: mandatory
+    check: STRUCTURAL
+    function: has_scope
+
+  - id: ac_standard
+    description: At least one acceptance criterion; every AC meets the AC standard (ID, Given/When/Then, kind, verification).
+    applies:
+      when:
+        not_type: [SPIKE]
+    check: STRUCTURAL
+    function: ac_meet_standard
+
+  - id: negative_ac
+    description: At least one negative/error-path acceptance criterion.
+    applies:
+      when:
+        not_type: [SPIKE, DOCUMENTATION]
+    check: STRUCTURAL
+    function: has_negative_ac
+
+  - id: nfr_quantified
+    description: Every nfr-kind criterion states a measurable number.
+    applies: mandatory
+    check: STRUCTURAL
+    function: nfr_ac_quantified
+
+  - id: traceability
+    description: Story traces to a requirement and has source_refs with trust levels.
+    applies: mandatory
+    check: STRUCTURAL
+    function: has_traceability
+
+  - id: dependencies_resolved
+    description: Dependencies assessed; none UNRESOLVED; every ACCEPTED_RISK names a human owner.
+    applies: mandatory
+    check: STRUCTURAL
+    function: dependencies_resolved
+
+  - id: no_blocking_questions
+    description: No OPEN QUESTION tagged blocking:true is linked to the story.
+    applies: mandatory
+    check: STRUCTURAL
+    function: no_open_blocking_questions
+
+  - id: no_risky_assumptions
+    description: No unexpired ASSUMPTION with impact above LOW is linked to the story.
+    applies: mandatory
+    check: STRUCTURAL
+    function: no_unexpired_risky_assumptions
+
+  - id: size_ok
+    description: Size is XS, S or M. An L must be split before READY.
+    applies: mandatory
+    check: STRUCTURAL
+    function: size_within_limit
+
+  # ---------------------------------------------------------------- conditional, structural
+  - id: security_considerations
+    description: Security considerations are written down.
+    applies:
+      when_any:
+        - type: [SECURITY_STORY]
+        - data_classification: [CONFIDENTIAL, RESTRICTED]
+    check: STRUCTURAL
+    function: has_security_considerations
+
+  - id: threat_statement
+    description: Threat statement for a security story.
+    applies:
+      when:
+        type: [SECURITY_STORY]
+    check: STRUCTURAL
+    function: has_threat_statement
+
+  - id: contracts_identified
+    description: Affected contracts are identified in touches.api_contracts.
+    applies:
+      when_any:
+        - type: [API_CONTRACT]
+        - touches: [api_contracts]
+    check: STRUCTURAL
+    function: has_contract_refs
+
+  - id: ux_defined
+    description: UX expectations are defined.
+    applies:
+      when_any:
+        - type: [UI_STORY]
+        - touches: [ui]
+    check: STRUCTURAL
+    function: has_ux
+
+  - id: accessibility_ac
+    description: At least one acceptance criterion tagged accessibility.
+    applies:
+      when_any:
+        - type: [UI_STORY]
+        - touches: [ui]
+    check: STRUCTURAL
+    function: has_accessibility_ac
+
+  - id: rollback_plan
+    description: Rollback plan is written down.
+    applies:
+      when_any:
+        - type: [DATA_MIGRATION, INFRASTRUCTURE]
+        - touches: [data_migration, infra]
+    check: STRUCTURAL
+    function: has_rollback_plan
+
+  - id: nfrs_identified
+    description: Non-functional requirements identified (nfrs list or nfr-kind AC).
+    applies:
+      when:
+        tier_at_least: HIGH
+        not_type: [SPIKE]
+    check: STRUCTURAL
+    function: has_nfrs
+
+  - id: bug_reproduction
+    description: A reproduction criterion (tag reproduction) that fails before the fix.
+    applies:
+      when:
+        type: [BUG_FIX]
+    check: STRUCTURAL
+    function: has_reproduction_ac
+
+  - id: no_behaviour_change_ac
+    description: A criterion tagged no-behaviour-change.
+    applies:
+      when:
+        type: [REFACTOR, TECHNICAL_STORY]
+    check: STRUCTURAL
+    function: has_no_behaviour_change_ac
+
+  - id: spike_framed
+    description: Spike states the single question it answers and a time-box (<= 10 days).
+    applies:
+      when:
+        type: [SPIKE]
+    check: STRUCTURAL
+    function: spike_framed
+
+  # ---------------------------------------------------------------- judgments (REVIEWED)
+  - id: qa_testability
+    description: qa-derive produced a test outline from the AC alone (implementation-blind) and accepts them as testable.
+    applies:
+      when:
+        not_type: [SPIKE, DOCUMENTATION]
+    check: JUDGMENT
+    role: qa-derive
+    pin_ac_hash: true
+
+  - id: developer_feasibility
+    description: developer confirms feasibility and size against the current snapshot.
+    applies: mandatory
+    check: JUDGMENT
+    role: developer
+    pin_ac_hash: true
+
+  - id: architect_contract_review
+    description: architect reviewed the contract change and consumer impact.
+    applies:
+      when_any:
+        - type: [API_CONTRACT]
+        - touches: [api_contracts]
+    check: JUDGMENT
+    role: architect
+    pin_ac_hash: true
+
+  - id: security_design_review
+    description: security-reviewer reviewed the security considerations.
+    applies:
+      when_any:
+        - type: [SECURITY_STORY]
+        - data_classification: [RESTRICTED]
+    check: JUDGMENT
+    role: security-reviewer
+    pin_ac_hash: true
+
+  # ---------------------------------------------------------------- approvals (APPROVED)
+  - id: scope_approval
+    description: Human product owner approved the scope (Degraded Mode until the product-owner agent role exists).
+    applies:
+      when:
+        tier_at_least: HIGH
+    check: APPROVAL
+    approver: human:product-owner

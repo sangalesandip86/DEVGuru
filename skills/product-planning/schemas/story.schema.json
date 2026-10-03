@@ -1,0 +1,364 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://adlc.local/schemas/story.schema.json",
+  "title": "Story (ST-n)",
+  "description": "Plan files never carry a status: status is derived by the planning gates and recorded in the Evidence Ledger (plan v3.1 §4.12). additionalProperties:false makes a 'status' field a schema error.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "title",
+    "type",
+    "objective",
+    "requirement_id",
+    "scope",
+    "out_of_scope",
+    "acceptance_criteria",
+    "size",
+    "source_refs",
+    "touches",
+    "data_classification"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^ST-\\d+$"
+    },
+    "title": {
+      "type": "string",
+      "minLength": 3
+    },
+    "type": {
+      "enum": [
+        "FEATURE_STORY",
+        "UI_STORY",
+        "API_CONTRACT",
+        "DATA_MIGRATION",
+        "SECURITY_STORY",
+        "INFRASTRUCTURE",
+        "TECHNICAL_STORY",
+        "REFACTOR",
+        "BUG_FIX",
+        "SPIKE",
+        "TEST_AUTOMATION",
+        "DOCUMENTATION"
+      ]
+    },
+    "objective": {
+      "type": "string",
+      "minLength": 5
+    },
+    "persona": {
+      "type": "string",
+      "description": "Required by the DoR for FEATURE_STORY and UI_STORY"
+    },
+    "value_statement": {
+      "type": "string",
+      "description": "'so that ...' - why this matters"
+    },
+    "requirement_id": {
+      "type": "string",
+      "pattern": "^REQ-\\d+$"
+    },
+    "epic_id": {
+      "type": "string",
+      "pattern": "^EPIC-\\d+$"
+    },
+    "feature_id": {
+      "type": "string",
+      "pattern": "^FEAT-\\d+$"
+    },
+    "milestone_ids": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^MS-\\d+$"
+      }
+    },
+    "follow_up_of": {
+      "type": "string",
+      "pattern": "^ST-\\d+$",
+      "description": "Set on stories created by a SPIKE or by a SPLIT"
+    },
+    "scope": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string"
+      }
+    },
+    "out_of_scope": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "affected_paths": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Predicted repo-relative globs. Feed the path-based tier at READY and the scope check at DONE."
+    },
+    "acceptance_criteria": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/acceptance_criterion"
+      }
+    },
+    "nfrs": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "touches": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "ui": {
+          "type": "boolean"
+        },
+        "api_contracts": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "data_migration": {
+          "type": "boolean"
+        },
+        "infra": {
+          "type": "boolean"
+        }
+      }
+    },
+    "data_classification": {
+      "enum": [
+        "PUBLIC",
+        "INTERNAL",
+        "CONFIDENTIAL",
+        "RESTRICTED"
+      ]
+    },
+    "size": {
+      "enum": [
+        "XS",
+        "S",
+        "M",
+        "L"
+      ]
+    },
+    "size_basis": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "predicted_changed_lines": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "repos": {
+          "type": "integer",
+          "minimum": 1
+        }
+      }
+    },
+    "risk_tier": {
+      "enum": [
+        "LOW",
+        "MEDIUM",
+        "HIGH",
+        "CRITICAL"
+      ],
+      "description": "Declared tier. Effective tier = max(type floor, path tier, declared): a declaration can raise the tier, never lower it."
+    },
+    "source_refs": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/source_ref"
+      }
+    },
+    "dependencies": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/dependency"
+      }
+    },
+    "security_considerations": {
+      "type": "string"
+    },
+    "threat_statement": {
+      "type": "string"
+    },
+    "ux": {
+      "type": "string",
+      "description": "UX expectations: design reference (repo@sha:path or URL) and behaviour notes"
+    },
+    "rollback_plan": {
+      "type": "string"
+    },
+    "spike": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "question",
+        "timebox_days"
+      ],
+      "properties": {
+        "question": {
+          "type": "string",
+          "minLength": 5
+        },
+        "timebox_days": {
+          "type": "number",
+          "minimum": 0.5,
+          "maximum": 10
+        },
+        "options": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "$defs": {
+    "source_ref": {
+      "type": "object",
+      "required": [
+        "ref",
+        "trust_level"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "ref": {
+          "type": "string",
+          "minLength": 1,
+          "description": "repo@sha:path, issue URL, doc URL, or the ledger ENTRY-id of a recorded user statement"
+        },
+        "trust_level": {
+          "enum": [
+            "SYSTEM",
+            "ORGANIZATIONAL",
+            "REPOSITORY",
+            "EXTERNAL_STRUCTURED",
+            "EXTERNAL_UNSTRUCTURED"
+          ]
+        },
+        "note": {
+          "type": "string"
+        }
+      }
+    },
+    "dependency": {
+      "type": "object",
+      "required": [
+        "ref",
+        "status"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "ref": {
+          "type": "string",
+          "minLength": 1,
+          "description": "ST-n, EPIC-n, MS-n, a contract id, or an external system/team"
+        },
+        "kind": {
+          "enum": [
+            "story",
+            "epic",
+            "contract",
+            "external",
+            "data",
+            "environment",
+            "team"
+          ]
+        },
+        "status": {
+          "enum": [
+            "RESOLVED",
+            "UNRESOLVED",
+            "ACCEPTED_RISK"
+          ]
+        },
+        "evidence_level": {
+          "enum": [
+            "DECLARED",
+            "STATIC",
+            "OBSERVED"
+          ]
+        },
+        "owner": {
+          "type": "string",
+          "description": "Required when status is ACCEPTED_RISK: the human (human:<role>) who accepted the risk"
+        },
+        "note": {
+          "type": "string"
+        }
+      }
+    },
+    "acceptance_criterion": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "given",
+        "when",
+        "then",
+        "kind",
+        "verification"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^ST-\\d+/AC-\\d+$"
+        },
+        "given": {
+          "type": "string",
+          "minLength": 3
+        },
+        "when": {
+          "type": "string",
+          "minLength": 3
+        },
+        "then": {
+          "type": "string",
+          "minLength": 3
+        },
+        "kind": {
+          "enum": [
+            "functional",
+            "negative",
+            "nfr"
+          ]
+        },
+        "verification": {
+          "enum": [
+            "automated",
+            "manual"
+          ]
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "accessibility",
+              "reproduction",
+              "regression",
+              "security",
+              "observability",
+              "no-behaviour-change",
+              "rollback",
+              "data-integrity"
+            ]
+          }
+        }
+      }
+    }
+  }
+}

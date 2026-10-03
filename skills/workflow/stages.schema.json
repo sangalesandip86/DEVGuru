@@ -1,0 +1,314 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://adlc.local/schemas/stages.schema.json",
+  "title": "Workflow stage graph (plan v3.1 §4.14)",
+  "description": "Schema for skills/workflow/stages.yaml. Uses only the JSON-Schema subset understood by planning_lib.validate.",
+  "type": "object",
+  "required": [
+    "version",
+    "order",
+    "artifact_kinds",
+    "stages",
+    "degraded_mode"
+  ],
+  "properties": {
+    "version": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "order": {
+      "type": "array",
+      "items": {
+        "enum": [
+          "INTAKE",
+          "ARCHITECTURE",
+          "PLAN",
+          "DESIGN",
+          "IMPLEMENT",
+          "TEST",
+          "REVIEW",
+          "INTEGRATE",
+          "RELEASE",
+          "LEARN"
+        ]
+      },
+      "minItems": 10
+    },
+    "artifact_kinds": {
+      "type": "object"
+    },
+    "stages": {
+      "type": "object",
+      "required": [
+        "INTAKE",
+        "ARCHITECTURE",
+        "PLAN",
+        "DESIGN",
+        "IMPLEMENT",
+        "TEST",
+        "REVIEW",
+        "INTEGRATE",
+        "RELEASE",
+        "LEARN"
+      ],
+      "properties": {
+        "INTAKE": {
+          "$ref": "#/$defs/stage"
+        },
+        "ARCHITECTURE": {
+          "$ref": "#/$defs/stage"
+        },
+        "PLAN": {
+          "$ref": "#/$defs/stage"
+        },
+        "DESIGN": {
+          "$ref": "#/$defs/stage"
+        },
+        "IMPLEMENT": {
+          "$ref": "#/$defs/stage"
+        },
+        "TEST": {
+          "$ref": "#/$defs/stage"
+        },
+        "REVIEW": {
+          "$ref": "#/$defs/stage"
+        },
+        "INTEGRATE": {
+          "$ref": "#/$defs/stage"
+        },
+        "RELEASE": {
+          "$ref": "#/$defs/stage"
+        },
+        "LEARN": {
+          "$ref": "#/$defs/stage"
+        }
+      }
+    },
+    "degraded_mode": {
+      "type": "object"
+    },
+    "requirement_conditions": {
+      "type": "object"
+    }
+  },
+  "$defs": {
+    "stage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "purpose",
+        "inputs",
+        "outputs",
+        "exit_gate",
+        "lead_roles",
+        "skills",
+        "repo_roles",
+        "observed_only"
+      ],
+      "properties": {
+        "purpose": {
+          "type": "string",
+          "minLength": 5
+        },
+        "accepts": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "story_scoped": {
+          "type": "boolean"
+        },
+        "inputs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/input"
+          }
+        },
+        "outputs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "documents": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "exit_gate": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/gate"
+          },
+          "minItems": 1
+        },
+        "lead_roles": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "skills": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^skills/"
+          }
+        },
+        "repo_roles": {
+          "type": "object",
+          "required": [
+            "required",
+            "optional"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "required": {
+              "type": "array",
+              "items": {
+                "enum": [
+                  "app",
+                  "planning",
+                  "tests",
+                  "contracts",
+                  "infra"
+                ]
+              }
+            },
+            "optional": {
+              "type": "array",
+              "items": {
+                "enum": [
+                  "app",
+                  "planning",
+                  "tests",
+                  "contracts",
+                  "infra"
+                ]
+              }
+            }
+          }
+        },
+        "observed_only": {
+          "type": "boolean"
+        }
+      }
+    },
+    "input": {
+      "type": "object",
+      "required": [
+        "kind",
+        "required"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "type": "string"
+        },
+        "required": {
+          "enum": [
+            "always",
+            "never",
+            "tier>=MEDIUM",
+            "tier>=HIGH",
+            "existing_repo"
+          ]
+        },
+        "backfill": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "default": {
+              "enum": [
+                "INTAKE",
+                "ARCHITECTURE",
+                "PLAN",
+                "DESIGN",
+                "IMPLEMENT",
+                "TEST",
+                "REVIEW",
+                "INTEGRATE",
+                "RELEASE",
+                "LEARN",
+                "ASK",
+                "RUN_CONVENTION_SCAN"
+              ]
+            },
+            "inline_story": {
+              "type": "object",
+              "required": [
+                "max_tier",
+                "story_types"
+              ],
+              "properties": {
+                "max_tier": {
+                  "enum": [
+                    "LOW",
+                    "MEDIUM",
+                    "HIGH",
+                    "CRITICAL"
+                  ]
+                },
+                "story_types": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            },
+            "characterization": {
+              "type": "boolean"
+            }
+          }
+        },
+        "adopt_only": {
+          "type": "boolean"
+        },
+        "note": {
+          "type": "string"
+        }
+      }
+    },
+    "gate": {
+      "type": "object",
+      "required": [
+        "kind",
+        "ref",
+        "description"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "enum": [
+            "script",
+            "evidence",
+            "judgment",
+            "approval",
+            "observed",
+            "frozen"
+          ]
+        },
+        "ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "role": {
+          "type": "string"
+        },
+        "approver": {
+          "type": "string",
+          "pattern": "^human:"
+        },
+        "when": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}

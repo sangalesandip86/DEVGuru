@@ -1,0 +1,110 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://adlc.local/schemas/test-design.schema.json",
+  "title": "Test design (frozen oracle) — plans/test-designs/ST-n.yaml",
+  "description": "Authored only by qa-derive from AC + contracts. No status field: freshness is derived from ac_hash. Plan v3.1 §4.13, ADR 0003.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["story", "ac_hash", "scenarios"],
+  "properties": {
+    "story": {"type": "string", "pattern": "^ST-\\d+$"},
+    "ac_hash": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"},
+    "designed_by": {"const": "qa-derive"},
+    "design_entry": {"type": "string"},
+    "inputs": {
+      "type": "object",
+      "additionalProperties": {"$ref": "#/$defs/fieldSpec"}
+    },
+    "scenarios": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"$ref": "#/$defs/scenario"}
+    },
+    "gaps": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "question", "proposed", "blocking"],
+        "properties": {
+          "id": {"type": "string", "pattern": "^ST-\\d+/GAP-\\d+$"},
+          "question": {"type": "string", "minLength": 5},
+          "proposed": {"type": "string", "minLength": 1, "description": "never ask empty-handed"},
+          "question_entry": {"type": "string"},
+          "blocking": {"type": "boolean"}
+        }
+      }
+    }
+  },
+  "$defs": {
+    "fieldSpec": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "source"],
+      "properties": {
+        "type": {"enum": ["integer", "number", "string", "enum", "boolean", "date", "array"]},
+        "min": {}, "max": {},
+        "min_length": {"type": "integer", "minimum": 0},
+        "max_length": {"type": "integer", "minimum": 0},
+        "min_items": {"type": "integer", "minimum": 0},
+        "max_items": {"type": "integer", "minimum": 0},
+        "precision": {"type": "integer", "minimum": 0},
+        "step": {"type": "number"},
+        "pattern": {"type": "string"},
+        "enum": {"type": "array", "minItems": 1},
+        "examples_valid": {"type": "array"},
+        "examples_invalid": {"type": "array"},
+        "required": {"type": "boolean"},
+        "nullable": {"type": "boolean"},
+        "unique_items": {"type": "boolean"},
+        "items": {"type": "object"},
+        "source": {"type": "string", "pattern": "^ST-\\d+/AC-\\d+$|^contract:.+$"}
+      }
+    },
+    "scenario": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "ac_refs", "technique", "given", "when", "then"],
+      "properties": {
+        "id": {"type": "string", "pattern": "^ST-\\d+/SC-\\d+$"},
+        "ac_refs": {"type": "array", "minItems": 1, "items": {"type": "string", "pattern": "^ST-\\d+/AC-\\d+$"}},
+        "technique": {"enum": ["BVA", "EP", "decision-table", "state-transition", "pairwise", "error-guessing", "use-case"]},
+        "kind": {"enum": ["functional", "negative", "nfr"]},
+        "tier_hint": {"enum": ["unit", "component", "contract", "bdd", "e2e", "manual"]},
+        "given": {"type": "string", "minLength": 1},
+        "when": {"type": "string", "minLength": 1},
+        "then": {"type": "string", "minLength": 1},
+        "expected": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["outcome"],
+            "properties": {
+              "partition": {"type": "string"},
+              "outcome": {"type": "string", "minLength": 1},
+              "error": {"type": "string"},
+              "threshold": {"type": "string", "description": "NFR scenarios: a number, e.g. p95<300ms@200rps"}
+            }
+          }
+        },
+        "data": {
+          "type": "object",
+          "properties": {
+            "vary": {"type": "array", "items": {"type": "string"}},
+            "hold": {"type": "object"}
+          }
+        },
+        "source": {"enum": ["ac", "implementation-finding"]},
+        "finding_entry": {"type": "string"},
+        "retired": {"type": "boolean"},
+        "retired_reason": {"type": "string"}
+      },
+      "allOf": [
+        {"if": {"properties": {"source": {"const": "implementation-finding"}}, "required": ["source"]},
+         "then": {"required": ["finding_entry"]}},
+        {"if": {"properties": {"retired": {"const": true}}, "required": ["retired"]},
+         "then": {"required": ["retired_reason"]}}
+      ]
+    }
+  }
+}

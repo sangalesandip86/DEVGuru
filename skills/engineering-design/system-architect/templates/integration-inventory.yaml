@@ -1,0 +1,17 @@
+# Integration / contract inventory. Feeds /contracts (contract-registry) and the threat model.
+integrations:
+  - id: INT-1
+    from: payments-api
+    to: card-psp
+    direction: outbound
+    protocol: HTTPS/JSON
+    contract: "contracts@<sha>:psp/openapi-v3.yaml"
+    type: api
+    compatibility_policy: "provider-owned; pin major v3"
+    owner_team: payments
+    failure_mode: "timeout 2 s, then refund queued for retry; idempotency key per refund"
+    data_classification: CONFIDENTIAL
+    source_refs:
+      - ref: "doc:payments-brd@<hash>#integrations/psp"
+        trust_level: REPOSITORY
+# contract: "TBD" is allowed only together with a QUESTION entry id in `open_question`.

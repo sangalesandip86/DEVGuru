@@ -1,0 +1,95 @@
+# Example GitHub Actions wiring for the planning gates (plan v3.1 §4.12).
+#
+# Copy into the planning repository's .github/workflows/ (a CONTROL FILE path — a human
+# installs it; agents cannot write there). Jobs run with the SYSTEM identity: the workflow
+# token, plus an ADLC service credential for the ledger export. No agent session ever holds
+# the tracker-write credential (Rule of Two, §5.9).
+name: planning-gates
+
+on:
+  pull_request:
+    paths: ["plans/**"]
+  push:
+    branches: [main]
+    paths: ["plans/**"]
+  repository_dispatch:
+    # emitted by the adlc server when new evidence lands (review, approval, CI result, merge)
+    types: [adlc-evidence-updated]
+
+permissions:
+  contents: read
+
+env:
+  GATES: platform/skills/enforcement/ci-checks/planning-gates
+
+jobs:
+  plan-lint:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4          # the platform repo, pinned to a released SHA
+        with:
+          repository: your-org/adlc-platform
+          ref: ${{ vars.ADLC_PLATFORM_SHA }}
+          path: platform
+      - name: Export readiness record (SYSTEM)
+        run: python platform/skills/mcp-servers/adlc-mcp/scripts/ledger_cli.py export-planning-evidence > evidence.json
+        env:
+          ADLC_TOKEN: ${{ secrets.ADLC_SYSTEM_TOKEN }}
+      - name: plan-lint
+        # Freeze violations do not fail the PR: changing AC is allowed — it resets the story
+        # to REFINING. The comment makes the consequence visible to the reviewer.
+        run: python $GATES/plan_lint.py plans --readiness evidence.json | tee lint.json
+      - name: Comment AC-freeze consequences
+        if: always()
+        run: python -c "import json;d=json.load(open('lint.json'));[print('::warning::'+v['story']+' -> REQUIRES_REFINING: '+v['reason']) for v in d['freeze_violations']]"
+
+  gates-and-projection:
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    concurrency: planning-projection      # one writer to the tracker at a time
+    permissions:
+      contents: read
+      issues: write                       # tracker projection ONLY happens here
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          repository: your-org/adlc-platform
+          ref: ${{ vars.ADLC_PLATFORM_SHA }}
+          path: platform
+      - name: Export evidence (SYSTEM)
+        run: python platform/skills/mcp-servers/adlc-mcp/scripts/ledger_cli.py export-planning-evidence > evidence.json
+        env:
+          ADLC_TOKEN: ${{ secrets.ADLC_SYSTEM_TOKEN }}
+      - name: Evaluate every story
+        run: |
+          mkdir -p out
+          python $GATES/plan_lint.py plans --readiness evidence.json > out/lint.json || exit 1
+          for f in plans/stories/ST-*.yaml; do
+            id=$(basename "$f" .yaml)
+            python $GATES/readiness_gate.py  --plans plans --story "$id" --evidence evidence.json > "out/$id.ready.json"  || true
+            python $GATES/completion_gate.py --plans plans --story "$id" --evidence evidence.json > "out/$id.done.json"   || true
+          done
+      - name: Record derived statuses in the ledger (SYSTEM)
+        # derives each story's status from lint (freeze), ready and done results and appends
+        # FACT entries via the SYSTEM credential — the ledger is the status of record
+        run: python platform/skills/mcp-servers/adlc-mcp/scripts/ledger_cli.py record-planning-status out/
+        env:
+          ADLC_TOKEN: ${{ secrets.ADLC_SYSTEM_TOKEN }}
+      - name: Project to GitHub Issues (sketch)
+        # Tracker is a projection: issue type from story.type, sub-issues from epic/story,
+        # GitHub Milestones from MS-*, labels `status:<derived>`, `tier:<effective>`, and the
+        # gate's missing items as a checklist comment. Body is regenerated from the plan file;
+        # edits made in the tracker are overwritten (plan files are the source of truth).
+        run: python platform/tools/tracker_projection.py --plans plans --results out --repo "$GITHUB_REPOSITORY"
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+  # In each IMPLEMENTING repo's CI (shown here for reference):
+  # ac-coverage:
+  #   steps:
+  #     - run: <test command producing junit.xml>
+  #     - run: python $GATES/ac_coverage.py --tests tests --junit junit.xml > ac-coverage.json
+  #     - run: python platform/skills/mcp-servers/adlc-mcp/scripts/ledger_cli.py ingest-ac-coverage ac-coverage.json

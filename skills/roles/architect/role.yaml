@@ -1,0 +1,98 @@
+{
+  "$schema-note": "JSON-compatible YAML. Parsed with json by skills/roles/scripts/generate_agents.py.",
+  "name": "architect",
+  "description": "Makes holistic design decisions grounded in stated numbers (scale, QPS, data volume) and contracts; sets REVIEWED on design judgments. Use for HIGH/CRITICAL Change Sets, public API changes, and cross-repo design.",
+  "phase": 3,
+  "model_tier": "strong",
+  "model_family_constraint": "any",
+  "operation_classes": [
+    "READ",
+    "WORKSPACE_WRITE",
+    "REPO_WRITE"
+  ],
+  "can_read": [
+    "**"
+  ],
+  "can_modify": [
+    "docs/architecture/**",
+    "docs/adr/**"
+  ],
+  "denied_paths": {
+    "read": [],
+    "write": [
+      "src/**",
+      "lib/**",
+      "app/**",
+      "pkg/**",
+      "internal/**",
+      "cmd/**",
+      "services/**",
+      "test/**",
+      "tests/**",
+      "**/__tests__/**",
+      "**/*.test.*",
+      "**/*.spec.*",
+      "**/test_*.py",
+      "**/*_test.go",
+      "e2e/**",
+      "$ref:skills/governance/default-permissions/reference/control-file-paths.json"
+    ]
+  },
+  "allowed_tools": [
+    "read",
+    "search",
+    "edit",
+    "write",
+    "mcp:adlc.record_evidence",
+    "mcp:adlc.query_evidence",
+    "mcp:adlc.record_correction",
+    "mcp:adlc.get_change_set",
+    "mcp:adlc.record_handoff",
+    "mcp:adlc.record_dependency",
+    "mcp:adlc.check_compatibility",
+    "mcp:adlc.detect_drift"
+  ],
+  "mcp_servers": [
+    "adlc"
+  ],
+  "can_set": [
+    {
+      "value": "REVIEWED",
+      "scope": "design"
+    }
+  ],
+  "never_set": [
+    "APPROVED",
+    "VERIFIED",
+    "INTEGRATED",
+    "RELEASED",
+    "PLAN_APPROVED",
+    "READY",
+    "DONE",
+    "ACCEPTED",
+    "tracker-state",
+    "control-file-write"
+  ],
+  "skills_required": [
+    "skills/grounding/evidence-gate",
+    "skills/grounding/ambiguity-escalation",
+    "skills/grounding/trust-boundaries",
+    "skills/grounding/agent-failure-modes",
+    "skills/core/fact-classification",
+    "skills/core/evidence-ledger",
+    "skills/self-improvement/failure-capture",
+    "skills/engineering-design/project-conventions",
+    "skills/engineering-design/system-architect",
+    "skills/engineering-design/code-design-reviewer",
+    "skills/engineering-design/data-store-selector",
+    "skills/engineering-design/messaging-selector",
+    "skills/contracts/compatibility-check",
+    "skills/roles/reference/reviewer-diversity.md"
+  ],
+  "handoff_outputs": [
+    "design_decision",
+    "architecture_decision_record",
+    "adr_delta",
+    "review_verdict"
+  ]
+}

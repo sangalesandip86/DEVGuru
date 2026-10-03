@@ -1,0 +1,61 @@
+id: ST-2
+title: Expose intraday VaR by portfolio through the risk read API
+type: API_CONTRACT
+objective: Consumers can read the latest intraday VaR of a portfolio through a versioned endpoint.
+value_statement: so that the dashboard and downstream limit monitoring use one authoritative VaR source
+requirement_id: REQ-1
+epic_id: EPIC-1
+feature_id: FEAT-1
+milestone_ids: [MS-1]
+scope:
+  - GET /v1/portfolios/{id}/var returning value, currency, confidence, horizon and as_of
+  - OpenAPI spec update and contract registration
+out_of_scope:
+  - Write or recalculation endpoints
+affected_paths:
+  - services/risk-api/src/var/**
+  - services/risk-api/openapi.yaml
+acceptance_criteria:
+  - id: ST-2/AC-1
+    given: portfolio EQ-LON-01 with a VaR computed at 10:42 UTC
+    when: an entitled client calls GET /v1/portfolios/EQ-LON-01/var
+    then: the response is 200 with value, currency "USD", confidence 0.99, horizon "1d" and as_of "10:42Z"
+    kind: functional
+    verification: automated
+  - id: ST-2/AC-2
+    given: a client not entitled to the portfolio
+    when: it calls the endpoint
+    then: the response is 403 and the body does not reveal whether the portfolio exists
+    kind: negative
+    verification: automated
+    tags: [security]
+  - id: ST-2/AC-3
+    given: 200 requests per second across 50 portfolios
+    when: the endpoint is load-tested for 10 minutes
+    then: p95 latency is under 300 ms and the error rate is under 0.1%
+    kind: nfr
+    verification: automated
+nfrs:
+  - p95 < 300 ms at 200 RPS
+touches:
+  ui: false
+  api_contracts: [risk-api.var.v1]
+  data_migration: false
+  infra: false
+data_classification: CONFIDENTIAL
+security_considerations: Entitlement check per portfolio; 403 must not leak existence; responses not cached by intermediaries.
+size: M
+size_basis:
+  predicted_changed_lines: 320
+  repos: 1
+source_refs:
+  - ref: https://tracker.example.com/issues/4211
+    trust_level: EXTERNAL_UNSTRUCTURED
+  - ref: risk-platform@3f9c2ab:docs/methodology/var-v4.md
+    trust_level: REPOSITORY
+dependencies:
+  - ref: ST-3
+    kind: story
+    status: RESOLVED
+    evidence_level: DECLARED
+    note: spike answered the calculation-latency question

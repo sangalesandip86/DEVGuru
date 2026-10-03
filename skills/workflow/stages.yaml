@@ -1,0 +1,218 @@
+{
+  "$comment": "Workflow stage graph (plan v3.1 §4.14, §4.15; ADR 0004, ADR 0005). JSON-compatible YAML: parsed by skills/enforcement/ci-checks/planning-gates/minyaml.py (tries JSON first). Stages describe a unit of WORK's path; they are not the platform's build phases (§2). Validated by stages.schema.json. This file is platform configuration (under skills/**, a control file): agents read it, never edit it.",
+  "version": 1,
+  "order": ["INTAKE", "ARCHITECTURE", "PLAN", "DESIGN", "IMPLEMENT", "TEST", "REVIEW", "INTEGRATE", "RELEASE", "LEARN"],
+
+  "artifact_kinds": {
+    "source-doc":          {"repo_role": "planning", "locations": ["plans/intake/source-register.yaml", ".adlc/ingest/source-register.json"], "description": "Registered source documents with content hashes and section anchors (requirements-ingestion)."},
+    "requirement":         {"repo_role": "planning", "locations": ["plans/requirements/REQ-*.yaml"], "description": "REQ-n records (skills/product-planning/schemas/requirement.schema.json)."},
+    "nfr-catalog":         {"repo_role": "planning", "locations": ["plans/intake/nfr-catalog.yaml"], "description": "Measurable non-functional requirements (NFR-n)."},
+    "glossary":            {"repo_role": "planning", "locations": ["plans/intake/glossary.yaml"], "description": "Terms, definitions, domain entities and relationships."},
+    "traceability-matrix": {"repo_role": "planning", "locations": ["plans/intake/traceability-matrix.yaml"], "description": "Every ingested doc section → REQ/NFR/constraint, or an explicit NOT_REQUIREMENT / QUESTION."},
+    "conventions-catalog": {"repo_role": "app", "locations": [".adlc/catalog/conventions.json"], "description": "Declared standards + observed conventions of an EXISTING repo (convention_scan.py, §4.15). Required only when the target repo already contains code."},
+    "architecture-package":{"repo_role": "planning", "locations": ["architecture/README.md", "architecture/service-map.yaml"], "description": "Solution-level architecture document set (engineering-design/architecture-package)."},
+    "adr":                 {"repo_role": "planning", "locations": ["architecture/adr/ADR-*.md", "docs/adr/*.md"], "description": "Architecture decision records (MADR)."},
+    "contract":            {"repo_role": "contracts", "locations": ["**/openapi*.yaml", "**/openapi*.json", "**/asyncapi*.yaml", "**/*.proto", "pacts/**"], "description": "API / event / schema contracts."},
+    "epic":                {"repo_role": "planning", "locations": ["plans/epics/EPIC-*.yaml"], "description": "Epics."},
+    "ready-story":         {"repo_role": "planning", "locations": ["plans/stories/ST-*.yaml"], "description": "A story whose readiness-gate result is READY."},
+    "milestone":           {"repo_role": "planning", "locations": ["plans/milestones/MS-*.yaml"], "description": "Outcome checkpoints."},
+    "test-design":         {"repo_role": "planning", "locations": ["plans/test-designs/ST-*.yaml", "**/*.feature"], "description": "qa-derive's frozen test design, pinned to the story's AC hash."},
+    "change-set":          {"repo_role": "app", "locations": [], "description": "Change Set / PR declaring `Implements: ST-n` (evidence export: change_sets)."},
+    "test-suite":          {"repo_role": "app", "locations": ["test/**", "tests/**", "**/__tests__/**", "e2e/**", "integration_test/**", "features/**"], "description": "Automated tests for the change."},
+    "review-verdict":      {"repo_role": "app", "locations": [], "description": "REVIEWED verdicts (evidence export: reviews)."},
+    "release-record":      {"repo_role": "app", "locations": [], "description": "Observed deployment record + environment approval (evidence export: deployments)."},
+    "incident":            {"repo_role": "planning", "locations": [], "description": "Production signal / correcting entry (evidence export: incidents)."}
+  },
+
+  "stages": {
+    "INTAKE": {
+      "purpose": "Ingest requirement documents (or tracker items / a raw request) and produce the sourced INTAKE document set.",
+      "accepts": ["document", "tracker-export", "raw-request"],
+      "inputs": [
+        {"kind": "source-doc", "required": "always", "backfill": {"default": "ASK"}, "note": "Docs, a tracker export or a raw request must be supplied; nothing upstream can produce them."}
+      ],
+      "outputs": ["source-doc", "requirement", "nfr-catalog", "glossary", "traceability-matrix"],
+      "documents": ["source register", "REQ-*.yaml", "NFR catalog", "glossary & domain model", "personas", "constraints & assumptions", "open-questions log (view over ledger QUESTIONs)", "traceability matrix"],
+      "exit_gate": [
+        {"kind": "script", "ref": "skills/enforcement/ci-checks/planning-gates/plan_lint.py", "description": "REQ files valid, referentially sound, no status field"},
+        {"kind": "script", "ref": "skills/workflow/stage-preflight/scripts/stage_preflight.py", "description": "intake coverage: every ingested section appears in the traceability matrix"},
+        {"kind": "evidence", "ref": "questions", "description": "no OPEN blocking QUESTION on an in-scope REQ"}
+      ],
+      "lead_roles": ["product-planner"],
+      "skills": ["skills/workflow/requirements-ingestion", "skills/workflow/brownfield-adoption", "skills/product-planning/requirement-intake", "skills/grounding/ambiguity-escalation"],
+      "repo_roles": {"required": ["planning"], "optional": []},
+      "observed_only": false
+    },
+    "ARCHITECTURE": {
+      "purpose": "Solution-level architecture. Existing system: start from current state and produce a DELTA. Greenfield: establish standards.",
+      "inputs": [
+        {"kind": "requirement", "required": "always", "backfill": {"default": "INTAKE"}},
+        {"kind": "nfr-catalog", "required": "always", "backfill": {"default": "INTAKE"}},
+        {"kind": "conventions-catalog", "required": "existing_repo", "backfill": {"default": "RUN_CONVENTION_SCAN"}},
+        {"kind": "architecture-package", "required": "never", "adopt_only": true, "note": "Current-state architecture of an existing system is ADOPTED as input (brownfield-adoption), never redesigned."}
+      ],
+      "outputs": ["architecture-package", "adr", "contract"],
+      "documents": ["current-state architecture (brownfield) / standards baseline (greenfield)", "C4 L1/L2", "solution architecture doc", "ADRs (MADR)", "NFR → tactic mapping", "integration/contract inventory", "data model", "STRIDE threat model", "deployment view", "risk register", "service/repo map → adlc.workspace.yaml"],
+      "exit_gate": [
+        {"kind": "judgment", "ref": "architecture_review", "role": "architect", "description": "architect REVIEWED/ACCEPT on the architecture package"},
+        {"kind": "approval", "ref": "architecture_approval", "approver": "human:tech-lead", "when": "tier>=HIGH or superseding_adr", "description": "human:tech-lead APPROVAL for HIGH+ systems and for any ADR that supersedes an existing decision"}
+      ],
+      "lead_roles": ["architect"],
+      "skills": ["skills/engineering-design/architecture-package", "skills/engineering-design/system-architect", "skills/engineering-design/project-conventions", "skills/engineering-design/data-store-selector", "skills/engineering-design/messaging-selector", "skills/workflow/brownfield-adoption"],
+      "repo_roles": {"required": ["planning"], "optional": ["app", "contracts", "infra"]},
+      "observed_only": false
+    },
+    "PLAN": {
+      "purpose": "Epics, stories with AC, milestones, cut along the architecture's service boundaries.",
+      "inputs": [
+        {"kind": "requirement", "required": "always", "backfill": {"default": "INTAKE"}},
+        {"kind": "architecture-package", "required": "tier>=MEDIUM", "backfill": {"default": "ARCHITECTURE"}, "note": "LOW-tier single-repo work may plan without a package."}
+      ],
+      "outputs": ["epic", "ready-story", "milestone"],
+      "documents": ["EPIC-*.yaml", "ST-*.yaml with AC", "MS-*.yaml", "release map", "dependency map"],
+      "exit_gate": [
+        {"kind": "script", "ref": "skills/enforcement/ci-checks/planning-gates/readiness_gate.py", "description": "Definition of Ready, per story"}
+      ],
+      "lead_roles": ["product-planner"],
+      "skills": ["skills/product-planning/epic-decomposer", "skills/product-planning/story-writer", "skills/product-planning/story-refinement", "skills/product-planning/milestone-planner", "skills/product-planning/definition-of-ready"],
+      "repo_roles": {"required": ["planning"], "optional": []},
+      "observed_only": false
+    },
+    "DESIGN": {
+      "purpose": "Story-level design and the frozen, code-blind test design.",
+      "story_scoped": true,
+      "inputs": [
+        {"kind": "ready-story", "required": "always", "backfill": {"default": "PLAN"}},
+        {"kind": "architecture-package", "required": "tier>=HIGH", "backfill": {"default": "ARCHITECTURE"}},
+        {"kind": "conventions-catalog", "required": "existing_repo", "backfill": {"default": "RUN_CONVENTION_SCAN"}}
+      ],
+      "outputs": ["test-design", "adr", "contract"],
+      "documents": ["story design notes", "contract changes", "plans/test-designs/ST-n.yaml or *.feature"],
+      "exit_gate": [
+        {"kind": "judgment", "ref": "design_review", "role": "architect", "when": "tier>=HIGH", "description": "design REVIEWED"},
+        {"kind": "frozen", "ref": "test-design", "description": "test design ac_hash equals the story's current AC hash"}
+      ],
+      "lead_roles": ["architect", "qa-derive"],
+      "skills": ["skills/testing/test-design/test-case-design", "skills/testing/test-design/bdd-feature-authoring", "skills/engineering-design/project-conventions"],
+      "repo_roles": {"required": ["planning", "app"], "optional": ["contracts"]},
+      "observed_only": false
+    },
+    "IMPLEMENT": {
+      "purpose": "Change Set + code on a branch, following the project's own standards (§4.15).",
+      "story_scoped": true,
+      "inputs": [
+        {"kind": "ready-story", "required": "always", "backfill": {"default": "PLAN", "inline_story": {"max_tier": "LOW", "story_types": ["BUG_FIX", "DOCUMENTATION"]}}, "note": "HIGH+ without a READY story → BACKFILL PLAN (refinement only) before any code."},
+        {"kind": "test-design", "required": "tier>=HIGH", "backfill": {"default": "DESIGN"}},
+        {"kind": "conventions-catalog", "required": "existing_repo", "backfill": {"default": "RUN_CONVENTION_SCAN"}}
+      ],
+      "outputs": ["change-set"],
+      "documents": ["branch + PR declaring `Implements: ST-n`"],
+      "exit_gate": [
+        {"kind": "evidence", "ref": "gates.ci_build", "description": "CI build VERIFIED"},
+        {"kind": "evidence", "ref": "gates.unit_tests", "description": "unit tests VERIFIED"}
+      ],
+      "lead_roles": ["developer"],
+      "skills": ["skills/engineering-design/project-conventions", "skills/change-management/change-set"],
+      "repo_roles": {"required": ["app"], "optional": ["contracts", "infra"]},
+      "observed_only": false
+    },
+    "TEST": {
+      "purpose": "Bind the frozen test design to the code (test-engineer); or characterization tests for legacy code.",
+      "story_scoped": true,
+      "inputs": [
+        {"kind": "test-design", "required": "always", "backfill": {"default": "DESIGN", "characterization": true}, "note": "No AC and no design → characterization mode (tagged, ASSUMPTION recorded, never AC verification) or BACKFILL PLAN+DESIGN."}
+      ],
+      "outputs": ["test-suite"],
+      "documents": ["suites, fixtures/builders, page objects, step definitions, impact plan"],
+      "exit_gate": [
+        {"kind": "script", "ref": "skills/enforcement/ci-checks/test-integrity/test_integrity_guard.py", "description": "no weakened tests; expectations change only with an AC-hash change"},
+        {"kind": "script", "ref": "skills/enforcement/ci-checks/planning-gates/ac_coverage.py", "description": "every automated AC covered by a passing test"},
+        {"kind": "evidence", "ref": "gates.red_green", "description": "new tests fail on base, pass on head"},
+        {"kind": "evidence", "ref": "gates.new_test_flake", "description": "new tests flake rate 0 over 5 random-order runs"}
+      ],
+      "lead_roles": ["test-engineer"],
+      "skills": ["skills/testing/test-architecture/test-repo-discovery", "skills/testing/test-implementation/suite-authoring", "skills/testing/test-data/test-data-synthesis", "skills/testing/test-implementation/bdd-step-binding"],
+      "repo_roles": {"required": ["app"], "optional": ["tests"]},
+      "observed_only": false
+    },
+    "REVIEW": {
+      "purpose": "Independent REVIEWED verdicts for the tier's gates.",
+      "story_scoped": true,
+      "inputs": [
+        {"kind": "change-set", "required": "always", "backfill": {"default": "IMPLEMENT"}},
+        {"kind": "test-suite", "required": "always", "backfill": {"default": "TEST"}}
+      ],
+      "outputs": ["review-verdict"],
+      "documents": ["code-review and security-review verdicts with evidence"],
+      "exit_gate": [
+        {"kind": "evidence", "ref": "tier_gates", "description": "all gates for the tier (§5.4) VERIFIED / REVIEWED"}
+      ],
+      "lead_roles": ["code-reviewer", "security-reviewer"],
+      "skills": ["skills/engineering-design/code-design-reviewer", "skills/testing/security-testing/sast-scanner"],
+      "repo_roles": {"required": ["app"], "optional": []},
+      "observed_only": false
+    },
+    "INTEGRATE": {
+      "purpose": "Observed merge on the target branch. Runs can stop *at* INTEGRATE; nobody 'performs' it from a session.",
+      "story_scoped": true,
+      "inputs": [
+        {"kind": "change-set", "required": "always", "backfill": {"default": "IMPLEMENT"}},
+        {"kind": "review-verdict", "required": "always", "backfill": {"default": "REVIEW"}}
+      ],
+      "outputs": [],
+      "exit_gate": [
+        {"kind": "observed", "ref": "forge.pr_merged", "description": "merge event ingested by the server (§5.10)"},
+        {"kind": "script", "ref": "skills/enforcement/ci-checks/planning-gates/completion_gate.py", "description": "story Definition of Done"}
+      ],
+      "lead_roles": [],
+      "skills": [],
+      "repo_roles": {"required": ["app"], "optional": []},
+      "observed_only": true
+    },
+    "RELEASE": {
+      "purpose": "Observed deployment record + environment approval per the approval matrix (§4.5).",
+      "inputs": [
+        {"kind": "change-set", "required": "always", "backfill": {"default": "IMPLEMENT"}}
+      ],
+      "outputs": ["release-record"],
+      "exit_gate": [
+        {"kind": "observed", "ref": "ci.deployment", "description": "deployment record + environment approval event"}
+      ],
+      "lead_roles": [],
+      "skills": [],
+      "repo_roles": {"required": ["app"], "optional": ["infra"]},
+      "observed_only": true
+    },
+    "LEARN": {
+      "purpose": "Production feedback and human-gated improvement of the platform itself.",
+      "inputs": [
+        {"kind": "release-record", "required": "never"},
+        {"kind": "incident", "required": "never"}
+      ],
+      "outputs": ["incident"],
+      "exit_gate": [
+        {"kind": "judgment", "ref": "improvement_review", "role": "human", "description": "improvement-review: REVIEWED → human APPROVED"}
+      ],
+      "lead_roles": [],
+      "skills": ["skills/self-improvement/failure-capture", "skills/self-improvement/improvement-review"],
+      "repo_roles": {"required": [], "optional": ["planning"]},
+      "observed_only": false
+    }
+  },
+
+  "degraded_mode": {
+    "$comment": "When a stage's lead agent role is not built yet in the current build phase (§2 Degraded Mode), the stage routes to the named human, recorded as that role's handoff target.",
+    "architect": "human:tech-lead",
+    "product-owner": "human:product-owner",
+    "security-reviewer": "human:security-lead"
+  },
+
+  "requirement_conditions": {
+    "$comment": "Vocabulary for inputs[].required.",
+    "always": "required in every run",
+    "never": "optional; used when present (ADOPT/SATISFIED), never backfilled",
+    "tier>=MEDIUM": "required when the effective tier is MEDIUM or above (unknown tier = HIGH)",
+    "tier>=HIGH": "required when the effective tier is HIGH or above (unknown tier = HIGH)",
+    "existing_repo": "required when the target app repo already contains code (brownfield, §4.15)"
+  }
+}

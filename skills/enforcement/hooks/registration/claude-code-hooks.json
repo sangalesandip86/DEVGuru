@@ -1,0 +1,22 @@
+{
+  "$comment": "Claude Code hook registration. Deliver via MANAGED settings (org scope), not .claude/settings.json — a repo-local registration is editable by the agent it is meant to constrain. {{ADLC_ENFORCEMENT_DIR}} is replaced at install time with the managed install path of skills/enforcement.",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit|NotebookEdit|Bash|PowerShell",
+        "hooks": [
+          { "type": "command", "command": "python \"{{ADLC_ENFORCEMENT_DIR}}/hooks/config-change-logger/config_change_logger.py\"", "timeout": 10 },
+          { "type": "command", "command": "python \"{{ADLC_ENFORCEMENT_DIR}}/hooks/control-file-guard/control_file_guard.py\"", "timeout": 10 }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Read|Bash|PowerShell|Grep|Glob|WebFetch|WebSearch|mcp__.*",
+        "hooks": [
+          { "type": "command", "command": "python \"{{ADLC_ENFORCEMENT_DIR}}/hooks/fact-writer-hooks/fact_writer.py\"", "timeout": 15 }
+        ]
+      }
+    ]
+  }
+}

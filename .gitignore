@@ -1,0 +1,6 @@
+.adlc/
+__pycache__/
+*.pyc
+*.db
+build/
+.venv/

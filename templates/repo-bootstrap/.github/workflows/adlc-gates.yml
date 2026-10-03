@@ -1,0 +1,63 @@
+# Shipped by the ADLC platform (templates/repo-bootstrap). Control file: changes need human approval.
+# Platform checks are pinned to a platform release SHA; never "latest" (plan §1).
+name: adlc-gates
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  adlc-control-file-policy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - uses: actions/checkout@v4
+        with:
+          repository: {{platform_repo}}
+          ref: {{platform_sha}}
+          path: .adlc-platform
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - name: Flag control-file changes for human review
+        run: |
+          git diff --name-only "origin/${{ github.base_ref }}...HEAD" > "$RUNNER_TEMP/changed.txt"
+          python .adlc-platform/skills/enforcement/ci-checks/control-file-policy-check/flag_control_file_changes.py "$RUNNER_TEMP/changed.txt"
+      - name: AGENTS.md / CLAUDE.md shim intact
+        run: python .adlc-platform/skills/enforcement/ci-checks/control-file-policy-check/check_agents_md_shim.py --root . --strict
+
+  dependency-decision-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - uses: actions/checkout@v4
+        with:
+          repository: {{platform_repo}}
+          ref: {{platform_sha}}
+          path: .adlc-platform
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      # Optional: export DECISION entries for this Change Set from the adlc ledger first (--evidence).
+      - name: New dependencies are backed by a DECISION (plan §4.15)
+        run: >
+          python .adlc-platform/skills/enforcement/ci-checks/dependency-decision-check/check_dependency_decisions.py
+          --base "origin/${{ github.base_ref }}" --head HEAD
+
+  plan-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          repository: {{platform_repo}}
+          ref: {{platform_sha}}
+          path: .adlc-platform
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - name: Plan files valid (no status fields, references resolve)
+        run: |
+          if [ -d plans ]; then
+            python .adlc-platform/skills/enforcement/ci-checks/planning-gates/plan_lint.py plans
+          fi

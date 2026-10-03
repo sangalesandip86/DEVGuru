@@ -1,0 +1,32 @@
+# Shipped by the ADLC platform (templates/repo-bootstrap). Control file: agents never edit it.
+# The last matching pattern wins.
+
+# Default owners
+*                         {{codeowners_owner}}
+
+# Dependency manifests and architecture decisions need human:tech-lead approval (plan v3.1 §4.15,
+# ADR 0005): a new dependency or a boundary change is a DECISION. The forge enforces this through
+# CODEOWNERS review, alongside the dependency-decision-check CI job.
+package.json              {{tech_lead_owner}}
+pyproject.toml            {{tech_lead_owner}}
+requirements*.txt         {{tech_lead_owner}}
+requirements*.in          {{tech_lead_owner}}
+pom.xml                   {{tech_lead_owner}}
+build.gradle*             {{tech_lead_owner}}
+settings.gradle*          {{tech_lead_owner}}
+go.mod                    {{tech_lead_owner}}
+Cargo.toml                {{tech_lead_owner}}
+pubspec.yaml              {{tech_lead_owner}}
+*.csproj                  {{tech_lead_owner}}
+/docs/adr/                {{tech_lead_owner}}
+/architecture/adr/        {{tech_lead_owner}}
+
+# Platform control files (plan §4.1): human approval, never agent-written
+/AGENTS.md                {{platform_owner}}
+**/AGENTS.md              {{platform_owner}}
+/CLAUDE.md                {{platform_owner}}
+**/CLAUDE.md              {{platform_owner}}
+/CODEOWNERS               {{platform_owner}}
+/.github/                 {{platform_owner}}
+/.claude/                 {{platform_owner}}
+/.mcp.json                {{platform_owner}}

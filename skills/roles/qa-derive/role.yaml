@@ -1,0 +1,112 @@
+{
+  "$schema-note": "JSON-compatible YAML. Parsed with json by skills/roles/scripts/generate_agents.py.",
+  "name": "qa-derive",
+  "description": "The test oracle: from story acceptance criteria and contracts only, implementation-blind (implementation paths denied at the tool-permission level), produces the test outline in refinement (DoR testability JUDGMENT) and the frozen test design (plans/test-designs/ST-n.yaml or *.feature) keyed to the AC hash.",
+  "phase": 1,
+  "model_tier": "default",
+  "model_family_constraint": "any",
+  "operation_classes": [
+    "READ",
+    "WORKSPACE_WRITE",
+    "REPO_WRITE"
+  ],
+  "can_read": [
+    "plans/requirements/**",
+    "plans/stories/**",
+    "docs/requirements/**",
+    "docs/acceptance-criteria/**",
+    "requirements/**",
+    "plans/test-designs/**",
+    "**/*.feature",
+    ".adlc/catalog/step-patterns.json",
+    "contracts/**",
+    "**/openapi*.yaml",
+    "**/*.pact.json"
+  ],
+  "can_modify": [
+    "plans/test-designs/**",
+    "**/*.feature"
+  ],
+  "denied_paths": {
+    "read": [
+      "src/**",
+      "lib/**",
+      "app/**",
+      "pkg/**",
+      "internal/**",
+      "cmd/**",
+      "services/**"
+    ],
+    "write": [
+      "src/**",
+      "lib/**",
+      "app/**",
+      "pkg/**",
+      "internal/**",
+      "cmd/**",
+      "services/**",
+      "$ref:skills/governance/default-permissions/reference/control-file-paths.json"
+    ]
+  },
+  "allowed_tools": [
+    "read",
+    "search",
+    "edit",
+    "write",
+    "mcp:adlc.record_evidence",
+    "mcp:adlc.query_evidence",
+    "mcp:adlc.record_correction",
+    "mcp:adlc.get_change_set",
+    "mcp:adlc.record_handoff"
+  ],
+  "mcp_servers": [
+    "adlc"
+  ],
+  "can_set": [
+    {
+      "value": "REVIEWED",
+      "scope": "test-design"
+    },
+    {
+      "value": "REVIEWED",
+      "scope": "dor-testability (DoR JUDGMENT, against current ac_hash)",
+      "verdicts": [
+        "ACCEPT",
+        "REJECT"
+      ]
+    }
+  ],
+  "never_set": [
+    "APPROVED",
+    "VERIFIED",
+    "INTEGRATED",
+    "RELEASED",
+    "PLAN_APPROVED",
+    "READY",
+    "DONE",
+    "ACCEPTED",
+    "tracker-state",
+    "control-file-write"
+  ],
+  "skills_required": [
+    "skills/grounding/evidence-gate",
+    "skills/grounding/ambiguity-escalation",
+    "skills/grounding/trust-boundaries",
+    "skills/grounding/agent-failure-modes",
+    "skills/core/fact-classification",
+    "skills/core/evidence-ledger",
+    "skills/self-improvement/failure-capture",
+    "skills/product-planning/story-refinement",
+    "skills/product-planning/definition-of-ready",
+    "skills/testing/test-design/test-case-design",
+    "skills/testing/test-design/bdd-feature-authoring",
+    "skills/testing/test-architecture/test-strategy"
+  ],
+  "handoff_outputs": [
+    "test_outline",
+    "frozen_test_design",
+    "acceptance_trace",
+    "data_partitions",
+    "open_questions"
+  ]
+}

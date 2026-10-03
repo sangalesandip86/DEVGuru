@@ -1,0 +1,73 @@
+{
+  "$schema-note": "JSON-compatible YAML. Parsed with json by skills/roles/scripts/generate_agents.py.",
+  "name": "code-reviewer",
+  "description": "Correctness, maintainability and conformance review of the diff against the project's conventions catalog, golden files and declared standards, separate from QA's requirement-level verification. Read-only; sets REVIEWED on code quality.",
+  "phase": 1,
+  "model_tier": "default",
+  "model_family_constraint": "different-from-implementer-for-HIGH-CRITICAL",
+  "operation_classes": [
+    "READ"
+  ],
+  "can_read": [
+    "$changeset:repositories"
+  ],
+  "can_modify": [],
+  "denied_paths": {
+    "read": [],
+    "write": [
+      "**",
+      "$ref:skills/governance/default-permissions/reference/control-file-paths.json"
+    ]
+  },
+  "allowed_tools": [
+    "read",
+    "search",
+    "mcp:adlc.record_evidence",
+    "mcp:adlc.query_evidence",
+    "mcp:adlc.record_correction",
+    "mcp:adlc.get_change_set",
+    "mcp:adlc.record_handoff"
+  ],
+  "mcp_servers": [
+    "adlc"
+  ],
+  "can_set": [
+    {
+      "value": "REVIEWED",
+      "scope": "code-quality",
+      "verdicts": [
+        "ACCEPT",
+        "REJECT"
+      ]
+    }
+  ],
+  "never_set": [
+    "APPROVED",
+    "VERIFIED",
+    "INTEGRATED",
+    "RELEASED",
+    "PLAN_APPROVED",
+    "READY",
+    "DONE",
+    "ACCEPTED",
+    "tracker-state",
+    "control-file-write"
+  ],
+  "skills_required": [
+    "skills/grounding/evidence-gate",
+    "skills/grounding/ambiguity-escalation",
+    "skills/grounding/trust-boundaries",
+    "skills/grounding/agent-failure-modes",
+    "skills/core/fact-classification",
+    "skills/core/evidence-ledger",
+    "skills/self-improvement/failure-capture",
+    "skills/engineering-design/project-conventions",
+    "skills/engineering-design/code-design-reviewer",
+    "skills/roles/reference/reviewer-diversity.md"
+  ],
+  "handoff_outputs": [
+    "review_verdict",
+    "review_comments",
+    "conformance_findings"
+  ]
+}

@@ -1,0 +1,25 @@
+# Requirement — produced by requirement-intake. The verbatim customer request is NOT copied
+# here: it stays in the referenced issue (EXTERNAL_UNSTRUCTURED) and is treated as data.
+id: REQ-1
+title: Real-time portfolio risk monitoring
+statement: >
+  Portfolio managers need to see the current Value-at-Risk (VaR) of the books they manage
+  during the trading day, instead of waiting for the overnight batch report.
+requested_by: Head of Portfolio Management
+business_outcome: Portfolio managers act on intraday risk before limits are breached, not the next morning.
+success_metrics:
+  - Median staleness of the VaR a PM sees during trading hours is under 5 minutes
+  - At least 80% of PMs use the intraday view weekly within 6 weeks of launch
+constraints:
+  - VaR methodology must match the overnight batch within 1% for the same inputs
+  - Positions data is CONFIDENTIAL and must not leave the risk platform
+out_of_scope:
+  - Stress testing and scenario analysis
+  - Changes to the overnight batch report
+source_refs:
+  - ref: https://tracker.example.com/issues/4211
+    trust_level: EXTERNAL_UNSTRUCTURED
+    note: original request from the PM desk
+  - ref: risk-platform@3f9c2ab:docs/methodology/var-v4.md
+    trust_level: REPOSITORY
+data_classification: CONFIDENTIAL

@@ -1,0 +1,43 @@
+# Example impact plan for ST-12 (transfer limits), Mode A in a Flutter app with a separate E2E repo.
+# Validated against impact-plan.schema.json. CI compares files[].path with the PR diff.
+story: ST-12
+change_set: CS-881
+mode: A_SURGICAL
+design_ref: "planning@9f1c2ab:plans/test-designs/ST-12.yaml"
+design_ac_hash: "sha256:4be1f0c9a1d24e6f0b3a7c58e2d9f6a1b0c3d4e5f60718293a4b5c6d7e8f9012"
+golden_samples:
+  - "app@a1b2c3d:test/payments/transfer_bloc_test.dart"
+  - "app@a1b2c3d:test/payments/transfer_form_test.dart"
+files:
+  - path: test/fixtures/transfer_builder.dart
+    action: UPDATE
+    kind: builder
+    shared: true
+    reason: "add withAmount()/withMemo() overrides for boundary rows (additive)"
+    usage_scan:
+      command: "rg -l 'TransferBuilder' test integration_test"
+      dependents:
+        - test/payments/transfer_bloc_test.dart
+        - test/payments/transfer_form_test.dart
+        - integration_test/transfer_journey_test.dart
+  - path: test/payments/transfer_bloc_test.dart
+    action: UPDATE
+    kind: spec
+  - path: test/payments/transfer_form_test.dart
+    action: UPDATE
+    kind: spec
+  - path: test/robots/transfer_robot.dart
+    action: UPDATE
+    kind: robot
+    reason: "add enterAmount(); locator by Key('transfer-amount')"
+  - path: test/mocks/payments_api_mock.dart
+    action: REUSE
+    kind: mock
+scenario_map:
+  - {scenario: ST-12/SC-1, test: "test/payments/transfer_bloc_test.dart::[ST-12/SC-1] amount limits", tier: unit}
+  - {scenario: ST-12/SC-2, test: "test/payments/transfer_form_test.dart::[ST-12/SC-2] cancel pending", tier: component}
+  - {scenario: ST-12/SC-3, test: "test/payments/transfer_form_test.dart::[ST-12/SC-3] cannot cancel settled", tier: component}
+testability_requests:
+  - file: lib/payments/transfer_form.dart
+    element: "amount TextFormField"
+    proposed_hook: "Key('transfer-amount')"

@@ -1,0 +1,12 @@
+# NFR -> tactic mapping (plan v3.1 §4.14). Every MUST NFR in plans/intake/nfr-catalog.yaml appears.
+tactics:
+  - nfr: NFR-2
+    target: "p95 < 300 ms at 200 RPS"
+    tactics:
+      - Connection pooling to the PSP; 2 s timeout, 1 retry with jitter for idempotent calls
+      - Read-through cache for merchant config (TTL 60 s)
+    verification: k6 load test, 10 min steady state at 200 RPS in the perf stage; SLO alert on p95
+    adr: ADR-4
+    source_refs:
+      - ref: "acme-plans@<sha>:plans/intake/nfr-catalog.yaml#NFR-2"
+        trust_level: REPOSITORY

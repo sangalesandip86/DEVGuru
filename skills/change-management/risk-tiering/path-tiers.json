@@ -1,0 +1,65 @@
+{
+  "$comment": "Phase 0 lightweight path-based risk-tier lookup (plan §2 Phase 0, §9 step 5). Repo-relative globs, forward slashes, '**' matches any depth. Highest matching tier wins. Control-file paths are read from skills/governance/default-permissions/reference/control-file-paths.json and are always CRITICAL. Policy values are overridable; tighten-only in repo overrides.",
+  "version": 1,
+  "default_tier": "MEDIUM",
+  "uncomputable_tier": "HIGH",
+  "rules": [
+    {
+      "id": "payment",
+      "tier": "HIGH",
+      "reason_code": "SENSITIVE_PATH",
+      "patterns": ["**/payment/**", "**/payments/**", "**/billing/**", "**/invoice/**", "**/invoicing/**", "**/refund/**", "**/refunds/**", "**/ledger/**"]
+    },
+    {
+      "id": "auth",
+      "tier": "HIGH",
+      "reason_code": "SENSITIVE_PATH",
+      "patterns": ["**/auth/**", "**/authn/**", "**/authz/**", "**/security/**", "**/iam/**", "**/oauth/**", "**/session/**", "**/sessions/**"]
+    },
+    {
+      "id": "secrets-and-crypto",
+      "tier": "HIGH",
+      "reason_code": "SENSITIVE_PATH",
+      "patterns": ["**/crypto/**", "**/secrets/**", "**/*.pem", "**/*.key", "**/.env", "**/.env.*"]
+    },
+    {
+      "id": "migrations",
+      "tier": "HIGH",
+      "reason_code": "SENSITIVE_PATH",
+      "patterns": ["**/migrations/**", "**/migration/**", "**/db/migrate/**", "**/*.sql", "**/flyway/**", "**/liquibase/**"]
+    },
+    {
+      "id": "public-api-contracts",
+      "tier": "HIGH",
+      "reason_code": "SENSITIVE_PATH",
+      "patterns": ["**/openapi*.yaml", "**/openapi*.yml", "**/openapi*.json", "**/swagger*.json", "**/swagger*.yaml", "**/*.proto", "**/*.graphql", "**/*.avsc", "**/asyncapi*.yaml"]
+    },
+    {
+      "id": "infrastructure",
+      "tier": "HIGH",
+      "reason_code": "SENSITIVE_PATH",
+      "patterns": ["**/*.tf", "**/*.tfvars", "**/terraform/**", "**/helm/**", "**/k8s/**", "**/kubernetes/**", "**/Dockerfile", "**/Dockerfile.*", "**/docker-compose*.yml"]
+    },
+    {
+      "id": "dependency-manifests",
+      "tier": "MEDIUM",
+      "reason_code": "SENSITIVE_PATH",
+      "patterns": ["**/package.json", "**/package-lock.json", "**/yarn.lock", "**/pnpm-lock.yaml", "**/requirements*.txt", "**/pyproject.toml", "**/poetry.lock", "**/go.mod", "**/go.sum", "**/pom.xml", "**/build.gradle", "**/build.gradle.kts", "**/Cargo.toml", "**/Cargo.lock", "**/Gemfile.lock"]
+    },
+    {
+      "id": "feature-flags",
+      "tier": "MEDIUM",
+      "reason_code": "SENSITIVE_PATH",
+      "patterns": ["**/feature-flags/**", "**/flags/**", "**/*.flags.json", "**/*.flags.yaml"]
+    }
+  ],
+  "docs_only": {
+    "tier": "LOW",
+    "patterns": ["**/*.md", "**/*.mdx", "**/*.rst", "**/*.txt", "docs/**", "**/docs/**", "**/LICENSE", "**/*.png", "**/*.svg", "**/*.jpg"]
+  },
+  "diff_size_cap": {
+    "$comment": "Plan §7: above this size, decompose before implementing.",
+    "max_changed_lines": 400,
+    "max_files": 25
+  }
+}

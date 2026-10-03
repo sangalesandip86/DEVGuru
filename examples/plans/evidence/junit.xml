@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites name="web" tests="4" failures="0">
+  <testsuite name="VarTile" tests="4" failures="0">
+    <testcase classname="VarTile" name="shows VaR and as-of time [ST-1/AC-1]" time="0.12"/>
+    <testcase classname="VarTile" name="marks VaR older than 15 minutes as stale" time="0.08"/>
+    <testcase classname="VarTile" name="shows VaR unavailable on API error [ST-1/AC-3]" time="0.07"/>
+    <testcase classname="VarTile" name="renders the book name" time="0.02"/>
+  </testsuite>
+</testsuites>

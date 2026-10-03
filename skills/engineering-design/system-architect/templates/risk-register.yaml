@@ -1,0 +1,12 @@
+# Mirrors open RISK entries in the Evidence Ledger (the ledger is authoritative).
+risks:
+  - id: RISK-1
+    ledger_entry: ENTRY-0000
+    description: The PSP sandbox does not support partial refunds; contract tests rely on recorded fixtures
+    likelihood: MEDIUM
+    impact: HIGH
+    owner: payments
+    mitigation: Pact provider verification against the PSP staging account before RELEASE
+    source_refs:
+      - ref: "doc:psp-docs@<hash>#sandbox-limitations"
+        trust_level: EXTERNAL_UNSTRUCTURED

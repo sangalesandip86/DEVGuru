@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "adlc-mcp"
+version = "0.1.0"
+description = "One deployable MCP server (`adlc`) for the AI SDLC platform, built as a modular monolith: evidence_ledger, change_management, contract_registry, work_planning."
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = []                 # core, CLI and tests are stdlib-only
+
+[project.optional-dependencies]
+mcp = ["mcp>=1.2"]                # MCP SDK; mcp>=2 (MCPServer) and 1.x (FastMCP) both supported
+
+[project.scripts]
+adlc-mcp = "adlc_mcp.__main__:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+"adlc_mcp.modules.evidence_ledger" = ["migrations/*.sql"]
+"adlc_mcp.modules.change_management" = ["migrations/*.sql"]
+"adlc_mcp.modules.contract_registry" = ["migrations/*.sql"]
+"adlc_mcp.modules.work_planning" = ["migrations/*.sql"]

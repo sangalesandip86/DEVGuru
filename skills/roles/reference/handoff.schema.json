@@ -1,0 +1,92 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://devguru.local/schemas/handoff.schema.json",
+  "title": "Role handoff",
+  "type": "object",
+  "required": ["handoff"],
+  "properties": {
+    "handoff": {
+      "type": "object",
+      "required": ["handoff_id", "change_set_id", "snapshot_id", "from_role", "to_role", "attempt", "inputs", "outputs", "created_at"],
+      "additionalProperties": false,
+      "properties": {
+        "handoff_id": {"type": "string"},
+        "change_set_id": {"type": "string"},
+        "task_id": {"type": "string"},
+        "snapshot_id": {"type": "string"},
+        "from_role": {"$ref": "#/$defs/role"},
+        "to_role": {"anyOf": [{"$ref": "#/$defs/role"}, {"type": "string", "pattern": "^human:[a-z-]+$"}]},
+        "attempt": {"type": "integer", "minimum": 1, "maximum": 3},
+        "risk_tier": {"enum": ["LOW", "MEDIUM", "HIGH", "CRITICAL"]},
+        "inputs": {"type": "array", "items": {"$ref": "#/$defs/artifact"}},
+        "outputs": {
+          "type": "array",
+          "items": {
+            "allOf": [{"$ref": "#/$defs/artifact"}],
+            "required": ["kind", "artifact_ref", "content_hash"],
+            "properties": {"kind": {"type": "string"}}
+          }
+        },
+        "claims": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["classification", "content", "ledger_entry_id"],
+            "properties": {
+              "classification": {"enum": ["FACT", "INFERENCE", "ASSUMPTION", "PROPOSAL", "QUESTION", "DECISION", "RISK"]},
+              "content": {"type": "string"},
+              "ledger_entry_id": {"type": "string"}
+            }
+          }
+        },
+        "open_questions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["ledger_entry_id", "blocking", "state"],
+            "properties": {
+              "ledger_entry_id": {"type": "string"},
+              "blocking": {"type": "boolean"},
+              "state": {"enum": ["OPEN", "ANSWERED", "EXPIRED"]}
+            }
+          }
+        },
+        "assumptions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["ledger_entry_id", "impact", "expires_at"],
+            "properties": {
+              "ledger_entry_id": {"type": "string"},
+              "impact": {"enum": ["LOW", "MEDIUM", "HIGH"]},
+              "expires_at": {"type": "string", "format": "date-time"}
+            }
+          }
+        },
+        "verdict": {
+          "type": "object",
+          "required": ["authority", "domain", "result", "evidence"],
+          "properties": {
+            "authority": {"const": "REVIEWED"},
+            "domain": {"enum": ["code-quality", "security", "design", "test-design", "diagnosis"]},
+            "result": {"enum": ["ACCEPT", "REJECT"]},
+            "evidence": {"type": "array", "items": {"type": "string"}, "minItems": 1}
+          }
+        },
+        "created_at": {"type": "string", "format": "date-time"}
+      }
+    }
+  },
+  "$defs": {
+    "role": {"enum": ["product-owner", "architect", "developer", "qa-derive", "qa-diagnose", "security-reviewer", "code-reviewer"]},
+    "artifact": {
+      "type": "object",
+      "required": ["artifact_ref", "content_hash"],
+      "properties": {
+        "artifact_ref": {"type": "string", "pattern": "^[^@\\s]+@[0-9a-f]{7,40}:.+$"},
+        "content_hash": {"type": "string", "pattern": "^sha256:[0-9a-f.]+$"},
+        "trust_level": {"enum": ["SYSTEM", "ORGANIZATIONAL", "REPOSITORY", "EXTERNAL_STRUCTURED", "EXTERNAL_UNSTRUCTURED"]}
+      }
+    }
+  }
+}

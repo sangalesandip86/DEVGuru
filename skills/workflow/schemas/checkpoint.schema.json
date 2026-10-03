@@ -1,0 +1,170 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://adlc.local/schemas/checkpoint.schema.json",
+  "title": "Workflow run checkpoint",
+  "description": "Written by adlc-conductor at the end of every ranged run so 'resume from X' works (plan v3.1 §4.14). Stored at .adlc/runs/<run_id>/checkpoint.json and recorded in the ledger as a handoff.",
+  "type": "object",
+  "required": [
+    "run_id",
+    "requested",
+    "completed_stages",
+    "stopped_at",
+    "stop_reason",
+    "ledger_cursor",
+    "handoff",
+    "next_preflight",
+    "created_at"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "run_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "requested": {
+      "type": "object",
+      "required": [
+        "start",
+        "end"
+      ],
+      "properties": {
+        "start": {
+          "enum": [
+            "INTAKE",
+            "ARCHITECTURE",
+            "PLAN",
+            "DESIGN",
+            "IMPLEMENT",
+            "TEST",
+            "REVIEW",
+            "INTEGRATE",
+            "RELEASE",
+            "LEARN"
+          ]
+        },
+        "end": {
+          "enum": [
+            "INTAKE",
+            "ARCHITECTURE",
+            "PLAN",
+            "DESIGN",
+            "IMPLEMENT",
+            "TEST",
+            "REVIEW",
+            "INTEGRATE",
+            "RELEASE",
+            "LEARN"
+          ]
+        },
+        "text": {
+          "type": "string"
+        },
+        "story": {
+          "type": "string"
+        },
+        "mode": {
+          "enum": [
+            "normal",
+            "characterization"
+          ]
+        }
+      }
+    },
+    "completed_stages": {
+      "type": "array",
+      "items": {
+        "enum": [
+          "INTAKE",
+          "ARCHITECTURE",
+          "PLAN",
+          "DESIGN",
+          "IMPLEMENT",
+          "TEST",
+          "REVIEW",
+          "INTEGRATE",
+          "RELEASE",
+          "LEARN"
+        ]
+      }
+    },
+    "stopped_at": {
+      "enum": [
+        "INTAKE",
+        "ARCHITECTURE",
+        "PLAN",
+        "DESIGN",
+        "IMPLEMENT",
+        "TEST",
+        "REVIEW",
+        "INTEGRATE",
+        "RELEASE",
+        "LEARN"
+      ]
+    },
+    "stop_reason": {
+      "enum": [
+        "END_REACHED",
+        "GATE_FAILED",
+        "ASK_PENDING",
+        "BLOCKED",
+        "OBSERVED_STAGE",
+        "USER_STOP"
+      ]
+    },
+    "ledger_cursor": {
+      "type": "string",
+      "pattern": "^ENTRY-"
+    },
+    "workspace": {
+      "type": "object"
+    },
+    "artifacts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "kind",
+          "ref"
+        ],
+        "properties": {
+          "kind": {
+            "type": "string"
+          },
+          "ref": {
+            "type": "string"
+          },
+          "content_hash": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "handoff": {
+      "type": "object",
+      "required": [
+        "to"
+      ],
+      "properties": {
+        "to": {
+          "type": "string"
+        },
+        "ref": {
+          "type": "string"
+        }
+      }
+    },
+    "next_preflight": {
+      "type": "object"
+    },
+    "open_questions": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^ENTRY-"
+      }
+    },
+    "created_at": {
+      "type": "string"
+    }
+  }
+}

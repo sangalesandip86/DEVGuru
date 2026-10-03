@@ -1,0 +1,41 @@
+{
+  "$comment": "Sample SYSTEM evidence export (Evidence Ledger + forge/CI events) for the worked example. In production this file is produced by the CI job from the ledger, never written by an agent. ac_hash values are the canonical hashes of the AC in examples/plans/stories.",
+  "generated_by": "SYSTEM:ledger-export",
+  "generated_at": "2026-10-20T09:00:00Z",
+  "reviews": [
+    {"entry_id": "ENTRY-101", "story": "ST-1", "item": "qa_testability", "role": "qa-derive", "actor_type": "AGENT", "lifecycle_state": "REVIEWED", "verdict": "ACCEPT", "ac_hash": "sha256:cca1f29dc650e2ef164eaa0f693817d268ec0717d473e19e5532f8eb29edf0d1"},
+    {"entry_id": "ENTRY-102", "story": "ST-1", "item": "developer_feasibility", "role": "developer", "actor_type": "AGENT", "lifecycle_state": "REVIEWED", "verdict": "ACCEPT", "ac_hash": "sha256:cca1f29dc650e2ef164eaa0f693817d268ec0717d473e19e5532f8eb29edf0d1"},
+    {"entry_id": "ENTRY-140", "story": "ST-1", "item": "manual_ac_verified", "ac": "ST-1/AC-4", "role": "qa-diagnose", "actor_type": "AGENT", "lifecycle_state": "REVIEWED", "verdict": "ACCEPT", "ac_hash": "sha256:cca1f29dc650e2ef164eaa0f693817d268ec0717d473e19e5532f8eb29edf0d1"},
+    {"entry_id": "ENTRY-141", "story": "ST-1", "item": "code_review_accept", "role": "code-reviewer", "actor_type": "AGENT", "lifecycle_state": "REVIEWED", "verdict": "ACCEPT"},
+
+    {"entry_id": "ENTRY-201", "story": "ST-2", "item": "qa_testability", "role": "qa-derive", "actor_type": "SYSTEM", "lifecycle_state": "VERIFIED", "verdict": "ACCEPT", "ac_hash": "sha256:264b31a796f3324e9f40a873436dcde6b360757232d47c45cf00197837e3251b", "$comment": "a machine 'all AC have G/W/T' check: deliberately does NOT satisfy the qa-derive judgment"},
+    {"entry_id": "ENTRY-202", "story": "ST-2", "item": "developer_feasibility", "role": "developer", "actor_type": "AGENT", "lifecycle_state": "REVIEWED", "verdict": "ACCEPT", "ac_hash": "sha256:264b31a796f3324e9f40a873436dcde6b360757232d47c45cf00197837e3251b"},
+
+    {"entry_id": "ENTRY-301", "story": "ST-3", "item": "developer_feasibility", "role": "developer", "actor_type": "AGENT", "lifecycle_state": "REVIEWED", "verdict": "ACCEPT", "ac_hash": "sha256:4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"}
+  ],
+  "approvals": [],
+  "questions": [
+    {"id": "ENTRY-110", "story": "ST-1", "state": "ANSWERED", "blocking": true},
+    {"id": "ENTRY-401", "story": "ST-4", "state": "OPEN", "blocking": true}
+  ],
+  "assumptions": [
+    {"id": "ENTRY-111", "story": "ST-1", "impact": "LOW", "expires_at": "2026-12-31T00:00:00Z"}
+  ],
+  "readiness": {
+    "ST-1": {"status": "IN_VERIFICATION", "ac_hash": "sha256:cca1f29dc650e2ef164eaa0f693817d268ec0717d473e19e5532f8eb29edf0d1"},
+    "ST-3": {"status": "IN_PROGRESS", "ac_hash": "sha256:4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"}
+  },
+  "change_sets": [
+    {"id": "CS-11", "story_refs": ["ST-1"], "status": "INTEGRATED", "changed_paths": ["web/src/risk-dashboard/var-tile/VarTile.tsx", "web/src/risk-dashboard/var-tile/VarTile.test.tsx"], "changed_lines": 152},
+    {"id": "CS-13", "story_refs": ["ST-3"], "status": "INTEGRATED", "changed_paths": ["docs/adr/0007-intraday-var-method.md"], "changed_lines": 88}
+  ],
+  "gates": [
+    {"change_set": "CS-11", "gate": "ci", "result": "VERIFIED", "actor_type": "SYSTEM"},
+    {"change_set": "CS-11", "gate": "unit-tests", "result": "VERIFIED", "actor_type": "SYSTEM"},
+    {"change_set": "CS-11", "gate": "secret-scan", "result": "VERIFIED", "actor_type": "SYSTEM"},
+    {"change_set": "CS-11", "gate": "accessibility", "result": "VERIFIED", "actor_type": "SYSTEM"}
+  ],
+  "decisions": [
+    {"entry_id": "ENTRY-330", "story": "ST-3", "content": "Use parametric (delta-normal) VaR intraday; historical simulation stays overnight.", "adr_ref": "risk-platform@9d1e004:docs/adr/0007-intraday-var-method.md"}
+  ]
+}

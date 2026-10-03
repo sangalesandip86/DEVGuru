@@ -1,0 +1,496 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://adlc.local/schemas/intake-documents.schema.json",
+  "title": "INTAKE document set (plan v3.1 §4.14)",
+  "description": "Schemas for plans/intake/*.yaml; validate one file against '#/$defs/<name>'. No status fields: QUESTION/ASSUMPTION state lives in the Evidence Ledger.",
+  "$defs": {
+    "source_ref": {
+      "type": "object",
+      "required": [
+        "ref",
+        "trust_level"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "ref": {
+          "type": "string",
+          "minLength": 1,
+          "description": "doc:<doc-id>@<hash12>#<anchor>, repo@sha:path, issue URL, or ledger ENTRY id"
+        },
+        "trust_level": {
+          "enum": [
+            "SYSTEM",
+            "ORGANIZATIONAL",
+            "REPOSITORY",
+            "EXTERNAL_STRUCTURED",
+            "EXTERNAL_UNSTRUCTURED"
+          ]
+        },
+        "note": {
+          "type": "string"
+        }
+      }
+    },
+    "source_register": {
+      "type": "object",
+      "required": [
+        "documents"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "documents": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "doc_id",
+              "source",
+              "content_hash",
+              "trust_level",
+              "format",
+              "section_count"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "doc_id": {
+                "type": "string",
+                "pattern": "^[a-z0-9][a-z0-9-]*$"
+              },
+              "title": {
+                "type": "string"
+              },
+              "source": {
+                "type": "string",
+                "minLength": 1
+              },
+              "content_hash": {
+                "type": "string",
+                "pattern": "^sha256:[0-9a-f]{64}$"
+              },
+              "trust_level": {
+                "enum": [
+                  "SYSTEM",
+                  "ORGANIZATIONAL",
+                  "REPOSITORY",
+                  "EXTERNAL_STRUCTURED",
+                  "EXTERNAL_UNSTRUCTURED"
+                ]
+              },
+              "format": {
+                "enum": [
+                  "md",
+                  "txt",
+                  "html",
+                  "confluence",
+                  "docx",
+                  "pdf"
+                ]
+              },
+              "section_count": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "ingested_at": {
+                "type": "string"
+              },
+              "supersedes_hash": {
+                "type": "string"
+              },
+              "owner": {
+                "type": "string"
+              }
+            }
+          },
+          "minItems": 1
+        }
+      }
+    },
+    "nfr_catalog": {
+      "type": "object",
+      "required": [
+        "nfrs"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "nfrs": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "id",
+              "category",
+              "statement",
+              "source_refs"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^NFR-\\d+$"
+              },
+              "category": {
+                "enum": [
+                  "performance",
+                  "availability",
+                  "scalability",
+                  "security",
+                  "privacy",
+                  "compliance",
+                  "usability",
+                  "accessibility",
+                  "observability",
+                  "maintainability",
+                  "portability",
+                  "data-retention",
+                  "cost"
+                ]
+              },
+              "statement": {
+                "type": "string",
+                "minLength": 5
+              },
+              "metric": {
+                "type": "string"
+              },
+              "target": {
+                "type": "string",
+                "pattern": "\\d"
+              },
+              "condition": {
+                "type": "string"
+              },
+              "measurement": {
+                "type": "string"
+              },
+              "priority": {
+                "enum": [
+                  "MUST",
+                  "SHOULD",
+                  "COULD"
+                ]
+              },
+              "open_question": {
+                "type": "string",
+                "pattern": "^ENTRY-[A-Za-z0-9-]+$",
+                "description": "required when target is absent (unquantified NFR)"
+              },
+              "req_refs": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "pattern": "^REQ-\\d+$"
+                }
+              },
+              "source_refs": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/source_ref"
+                },
+                "minItems": 1
+              }
+            }
+          }
+        }
+      }
+    },
+    "glossary": {
+      "type": "object",
+      "required": [
+        "terms"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "terms": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "term",
+              "definition",
+              "source_refs"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "term": {
+                "type": "string",
+                "minLength": 1
+              },
+              "definition": {
+                "type": "string",
+                "minLength": 3
+              },
+              "synonyms": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "not_to_be_confused_with": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "conflict_question": {
+                "type": "string",
+                "pattern": "^ENTRY-"
+              },
+              "source_refs": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/source_ref"
+                },
+                "minItems": 1
+              }
+            }
+          }
+        },
+        "entities": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "name",
+              "source_refs"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "attributes": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "relationships": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "to",
+                    "kind"
+                  ],
+                  "properties": {
+                    "to": {
+                      "type": "string"
+                    },
+                    "kind": {
+                      "type": "string"
+                    },
+                    "cardinality": {
+                      "type": "string"
+                    }
+                  }
+                }
+              },
+              "source_refs": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/source_ref"
+                },
+                "minItems": 1
+              }
+            }
+          }
+        }
+      }
+    },
+    "personas": {
+      "type": "object",
+      "required": [
+        "personas"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "personas": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "id",
+              "name",
+              "goals",
+              "source_refs"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^PER-\\d+$"
+              },
+              "name": {
+                "type": "string"
+              },
+              "goals": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "minItems": 1
+              },
+              "pain_points": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "permissions": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "source_refs": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/source_ref"
+                },
+                "minItems": 1
+              }
+            }
+          }
+        }
+      }
+    },
+    "constraints": {
+      "type": "object",
+      "required": [
+        "constraints"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "constraints": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "id",
+              "kind",
+              "statement",
+              "source_refs"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^CON-\\d+$"
+              },
+              "kind": {
+                "enum": [
+                  "regulatory",
+                  "technical",
+                  "business",
+                  "organizational",
+                  "data-residency",
+                  "contractual"
+                ]
+              },
+              "statement": {
+                "type": "string",
+                "minLength": 5
+              },
+              "req_refs": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "pattern": "^REQ-\\d+$"
+                }
+              },
+              "source_refs": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/source_ref"
+                },
+                "minItems": 1
+              }
+            }
+          }
+        },
+        "assumptions": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^ENTRY-[A-Za-z0-9-]+$"
+          }
+        }
+      }
+    },
+    "traceability_matrix": {
+      "type": "object",
+      "required": [
+        "rows"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "rows": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "source",
+              "section_hash",
+              "disposition"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "source": {
+                "type": "string",
+                "pattern": "^[a-z0-9][a-z0-9-]*#.+$",
+                "description": "<doc-id>#<anchor>"
+              },
+              "section_hash": {
+                "type": "string",
+                "pattern": "^sha256:[0-9a-f]{64}$"
+              },
+              "disposition": {
+                "enum": [
+                  "COVERED",
+                  "PARTIAL",
+                  "NOT_REQUIREMENT",
+                  "QUESTION",
+                  "OUT_OF_SCOPE"
+                ]
+              },
+              "reqs": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "pattern": "^REQ-\\d+$"
+                }
+              },
+              "nfrs": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "pattern": "^NFR-\\d+$"
+                }
+              },
+              "constraints": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "pattern": "^CON-\\d+$"
+                }
+              },
+              "terms": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "question": {
+                "type": "string",
+                "pattern": "^ENTRY-"
+              },
+              "note": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

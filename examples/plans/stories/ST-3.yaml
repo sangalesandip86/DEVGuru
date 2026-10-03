@@ -1,0 +1,30 @@
+id: ST-3
+title: "Spike: can parametric VaR be computed intraday within 60 seconds per book?"
+type: SPIKE
+objective: Decide which VaR method can meet the 5-minute staleness target for equity books.
+requirement_id: REQ-1
+epic_id: EPIC-1
+milestone_ids: [MS-1]
+scope:
+  - Benchmark parametric and historical-simulation VaR on 3 representative equity books
+  - Record the decision as an ADR
+out_of_scope:
+  - Production implementation
+affected_paths:
+  - docs/adr/**
+acceptance_criteria: []
+spike:
+  question: Can either method compute a 1-day 99% VaR for a 5,000-position book in under 60 s on current hardware?
+  timebox_days: 3
+  options: [parametric (delta-normal), historical simulation (250d)]
+touches:
+  ui: false
+  api_contracts: []
+  data_migration: false
+  infra: false
+data_classification: CONFIDENTIAL
+security_considerations: Benchmarks run on anonymised position snapshots inside the risk environment only.
+size: S
+source_refs:
+  - ref: risk-platform@3f9c2ab:docs/methodology/var-v4.md
+    trust_level: REPOSITORY
