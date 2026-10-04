@@ -1,6 +1,6 @@
 ---
 name: skill-router
-description: Decides which skills load for a task — mandatory bindings by policy, contextual skills by analysis — in two phases. Use at the start of every Change Set or task, and again after risk tier and dependency scan are known.
+description: Decide which skills load for a task -- mandatory bindings by policy, contextual by analysis. Use at the start of every task or Change Set.
 metadata:
   group: skill-routing
   phase: 1
@@ -26,7 +26,7 @@ deeper second pass can catch mandatory triggers the cheap first pass missed.
 - Again whenever the changed-file set grows during execution.
 
 ## Preflight
-Run [stage-preflight](../../workflow/stage-preflight/SKILL.md) and [workspace-resolver](../../workflow/workspace-resolver/SKILL.md) before the Procedure. Cross-cutting: this skill has no stage inputs of its own and is loaded alongside whatever stage is running, so it never BACKFILLs or BLOCKs a stage by itself.
+See [standard-preflight](../../workflow/stage-preflight/reference/standard-preflight.md) (cross-cutting).
 
 - **Inputs:** the requested start and end stages, requirement text, file paths, and (Phase 2 routing) the stack fingerprint FACT.
 - **ADOPT:** if `.adlc/catalog/stack.json` exists for the current snapshot, use it; if missing or stale, over-include stack skills and request re-discovery.
@@ -55,6 +55,8 @@ Run [stage-preflight](../../workflow/stage-preflight/SKILL.md) and [workspace-re
 - Incident record (`record_incident`) for each near-miss.
 
 ## Enforcement
+**Enforced** (partial) — some rules are structural, others are guideline only.
+
 Mandatory loading is enforced by the orchestrator / managed settings that inject the binding skill
 set; this skill documents the selection logic. Near-miss logging is guideline only until the
 orchestrator emits it automatically.

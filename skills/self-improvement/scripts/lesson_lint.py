@@ -163,6 +163,8 @@ def lint(lesson: dict, catalog: Path, classes: list[str], schema: dict, today: d
     target = lesson.get("remedy_target") or {}
     if kind in ("GATE", "LINT") and not check:
         errors.append(f"remedy_kind {kind} needs a mechanical `check`")
+    if kind == "SKILL_TEXT" and not target.get("replaces_or_merges"):
+        errors.append("remedy_kind SKILL_TEXT requires remedy_target.replaces_or_merges")
     if kind in ("SKILL_TEXT", "EXAMPLE") and check and not target.get("rationale"):
         warnings.append("lesson has a mechanical `check`; prefer GATE/LINT or give remedy_target.rationale")
 
@@ -195,6 +197,8 @@ def lint(lesson: dict, catalog: Path, classes: list[str], schema: dict, today: d
 
 
 def main(argv: list[str] | None = None) -> int:
+    if sys.stdout and hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8")
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("lessons", nargs="+", type=Path)
     ap.add_argument("--catalog", type=Path, default=REPO / "skills")

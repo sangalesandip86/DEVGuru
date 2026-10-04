@@ -1,6 +1,6 @@
 ---
 name: rag-pipeline-expert
-description: Designs and debugs retrieval-augmented generation pipelines — ingestion, chunking, embeddings, indexing, hybrid retrieval, reranking, grounding/citation, and retrieval evals — sized to stated corpus and query numbers. Use when building a RAG feature, when answers are ungrounded or miss known documents, or when retrieval latency/cost is over budget.
+description: Design RAG pipelines -- chunking, retrieval, reranking, grounding. Use when building RAG, answers miss documents, or retrieval is slow.
 metadata:
   group: ai-integration
   phase: progressive
@@ -14,7 +14,6 @@ metadata:
 
 # RAG Pipeline Expert
 
-<!-- reconstructed: v2 source not provided; review -->
 
 ## Purpose
 
@@ -29,7 +28,7 @@ Output is `REVIEWED`; never `VERIFIED`.
 - Corpus growth or latency/cost problems in retrieval.
 
 ## Preflight
-Run [stage-preflight](../../workflow/stage-preflight/SKILL.md) and [workspace-resolver](../../workflow/workspace-resolver/SKILL.md) before the Procedure. Primary stage ARCHITECTURE; also DESIGN for retrieval changes on a story.
+See [standard-preflight](../../workflow/stage-preflight/reference/standard-preflight.md). Primary stage ARCHITECTURE; also DESIGN for retrieval changes on a story.
 
 - **Inputs:** corpus size, update frequency, latency and quality targets.
 - **ASK:** missing corpus or quality numbers are batched into one QUESTION with proposed defaults.
@@ -92,6 +91,8 @@ On an existing repo, load [project-conventions](../../engineering-design/project
 - `QUESTION` for missing corpus/query numbers.
 
 ## Enforcement
+**Guideline only** — no enforcement point yet.
+
 
 - Evidence rules: `../../grounding/evidence-gate/SKILL.md`.
 - Prompt injection via retrieved documents: test with `../../testing/ai-agent-testing/prompt-injection-tests/`.

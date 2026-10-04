@@ -1,6 +1,6 @@
 ---
 name: evidence-gate
-description: Ensures every claim in a structured artifact (handoff, DECISION, RISK, QUESTION, approval summary) cites a source; converts unsourced claims into QUESTIONs or tagged, expiring ASSUMPTIONs. Use whenever producing or accepting any structured artifact.
+description: Ensure every claim cites a source; convert unsourced claims to QUESTIONs or tagged ASSUMPTIONs. Use when producing structured artifacts.
 metadata:
   group: grounding
   phase: 0
@@ -32,7 +32,7 @@ It does **not** apply sentence-by-sentence to free-form reasoning. See
 and does not guarantee — do not oversell it.
 
 ## Preflight
-Run [stage-preflight](../../workflow/stage-preflight/SKILL.md) and [workspace-resolver](../../workflow/workspace-resolver/SKILL.md) before the Procedure. Cross-cutting: this skill has no stage inputs of its own and is loaded alongside whatever stage is running, so it never BACKFILLs or BLOCKs a stage by itself.
+See [standard-preflight](../../workflow/stage-preflight/reference/standard-preflight.md) (cross-cutting).
 
 - **Inputs:** the structured artifact being produced or accepted (handoff, DECISION, RISK, QUESTION, approval summary) and the sources it cites.
 - **ADOPT:** artifacts imported by brownfield adoption keep their original citations, re-anchored as `repo@sha:path` or `doc@hash#section`; a claim with no recoverable source is converted to a QUESTION, never carried over as FACT.
@@ -66,6 +66,8 @@ Run [stage-preflight](../../workflow/stage-preflight/SKILL.md) and [workspace-re
 - A pass/fail note on the handoff: `evidence_gate: PASS | FAIL(<claim ids>)`
 
 ## Enforcement
+**Enforced** (partial) — some rules are structural, others are guideline only.
+
 - FACT grounding is enforced: hooks write FACT entries directly; the model never self-reports a
   FACT (§5.6 row "FACT entries are grounded").
 - The ledger server rejects INFERENCE entries without `input_references` and FACT entries

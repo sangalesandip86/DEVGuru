@@ -1,6 +1,6 @@
 ---
 name: workspace-resolver
-description: Finds the repositories a stage needs (app, planning, tests, contracts, infra), asks when the match is ambiguous, and creates them when missing (locally by the agent; remotely only by a human or CI via a repo request). Use at the start of any stage or skill that reads or writes repositories, and whenever a user says "use our existing repo", "where are the plans", or "create a repo for this service".
+description: Find the repositories a stage needs (app, planning, tests, contracts, infra). Use at stage start or when a user references their repo.
 metadata:
   group: workflow
   phase: 1
@@ -67,6 +67,8 @@ None. This skill *is* the first preflight step.
 - Optionally: a local skeleton repo plus draft manifest, or `repo-request.yaml`.
 
 ## Enforcement
+**Guideline only** — no enforcement point yet.
+
 - **No control files written during local creation:** `resolve_workspace.py` checks every path
   against `control-file-paths.json`. The managed-settings deny and `control-file-guard` back this up.
 - **No remote creation by agents:** agent sessions have no org-admin token. The

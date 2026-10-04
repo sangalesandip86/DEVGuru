@@ -1,6 +1,6 @@
 ---
 name: failure-capture
-description: Records each negative, positive, efficiency, or production signal as a project-local incident containing only a signal (skill, step, failure_class derived deterministically from the catching check) and ledger pointers — never task text, files, or use-case content. Use whenever a check, reviewer, human, or production event catches a skill failure or a strongly verified success.
+description: Record signals as incidents with ledger pointers, no task content. Use when a check, reviewer, or production event catches a failure.
 metadata:
   group: self-improvement
   phase: 1
@@ -28,7 +28,7 @@ verified clean (positive), a budget overruns (efficiency), or a production event
 Change Set.
 
 ## Preflight
-Run [stage-preflight](../../workflow/stage-preflight/SKILL.md) and [workspace-resolver](../../workflow/workspace-resolver/SKILL.md) before the Procedure. This skill runs at LEARN, and also passively during any stage when a trigger signal fires.
+See [standard-preflight](../../workflow/stage-preflight/reference/standard-preflight.md). This skill runs at LEARN, and also passively during any stage when a trigger signal fires.
 
 - **Inputs:** the trigger (check ID or reviewer/human verdict) and the ledger entries it refers to.
 - **SATISFIED** when the evidence entries can be queried in the project ledger.
@@ -70,6 +70,8 @@ Run [stage-preflight](../../workflow/stage-preflight/SKILL.md) and [workspace-re
 - For production events: a CHALLENGED correcting ledger entry (local INFERENCE)
 
 ## Enforcement
+**Enforced** (partial) — some rules are structural, others are guideline only.
+
 | Rule | Enforced by |
 |---|---|
 | No use-case content in incidents | `incident.schema.json` (`additionalProperties: false`); `record_incident` rejects free-text fields |

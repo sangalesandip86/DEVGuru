@@ -1,6 +1,6 @@
 ---
 name: test-pyramid-advisor
-description: Analyzes a repository's test distribution across unit, integration, contract, and end-to-end levels and recommends rebalancing. Use when a suite is slow, flaky, E2E-heavy, or when proposing where new tests should live.
+description: Analyze test distribution across unit/integration/contract/E2E and recommend rebalancing. Use when a suite is slow, flaky, or E2E-heavy.
 metadata:
   group: testing
   phase: progressive
@@ -14,7 +14,6 @@ metadata:
 
 # Test Pyramid Advisor
 
-<!-- reconstructed: v2 source not provided; review -->
 
 ## Purpose
 Keep verification fast and trustworthy by placing each test at the cheapest level that still
@@ -27,7 +26,7 @@ which erodes autonomy-gating.
 - test-strategy asks for a level recommendation.
 
 ## Preflight
-Run the standard preflight before any step below: [`stage-preflight`](../../../workflow/stage-preflight/SKILL.md) and [`workspace-resolver`](../../../workflow/workspace-resolver/SKILL.md).
+See [standard-preflight](../../../workflow/stage-preflight/reference/standard-preflight.md).
 1. **Workspace.** Resolve repo roles `[app, tests]`. If found, record it as FACT `repo@sha`. If ambiguous, raise one QUESTION with ranked candidates. If missing, workspace-resolver offers local creation or a `repo-request.yaml`.
 2. **Inputs** `[test-suite]`. Each resolves to one of:
    - SATISFIED;
@@ -70,6 +69,8 @@ Never proceed on a missing input silently.
 - Lifecycle: `REVIEWED` at most — this is a judgment.
 
 ## Enforcement
+**Guideline only** — no enforcement point yet.
+
 Guideline only — no enforcement point yet.
 
 ## References

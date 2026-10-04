@@ -1,6 +1,6 @@
 ---
 name: sca-dependency-audit
-description: Audits third-party dependencies for known vulnerabilities, license conflicts, and supply-chain risk (OSV-Scanner, Dependabot/Renovate, Trivy, Grype, npm/pip audit), with results ingested as machine evidence. Use whenever a lockfile or dependency manifest changes, and on a schedule for every repo.
+description: Audit dependencies for vulnerabilities, license conflicts, and supply-chain risk. Use when lockfiles change or on a schedule.
 metadata:
   group: testing
   phase: 1
@@ -14,7 +14,6 @@ metadata:
 
 # SCA / Dependency Audit
 
-<!-- reconstructed: v2 source not provided; review -->
 
 ## Purpose
 Know what you ship. Dependency changes are high-leverage: lockfiles and manifests are always-overlap path
@@ -26,7 +25,7 @@ classes for snapshot staleness (plan §4.5) because one bump can change behavior
 - Scheduled scan (new CVEs appear against unchanged code).
 
 ## Preflight
-Run the standard preflight before any step below: [`stage-preflight`](../../../workflow/stage-preflight/SKILL.md) and [`workspace-resolver`](../../../workflow/workspace-resolver/SKILL.md).
+See [standard-preflight](../../../workflow/stage-preflight/reference/standard-preflight.md).
 1. **Workspace.** Resolve repo roles `[app]`. If found, record it as FACT `repo@sha`. If ambiguous, raise one QUESTION with ranked candidates. If missing, workspace-resolver offers local creation or a `repo-request.yaml`.
 2. **Inputs** `[change-set]`. Each resolves to one of:
    - SATISFIED;
@@ -61,6 +60,8 @@ Never proceed on a missing input silently.
 - Exploitability and new-dependency judgments → `REVIEWED`; accepted risks → `ASSUMPTION` with expiry + human `APPROVED`.
 
 ## Enforcement
+**Enforced** — see rules below.
+
 CI gate (deterministic). Exceptions are enforced only if the exceptions file is CODEOWNERS-protected.
 
 ## References

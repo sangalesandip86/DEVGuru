@@ -1,6 +1,5 @@
 # Messaging Decision Matrix
 
-<!-- reconstructed: v2 source not provided; review -->
 
 ## Step 1 — Sync or async?
 

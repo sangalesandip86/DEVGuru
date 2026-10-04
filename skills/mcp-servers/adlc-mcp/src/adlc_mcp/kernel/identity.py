@@ -107,6 +107,14 @@ def resolve_identity(token: str | None = None, credentials: str | os.PathLike | 
         raise AuthError("credential not recognised")
     if entry.get("revoked"):
         raise AuthError("credential revoked")
+    if entry.get("expires_at"):
+        from datetime import datetime, timezone
+        try:
+            exp = datetime.fromisoformat(entry["expires_at"].replace("Z", "+00:00"))
+            if datetime.now(timezone.utc) > exp:
+                raise AuthError(f"credential expired at {entry['expires_at']}")
+        except (ValueError, TypeError):
+            raise AuthError("credential has an invalid expires_at value")
     return Identity(
         actor_type=entry["actor_type"],
         actor_id=entry["actor_id"],
@@ -131,6 +139,7 @@ def issue_credential(
     model_id: str | None = None,
     human_roles: Iterable[str] = (),
     credentials: str | os.PathLike | None = None,
+    expires_at: str | None = None,
 ) -> str:
     """Mint a token, store only its hash, and return the plaintext token once."""
     ident = Identity(actor_type, actor_id, agent_role, tool, model_id, tuple(human_roles))  # validates
@@ -138,8 +147,27 @@ def issue_credential(
     p.parent.mkdir(parents=True, exist_ok=True)
     data = json.loads(p.read_text(encoding="utf-8")) if p.exists() else {"tokens": {}}
     token = secrets.token_urlsafe(32)
-    data.setdefault("tokens", {})[hash_token(token)] = {
-        k: v for k, v in ident.as_dict().items() if v not in (None, [])
-    }
+    entry = {k: v for k, v in ident.as_dict().items() if v not in (None, [])}
+    if expires_at:
+        entry["expires_at"] = expires_at
+    data.setdefault("tokens", {})[hash_token(token)] = entry
     p.write_text(json.dumps(data, indent=2, sort_keys=True), encoding="utf-8")
     return token
+
+
+def revoke_credential(
+    token: str,
+    credentials: str | os.PathLike | None = None,
+) -> bool:
+    """Revoke a credential by marking it in the credentials file."""
+    p = credentials_path(credentials)
+    if not p.exists():
+        return False
+    data = json.loads(p.read_text(encoding="utf-8"))
+    tokens = data.get("tokens", data)
+    h = hash_token(token)
+    if h not in tokens:
+        return False
+    tokens[h]["revoked"] = True
+    p.write_text(json.dumps(data, indent=2, sort_keys=True), encoding="utf-8")
+    return True

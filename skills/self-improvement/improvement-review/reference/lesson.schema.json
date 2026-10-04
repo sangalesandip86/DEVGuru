@@ -2,89 +2,117 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://adlc.local/schemas/lesson.schema.json",
   "title": "Self-Improvement Lesson",
-  "description": "ADR 0006 §2. One lesson per (skill, step, failure_class) cluster: sanitized, abstract, in skill terms, shareable at ORG scope only after human APPROVED. Checked by scripts/lesson_lint.py and scripts/sanitize_check.py.",
+  "description": "ADR 0006 §2. One lesson per (skill, step, failure_class) cluster: sanitized, abstract, in skill terms, shareable at ORG scope only after human APPROVED. This schema defines the application-level JSON format; the SQLite storage format is defined by the migration code. Checked by scripts/lesson_lint.py and scripts/sanitize_check.py.",
   "type": "object",
   "additionalProperties": false,
   "required": [
-    "lesson_id", "skill", "step", "failure_class", "occurrences", "what_failed", "advice",
-    "remedy_kind", "repro", "last_fired", "scope", "status", "sanitization"
+    "lesson_id", "skill", "step", "failure_class", "occurrences",
+    "what_failed", "advice", "remedy_kind",
+    "scope", "status", "sanitization"
   ],
   "properties": {
     "lesson_id": { "type": "string", "pattern": "^LES-[0-9A-Za-z]+$" },
-    "skill": { "type": "string", "pattern": "^[a-z0-9-]+(/[a-z0-9-]+)+$" },
-    "step": { "type": "string", "minLength": 1, "maxLength": 120 },
+    "parent_lesson_id": {
+      "type": ["string", "null"],
+      "pattern": "^LES-[0-9A-Za-z]+$",
+      "description": "Set when promoting a PROJECT lesson to ORG scope."
+    },
+    "skill": { "type": "string", "minLength": 1, "maxLength": 200 },
+    "step": { "type": "string", "minLength": 1, "maxLength": 200 },
     "failure_class": {
       "enum": [
-        "INCOMPLETE_ARTIFACT", "UNTESTABLE_CRITERIA", "MISSING_NEGATIVE_CASE", "TRACEABILITY_GAP",
-        "UNRESOLVED_DEPENDENCY", "UNRESOLVED_AMBIGUITY", "OVERSIZED_CHANGE", "MISSING_SAFEGUARD",
-        "UNDECLARED_DEVIATION", "SCOPE_CREEP", "UNAUTHORIZED_ACTION", "WEAKENED_TEST",
-        "INEFFECTIVE_TEST", "NONDETERMINISTIC_TEST", "SENSITIVE_DATA_EXPOSURE", "UNSOURCED_CLAIM",
-        "INVALID_OUTPUT", "INCORRECT_BEHAVIOR", "DESIGN_DEFECT", "NON_CONVERGENCE"
-      ]
+        "INCOMPLETE_ARTIFACT", "UNTESTABLE_CRITERIA", "MISSING_NEGATIVE_CASE",
+        "TRACEABILITY_GAP", "UNRESOLVED_DEPENDENCY", "UNRESOLVED_AMBIGUITY",
+        "OVERSIZED_CHANGE", "MISSING_SAFEGUARD", "UNDECLARED_DEVIATION",
+        "SCOPE_CREEP", "UNAUTHORIZED_ACTION", "WEAKENED_TEST",
+        "INEFFECTIVE_TEST", "NONDETERMINISTIC_TEST", "SENSITIVE_DATA_EXPOSURE",
+        "UNSOURCED_CLAIM", "INVALID_OUTPUT", "INCORRECT_BEHAVIOR",
+        "DESIGN_DEFECT", "NON_CONVERGENCE"
+      ],
+      "description": "From failure-class-map.json. Always required for lessons."
     },
     "occurrences": {
       "type": "object",
-      "additionalProperties": false,
-      "required": ["incidents", "change_sets", "projects"],
       "properties": {
         "incidents": { "type": "integer", "minimum": 1 },
-        "change_sets": { "type": "integer", "minimum": 1 },
-        "projects": { "type": "integer", "minimum": 1 }
-      }
-    },
-    "what_failed": { "type": "string", "minLength": 10, "maxLength": 200 },
-    "advice": { "type": "string", "minLength": 10, "maxLength": 280 },
-    "check": { "type": "string", "maxLength": 200, "description": "Mechanical form of the advice, if one exists." },
-    "remedy_kind": { "enum": ["GATE", "LINT", "SKILL_TEXT", "EXAMPLE"] },
-    "remedy_target": {
-      "type": "object",
+        "change_sets": { "type": "integer", "minimum": 0 },
+        "projects": { "type": "integer", "minimum": 0 }
+      },
+      "required": ["incidents"],
       "additionalProperties": false,
-      "required": ["location"],
+      "description": "How many times this pattern has been observed."
+    },
+    "what_failed": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 280,
+      "description": "In skill terms only. Must not contain local pointers (ENTRY-*, CS-*, etc.)."
+    },
+    "advice": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 500,
+      "description": "In skill terms only. Must not contain local pointers."
+    },
+    "check": {
+      "type": ["string", "null"],
+      "maxLength": 200,
+      "description": "Mechanical form of the advice, if one exists. Must not contain local pointers."
+    },
+    "remedy_kind": {
+      "enum": ["GATE", "LINT", "SKILL_TEXT", "EXAMPLE"]
+    },
+    "remedy_target": {
+      "type": ["object", "null"],
       "properties": {
-        "location": { "type": "string", "minLength": 1, "description": "Policy/check path for GATE/LINT; SKILL.md section or reference file for SKILL_TEXT/EXAMPLE." },
-        "replaces_or_merges": { "type": "string", "minLength": 1, "description": "Required for SKILL_TEXT/EXAMPLE: the existing text this replaces or merges into." },
-        "rationale": { "type": "string", "maxLength": 280, "description": "Required when `check` exists but the remedy is SKILL_TEXT/EXAMPLE." }
-      }
+        "location": { "type": "string" },
+        "replaces_or_merges": { "type": "string" },
+        "rationale": { "type": "string" }
+      },
+      "required": ["location"],
+      "additionalProperties": false,
+      "description": "Where the remedy lands (policy file, SKILL.md section, etc.)."
     },
     "repro": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": ["evals_path", "eval_id", "fails_on_current", "passes_on_revision"],
+      "type": ["object", "null"],
       "properties": {
-        "evals_path": { "type": "string", "minLength": 1 },
-        "eval_id": { "type": ["integer", "string"] },
-        "fails_on_current": { "type": ["boolean", "null"], "description": "null until run" },
+        "evals_path": { "type": "string" },
+        "eval_id": { "type": ["integer", "null"] },
+        "fails_on_current": { "type": ["boolean", "null"] },
         "passes_on_revision": { "type": ["boolean", "null"] }
-      }
+      },
+      "additionalProperties": false,
+      "description": "Synthetic eval case reference (never the real case)."
     },
-    "last_fired": { "type": "string", "format": "date" },
-    "scope": { "enum": ["PROJECT", "ORG"] },
-    "status": { "enum": ["DRAFT", "REVIEWED", "APPROVED", "REJECTED", "RETIRED"] },
+    "last_fired": {
+      "type": ["string", "null"],
+      "description": "ISO date of the most recent incident contributing to this lesson."
+    },
+    "scope": {
+      "enum": ["PROJECT", "ORG"]
+    },
+    "status": {
+      "enum": ["DRAFT", "ACTIVE", "APPROVED"]
+    },
+    "approved_by": {
+      "type": ["string", "null"],
+      "description": "Human approver identity (required for ORG scope with APPROVED status)."
+    },
     "sanitization": {
       "type": "object",
-      "additionalProperties": false,
-      "required": ["result", "checked_at"],
       "properties": {
         "result": { "enum": ["PASS", "FAIL", "NOT_RUN"] },
         "checked_at": { "type": ["string", "null"] }
-      }
-    },
-    "drafted_by_role": { "type": "string", "description": "Reviewer agent role that drafted the lesson; never the role whose output failed." },
-    "approved_by": { "type": "string", "pattern": "^human:[a-z0-9-]+$" },
-    "platform_release_sha": { "type": "string", "pattern": "^[0-9a-f]{7,64}$" }
+      },
+      "required": ["result", "checked_at"],
+      "additionalProperties": false,
+      "description": "Sanitization check result."
+    }
   },
   "allOf": [
     {
       "if": { "properties": { "scope": { "const": "ORG" } } },
-      "then": { "required": ["approved_by"], "properties": { "status": { "const": "APPROVED" }, "sanitization": { "properties": { "result": { "const": "PASS" } } } } }
-    },
-    {
-      "if": { "properties": { "status": { "const": "APPROVED" } } },
-      "then": { "required": ["approved_by", "remedy_target"], "properties": { "repro": { "properties": { "fails_on_current": { "const": true }, "passes_on_revision": { "const": true } } } } }
-    },
-    {
-      "if": { "properties": { "remedy_kind": { "enum": ["SKILL_TEXT", "EXAMPLE"] } } },
-      "then": { "required": ["remedy_target"], "properties": { "remedy_target": { "required": ["location", "replaces_or_merges"] } } }
+      "then": { "required": ["approved_by"], "properties": { "status": { "const": "APPROVED" } } }
     }
   ]
 }

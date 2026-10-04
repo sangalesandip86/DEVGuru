@@ -22,7 +22,38 @@ def _tool_error_type() -> type[Exception] | None:
     return None
 
 
-def register_tool(server: Any, fn: Callable[..., Any]) -> str:
+TOOL_ANNOTATIONS: dict[str, dict[str, bool]] = {
+    "query_evidence":           {"readOnlyHint": True},
+    "query_incidents":          {"readOnlyHint": True},
+    "query_lessons":            {"readOnlyHint": True},
+    "get_change_set":           {"readOnlyHint": True},
+    "validate_snapshot_currency": {"readOnlyHint": True},
+    "compute_risk_tier":        {"readOnlyHint": True},
+    "check_compatibility":      {"readOnlyHint": True},
+    "detect_drift":             {"readOnlyHint": True},
+    "work_graph":               {"readOnlyHint": True},
+    "evaluate_story":           {"readOnlyHint": True},
+    "record_evidence":          {"destructiveHint": False},
+    "record_correction":        {"destructiveHint": False},
+    "record_incident":          {"destructiveHint": False},
+    "record_lesson":            {"destructiveHint": False},
+    "record_handoff":           {"destructiveHint": False},
+    "record_task":              {"destructiveHint": False},
+    "record_dependency":        {"destructiveHint": False},
+    "create_change_set":        {"destructiveHint": False},
+    "create_snapshot":          {"destructiveHint": False},
+    "update_status":            {"destructiveHint": False},
+    "override_risk_tier":       {"destructiveHint": False},
+    "checkpoint_task":          {"destructiveHint": False},
+    "record_task_failure":      {"destructiveHint": False},
+    "ingest_forge_event":       {"destructiveHint": False},
+    "register_contract":        {"destructiveHint": False},
+    "ingest_work_event":        {"destructiveHint": False},
+    "link_pr":                  {"destructiveHint": False},
+}
+
+
+def register_tool(server: Any, fn: Callable[..., Any], annotations: dict[str, bool] | None = None) -> str:
     tool_error = _tool_error_type()
 
     @functools.wraps(fn)
@@ -34,5 +65,12 @@ def register_tool(server: Any, fn: Callable[..., Any]) -> str:
                 raise
             raise tool_error(f"{type(exc).__name__}: {exc}") from exc
 
-    server.tool(name=fn.__name__, description=fn.__doc__)(wrapper)
+    hints = annotations or TOOL_ANNOTATIONS.get(fn.__name__)
+    kwargs: dict[str, Any] = {"name": fn.__name__, "description": fn.__doc__}
+    if hints:
+        kwargs["annotations"] = hints
+    try:
+        server.tool(**kwargs)(wrapper)
+    except TypeError:
+        server.tool(name=fn.__name__, description=fn.__doc__)(wrapper)
     return fn.__name__

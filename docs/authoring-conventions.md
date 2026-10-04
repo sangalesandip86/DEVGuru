@@ -40,9 +40,8 @@ metadata:
 
 ## Purpose
 ## When this applies
-## Preflight            (standard block: resolve workspace via /workflow/workspace-resolver,
-                         check `inputs` via /workflow/stage-preflight → SATISFIED / ADOPT /
-                         BACKFILL / ASK / BLOCK; never proceed on a missing input silently)
+## Preflight            (link to skills/workflow/stage-preflight/reference/standard-preflight.md;
+                         list only skill-specific deltas — Inputs, ADOPT, BACKFILL, Repo roles)
 ## Procedure            (numbered steps the agent follows)
 ## Outputs              (which ledger classifications it produces, which handoff fields)
 ## Enforcement          (what actually enforces this — cite the §5.6 row, or state
@@ -53,8 +52,11 @@ metadata:
 - Skills **inform**; they never claim to enforce. If a rule has an enforcement point, name it.
 - Cross-reference other skills by relative path instead of restating their rules
   (every role references `grounding/evidence-gate`).
-- Content the plan marks "unchanged from v2" was not supplied with v3. It is reconstructed
-  from v3 context and marked with `<!-- reconstructed: v2 source not provided; review -->`.
+- Every `## Preflight` section links to `skills/workflow/stage-preflight/reference/standard-preflight.md`
+  and lists only skill-specific deltas (Inputs, ADOPT, BACKFILL, Repo roles). Do not duplicate
+  the shared preflight text.
+- Content the plan marked "unchanged from v2" was reconstructed from v3 context.
+  Markers have been reviewed and removed as of 2026-10-03.
 
 ## Shared vocabulary (do not invent variants)
 

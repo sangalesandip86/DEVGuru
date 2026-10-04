@@ -1,6 +1,6 @@
 ---
 name: fact-classification
-description: Classifies every statement as FACT, INFERENCE, ASSUMPTION, PROPOSAL, QUESTION, DECISION, or RISK, and tracks lifecycle state for DECISION/PROPOSAL entries. Use whenever recording to the evidence ledger or labelling claims in any structured artifact.
+description: Classify statements as FACT, INFERENCE, ASSUMPTION, QUESTION, DECISION, PROPOSAL, or RISK. Use when recording to the ledger.
 metadata:
   group: core
   phase: 0
@@ -12,7 +12,6 @@ metadata:
   repo_roles: []
 ---
 
-<!-- reconstructed: v2 source not provided; review -->
 
 # Fact Classification
 
@@ -24,7 +23,7 @@ mistaken for an observation and an agent's opinion is never mistaken for a verif
 Every ledger write and every claim inside a structured artifact (handoff, approval summary).
 
 ## Preflight
-Run [stage-preflight](../../workflow/stage-preflight/SKILL.md) and [workspace-resolver](../../workflow/workspace-resolver/SKILL.md) before the Procedure. Cross-cutting: this skill has no stage inputs of its own and is loaded alongside whatever stage is running, so it never BACKFILLs or BLOCKs a stage by itself.
+See [standard-preflight](../../workflow/stage-preflight/reference/standard-preflight.md) (cross-cutting).
 
 - **Inputs:** each claim about to be recorded, with its source.
 - **ADOPT:** claims imported from existing docs or tickets are never classified FACT by the model — FACTs come only from hooks; imported claims start as ASSUMPTION or QUESTION until verified.
@@ -47,6 +46,8 @@ Run [stage-preflight](../../workflow/stage-preflight/SKILL.md) and [workspace-re
 Correctly classified ledger entries and handoff claims.
 
 ## Enforcement
+**Enforced** (partial) — some rules are structural, others are guideline only.
+
 - FACT entries are grounded: hooks write FACT entries directly; the model never self-reports a
   FACT (§5.6). The ledger server rejects FACT from AGENT callers.
 - INFERENCE without `input_references` is rejected by schema validation.

@@ -1,6 +1,6 @@
 ---
 name: scale-readiness-reviewer
-description: Reviews whether a system or change is ready for a stated load target — capacity headroom, bottlenecks, failure behavior under load, and observability — and emits REVIEWED ACCEPT/REJECT. Use before launches, traffic events, or HIGH/CRITICAL changes on hot paths.
+description: Review scale readiness -- capacity, bottlenecks, failure under load. Use before launches, traffic events, or HIGH/CRITICAL changes.
 metadata:
   group: engineering-design
   phase: progressive
@@ -14,7 +14,6 @@ metadata:
 
 # Scale Readiness Reviewer
 
-<!-- reconstructed: v2 source not provided; review -->
 
 ## Purpose
 
@@ -29,7 +28,7 @@ this skill's judgment over them is `REVIEWED`.
 - Request: "are we ready for N× traffic?"
 
 ## Preflight
-Run [stage-preflight](../../workflow/stage-preflight/SKILL.md) and [workspace-resolver](../../workflow/workspace-resolver/SKILL.md) before the Procedure. Primary stage ARCHITECTURE (review of the proposed design); also REVIEW for HIGH+ Change Sets.
+See [standard-preflight](../../workflow/stage-preflight/reference/standard-preflight.md). Primary stage ARCHITECTURE (review of the proposed design); also REVIEW for HIGH+ Change Sets.
 
 - **Inputs:** the architecture package and the NFR catalog's numeric targets.
 - **BACKFILL:** no architecture package → propose `BACKFILL: ARCHITECTURE`.
@@ -80,6 +79,8 @@ On an existing repo, load [project-conventions](../project-conventions/SKILL.md)
 - `RISK` per FAIL/non-critical gap; `QUESTION` per missing target or evidence.
 
 ## Enforcement
+**Guideline only** — no enforcement point yet.
+
 
 - Evidence rules: `../../grounding/evidence-gate/SKILL.md`.
 - Load-test pass/fail becomes `VERIFIED` only via server ingestion of CI/test-runner output (§5.5).

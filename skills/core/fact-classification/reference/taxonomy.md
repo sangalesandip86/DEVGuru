@@ -1,4 +1,3 @@
-<!-- reconstructed: v2 source not provided; review -->
 
 # Evidence Taxonomy (§5.1)
 

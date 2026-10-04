@@ -1,6 +1,6 @@
 ---
 name: permission-scoping
-description: Fine-grained, per-Change-Set permission matrices that narrow a role's default permissions to exactly the repos, paths, and MCP tools a specific task needs. Use when provisioning an agent session for a task, especially multi-repo or HIGH/CRITICAL work.
+description: Narrow default permissions to the repos, paths, and tools a specific task needs. Use when provisioning sessions for HIGH/CRITICAL work.
 metadata:
   group: governance
   phase: 3
@@ -14,7 +14,6 @@ metadata:
 
 # Permission Scoping
 
-<!-- reconstructed: v2 source not provided; review -->
 
 ## Purpose
 `default-permissions` defines the ceiling per role. Permission scoping narrows each session
@@ -25,7 +24,7 @@ below that ceiling to the Change Set's actual scope, and checks the Rule of Two 
 - Any session that will read untrusted input (issue text, external docs, MCP responses).
 
 ## Preflight
-Run [stage-preflight](../../workflow/stage-preflight/SKILL.md) and [workspace-resolver](../../workflow/workspace-resolver/SKILL.md) before the Procedure. Cross-cutting: this skill has no stage inputs of its own and is loaded alongside whatever stage is running, so it never BACKFILLs or BLOCKs a stage by itself.
+See [standard-preflight](../../workflow/stage-preflight/reference/standard-preflight.md) (cross-cutting).
 
 - **Inputs:** role specs and the resolved repo map.
 - **Repo roles:** all resolved repos.
@@ -57,6 +56,8 @@ rule_of_two: {untrusted_input: true, secrets: false, external_mutation: false}
 - `DECISION` (scoped matrix), `RISK` if a scope had to be widened beyond the task's declared paths.
 
 ## Enforcement
+**Enforced** — see rules below.
+
 Per-role tool scoping in subagent/agent frontmatter and per-role MCP credentials; deny
 paths delivered via managed settings. A dedicated capability broker is deferred (§2).
 

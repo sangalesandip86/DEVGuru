@@ -1,6 +1,6 @@
 ---
 name: secret-scanning
-description: Detects committed credentials and tokens with gitleaks, TruffleHog, and forge push protection, and drives rotation — not just removal — when a secret leaks. Use on every commit/PR and whenever a scan, log, or agent output may contain a credential.
+description: Detect committed secrets with gitleaks/TruffleHog and drive rotation. Use on every commit/PR and when output may contain credentials.
 metadata:
   group: testing
   phase: 1
@@ -14,7 +14,6 @@ metadata:
 
 # Secret Scanning
 
-<!-- reconstructed: v2 source not provided; review -->
 
 ## Purpose
 Keep credentials out of repositories, logs, and agent context. Touching secrets is one leg of the Rule
@@ -25,7 +24,7 @@ of Two (plan §5.9): a leaked secret in a repo puts it in front of every agent s
 - Scheduled full-history scans; after any incident.
 
 ## Preflight
-Run the standard preflight before any step below: [`stage-preflight`](../../../workflow/stage-preflight/SKILL.md) and [`workspace-resolver`](../../../workflow/workspace-resolver/SKILL.md).
+See [standard-preflight](../../../workflow/stage-preflight/reference/standard-preflight.md).
 1. **Workspace.** Resolve repo roles `[app, tests]`. If found, record it as FACT `repo@sha`. If ambiguous, raise one QUESTION with ranked candidates. If missing, workspace-resolver offers local creation or a `repo-request.yaml`.
 2. **Inputs** `[change-set]`. Each resolves to one of:
    - SATISFIED;
@@ -59,6 +58,8 @@ Never proceed on a missing input silently.
 - False-positive argument → `REVIEWED` + `PROPOSAL` for the allow-list change.
 
 ## Enforcement
+**Enforced** (partial) — some rules are structural, others are guideline only.
+
 Forge push protection and the CI gate are deterministic. "Never echo secrets" is guideline only; fact-writer
 hooks should redact matches of known secret patterns before writing ledger entries.
 

@@ -1,6 +1,5 @@
 # Eval Harness
 
-<!-- reconstructed: v2 source not provided; review -->
 
 ## Rule: do not build a custom eval harness
 

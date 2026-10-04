@@ -3,4 +3,5 @@ __pycache__/
 *.pyc
 *.db
 build/
+*.egg-info/
 .venv/

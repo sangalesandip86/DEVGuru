@@ -1,6 +1,5 @@
 # Performance Checklist (code level)
 
-<!-- reconstructed: v2 source not provided; review -->
 
 A performance finding is only a finding when tied to a number. For each item, state the input
 size or call rate it depends on. If that number is not in the requirement, ADR, or Change Set,

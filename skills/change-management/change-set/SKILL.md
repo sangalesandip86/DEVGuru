@@ -1,6 +1,6 @@
 ---
 name: change-set
-description: Defines the Change Set — a requirement plus every repo, contract, and environment it touches, pinned to a snapshot — and its lifecycle, tasks, checkpoints, completion criteria, and approval matrix. Use when creating, planning, executing, resuming, or closing any unit of work; for single-repo work the forge issue + PR is the Change Set.
+description: Define and manage Change Sets -- lifecycle, tasks, checkpoints, approvals. Use when creating, executing, resuming, or closing a unit of work.
 metadata:
   group: change-management
   phase: 2
@@ -26,7 +26,7 @@ changed, where, against which pinned snapshot, by which tasks, and which gates a
   change_management module of the adlc MCP server (plan's Server 2), `mcp:adlc.create_change_set`.
 
 ## Preflight
-Run [stage-preflight](../../workflow/stage-preflight/SKILL.md) and [workspace-resolver](../../workflow/workspace-resolver/SKILL.md) before the Procedure. Change Sets start at IMPLEMENT and carry the work through TEST, REVIEW and INTEGRATE.
+See [standard-preflight](../../workflow/stage-preflight/reference/standard-preflight.md). Change Sets start at IMPLEMENT and carry the work through TEST, REVIEW and INTEGRATE.
 
 - **Inputs:** at least one READY story (`story_refs[]`); for HIGH+ tiers, the DESIGN-stage outputs.
 - **ADOPT:** an existing open PR or branch for the story is adopted into a Change Set (single-repo: the issue + PR *is* the Change Set).
@@ -55,6 +55,8 @@ Run [stage-preflight](../../workflow/stage-preflight/SKILL.md) and [workspace-re
   entries with impact and expiry; handoffs via `record_handoff`.
 
 ## Enforcement
+**Enforced** — see rules below.
+
 - Agents cannot set `PLAN_APPROVED` / `INTEGRATED` / `RELEASED`: `update_status` rejects agent
   callers; only `ingest_forge_event` applies them (§5.6 row 1; adlc `change_management` module, plan's Server 2).
 - Transition validity is enforced by the adlc `change_management` module's lifecycle table.

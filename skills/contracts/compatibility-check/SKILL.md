@@ -1,6 +1,6 @@
 ---
 name: compatibility-check
-description: Checks whether an application version can be deployed to an environment by verifying its contracts in both directions against the versions actually recorded as deployed there. Use before integrating or releasing any change that touches a registered contract, and for every API_CONTRACT story.
+description: Check deploy safety by verifying contracts against deployed versions. Use before integrating changes that touch a registered contract.
 metadata:
   group: contracts
   phase: 3
@@ -24,7 +24,7 @@ CI) — not "latest against latest", and not a guess.
 - `API_CONTRACT` stories: compatibility-check `VERIFIED` is a DoD item (v3.1 §4.12).
 
 ## Preflight
-Run [stage-preflight](../../workflow/stage-preflight/SKILL.md) and [workspace-resolver](../../workflow/workspace-resolver/SKILL.md) before the Procedure. Runs at REVIEW for any Change Set that changes a contract; also callable at DESIGN as a dry run.
+See [standard-preflight](../../workflow/stage-preflight/reference/standard-preflight.md). Runs at REVIEW for any Change Set that changes a contract; also callable at DESIGN as a dry run.
 
 - **Inputs:** old and new contract versions plus recorded deployments.
 - **BACKFILL:** none — missing deployment or verification data yields INCOMPATIBLE (`COMPATIBILITY_UNKNOWN`), never a pass.
@@ -52,6 +52,8 @@ Run [stage-preflight](../../workflow/stage-preflight/SKILL.md) and [workspace-re
 - `RISK` entry for every INCOMPATIBLE or UNKNOWN check.
 
 ## Enforcement
+**Enforced** — see rules below.
+
 Run as a required CI check before merge/deploy; the server sets `VERIFIED` from the result (§5.5).
 Agents have no tool that writes deployment records or verification results.
 

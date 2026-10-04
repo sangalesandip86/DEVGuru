@@ -1,6 +1,6 @@
 ---
 name: evidence-ledger
-description: Records what every agent run read, decided, and assumed in an append-only, hash-chained, identity-authenticated ledger, for audit and for feeding /self-improvement. Use whenever recording or querying evidence, correcting a past entry, or resuming a run.
+description: Record and query the append-only, hash-chained evidence ledger. Use when recording, querying, correcting evidence, or resuming a run.
 metadata:
   group: core
   phase: 0
@@ -25,7 +25,7 @@ It feeds audit, resumability, handoffs, and `/self-improvement`. It is served by
 - Correcting a past entry (production feedback, a wrong assumption, an answered question)
 
 ## Preflight
-Run [stage-preflight](../../workflow/stage-preflight/SKILL.md) and [workspace-resolver](../../workflow/workspace-resolver/SKILL.md) before the Procedure. Cross-cutting: this skill has no stage inputs of its own and is loaded alongside whatever stage is running, so it never BACKFILLs or BLOCKs a stage by itself.
+See [standard-preflight](../../workflow/stage-preflight/reference/standard-preflight.md) (cross-cutting).
 
 - **Inputs:** an authenticated connection to the `evidence_ledger` module of the `adlc` MCP server; identity comes from the credential, never from arguments.
 - **BLOCK:** if the ledger is unreachable, stop writing structured artifacts and report it; never fall back to unrecorded work.
@@ -54,6 +54,8 @@ Run [stage-preflight](../../workflow/stage-preflight/SKILL.md) and [workspace-re
 Ledger entries per the schema; `entry_id`s to cite in handoffs and summaries.
 
 ## Enforcement
+**Enforced** — see rules below.
+
 | Rule | Enforced by |
 |---|---|
 | Agent identity is authentic | Server-side derivation from the authenticated connection (§5.6) |

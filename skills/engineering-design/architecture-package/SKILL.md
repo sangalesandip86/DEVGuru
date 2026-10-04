@@ -1,6 +1,6 @@
 ---
 name: architecture-package
-description: Drives the ARCHITECTURE stage. It assembles the solution-level document set (current-state or standards baseline, C4 context/container views, solution architecture doc, ADRs, NFR-to-tactic mapping, integration/contract inventory, data model, STRIDE threat model, deployment view, risk register, service/repo map) from the INTAKE outputs, grounded in measurable NFRs. For existing systems it produces a delta against the current architecture. Use after requirements are ingested and before epics and stories are planned.
+description: Assemble the ARCHITECTURE stage document set (C4 views, ADRs, threat model, NFR mapping). Use after intake, before planning stories.
 metadata:
   group: engineering-design
   phase: 1
@@ -99,6 +99,8 @@ TECHNICAL_STORY. It is never redesigned in passing.
   numbers), and a handoff to PLAN.
 
 ## Enforcement
+**Enforced** (partial) — some rules are structural, others are guideline only.
+
 - **Exit gate:**
   - the review must come from architect REVIEWED/ACCEPT, or a human; SYSTEM evidence never counts;
   - for HIGH+ systems and any superseding ADR, an authenticated `human:tech-lead` APPROVAL is also required.

@@ -1,6 +1,6 @@
 ---
 name: definition-of-ready
-description: Explains the machine-readable Definition of Ready (policies/dor-policy.yaml) so agents can self-check a story before the readiness gate runs — which items apply by type/tier/touches/data classification, and which are STRUCTURAL, JUDGMENT or APPROVAL. Use before proposing a story for READY, or when interpreting a NOT_READY gate result.
+description: Check the Definition of Ready -- items a story must satisfy before the readiness gate. Use before proposing READY or on NOT_READY.
 metadata:
   group: product-planning
   phase: 1
@@ -29,7 +29,7 @@ This skill explains the rule. **It does not decide it.** The decision belongs to
 - When a story's AC changed after READY (`REQUIRES_REFINING`). The DoR runs again.
 
 ## Preflight
-Run [stage-preflight](../../workflow/stage-preflight/SKILL.md) and [workspace-resolver](../../workflow/workspace-resolver/SKILL.md) before the Procedure. Stage PLAN (the exit gate of PLAN).
+See [standard-preflight](../../workflow/stage-preflight/reference/standard-preflight.md). Stage PLAN (the exit gate of PLAN).
 
 - **Inputs:** the story file plus ledger evidence (reviews, approvals, questions).
 - **ADOPT:** an imported story is evaluated exactly like a native one — no grandfathering.
@@ -66,6 +66,8 @@ REFINING) is tracked as a pilot metric (plan §7). It is the signal to tighten t
 through a human-approved change to the control file.
 
 ## Enforcement
+**Enforced** (partial) — see rules below.
+
 - **READY is computed only by** `readiness_gate.py` (SYSTEM). Plan files have no status field, and agents have no status-setting tool (plan §5.6 row "Story is READY only when the DoR is met").
 - **The policy itself** is a control file: managed-settings deny plus `control-file-guard`. Changes are CRITICAL tier with human approval (plan §5.6 row "DoR/DoD/story-type policy is not agent-weakenable").
 - **Judgment integrity:** the gate ignores SYSTEM, VERIFIED and wrong-role records for JUDGMENT items, and stale-hash reviews for pinned items. This is covered by the gate's tests.

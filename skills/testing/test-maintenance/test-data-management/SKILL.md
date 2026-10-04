@@ -1,6 +1,6 @@
 ---
 name: test-data-management
-description: Designs test data that is deterministic, isolated per test, and free of real personal or production data — factories, fixtures, seeded generators, ephemeral databases, and synthetic or masked datasets. Use when tests need data setup, share state, or someone proposes copying production data.
+description: Design deterministic, isolated test data -- factories, fixtures, synthetic datasets. Use when tests share state or need data setup.
 metadata:
   group: testing
   phase: progressive
@@ -14,7 +14,6 @@ metadata:
 
 # Test Data Management
 
-<!-- reconstructed: v2 source not provided; review -->
 
 ## Purpose
 Reproducible tests with data that carries no privacy or security risk.
@@ -24,7 +23,7 @@ Reproducible tests with data that carries no privacy or security risk.
 - Anyone proposes using a production dump or real customer records.
 
 ## Preflight
-Run the standard preflight before any step below: [`stage-preflight`](../../../workflow/stage-preflight/SKILL.md) and [`workspace-resolver`](../../../workflow/workspace-resolver/SKILL.md).
+See [standard-preflight](../../../workflow/stage-preflight/reference/standard-preflight.md).
 1. **Workspace.** Resolve repo roles `[app, tests, infra]`. If found, record it as FACT `repo@sha`. If ambiguous, raise one QUESTION with ranked candidates. If missing, workspace-resolver offers local creation or a `repo-request.yaml`. If there is no test framework for this tier, that is **Mode C, as its own `TEST_AUTOMATION` story** ([suite-authoring](../../test-implementation/suite-authoring/SKILL.md)). It is never scaffolded inside a feature story.
 2. **Frozen test design** (`plans/test-designs/ST-n.yaml` or `.feature` at the story's current `ac_hash`): SATISFIED. If it's missing, offer **BACKFILL** (DESIGN via qa-derive, [test-case-design](../../test-design/test-case-design/SKILL.md)) or **characterization mode** ([ADR 0004 §3](../../../../docs/adr/0004-workflow-stages-and-workspace.md)): tests tagged `characterization`, an ASSUMPTION "current behaviour is intended" recorded, and they never count as AC verification or VERIFIED. If the `ac_hash` is stale, BLOCK.
 3. **Environment.** The target is either an ephemeral preview (the agent may seed it) or shared staging (CI-only seeding). The seed scripts and the environment's readiness endpoint must resolve. The preflight for data *generation* is in [test-data-synthesis](../../test-data/test-data-synthesis/SKILL.md).
@@ -71,6 +70,8 @@ Never proceed on a missing input silently.
 - Fixtures/factories (`REPO_WRITE`). Data-plan proposals → `PROPOSAL`. Any request for production data → `QUESTION` to a human.
 
 ## Enforcement
+**Enforced** (partial) — some rules are structural, others are guideline only.
+
 The production-data restriction is enforced by Rule-of-Two session scoping and per-role tool scoping (plan §5.6).
 The rest is guideline only.
 

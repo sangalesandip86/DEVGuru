@@ -1,6 +1,6 @@
 ---
 name: risk-tiering
-description: Computes a Change Set's risk tier (LOW/MEDIUM/HIGH/CRITICAL), which decides which gates and human approvals apply. Use at Change Set creation, whenever the changed-file set or dependency picture changes, and when an agent is uncertain for a named reason code.
+description: Compute a Change Set risk tier (LOW/MEDIUM/HIGH/CRITICAL) for gates and approvals. Use at creation and when scope changes.
 metadata:
   group: change-management
   phase: 0
@@ -33,7 +33,7 @@ Two implementations, by phase:
 - The agent is uncertain in one of the named reason-code situations.
 
 ## Preflight
-Run [stage-preflight](../../workflow/stage-preflight/SKILL.md) and [workspace-resolver](../../workflow/workspace-resolver/SKILL.md) before the Procedure. Cross-cutting: tiers are computed at PLAN (from story type and declared paths) and recomputed at IMPLEMENT (from the actual diff).
+See [standard-preflight](../../workflow/stage-preflight/reference/standard-preflight.md). Cross-cutting: tiers are computed at PLAN (from story type and declared paths) and recomputed at IMPLEMENT (from the actual diff).
 
 - **Inputs:** changed or declared paths, story type, reason codes.
 - **BACKFILL:** none — if inputs are missing the tier is HIGH (fail-safe), never skipped.
@@ -62,6 +62,8 @@ Run [stage-preflight](../../workflow/stage-preflight/SKILL.md) and [workspace-re
 - Change Set `risk_tier` and `risk_tier_history[]` updated.
 
 ## Enforcement
+**Enforced** (partial) — some rules are structural, others are guideline only.
+
 - Phase 0: the path lookup is deterministic; CI can run it and require the PR's labelled tier to be
   ≥ the computed tier. Control-file CRITICAL is enforced by managed settings + `PreToolUse` hook (§5.6).
 - Phase 2: `compute_risk_tier` applies escalation rules server-side; downgrades require an

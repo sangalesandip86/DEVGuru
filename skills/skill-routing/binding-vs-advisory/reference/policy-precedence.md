@@ -1,6 +1,5 @@
 # Policy Precedence
 
-<!-- reconstructed: v2 source not provided; review -->
 
 Highest first. A lower layer may **tighten** a higher layer; it may never **relax** it.
 

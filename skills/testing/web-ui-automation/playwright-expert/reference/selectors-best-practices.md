@@ -1,6 +1,5 @@
 # Selector Best Practices
 
-<!-- reconstructed: v2 source not provided; review -->
 
 Written for Playwright; the ranking holds for Selenium, WebdriverIO, and Cypress too.
 

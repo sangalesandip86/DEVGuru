@@ -43,8 +43,32 @@ def validate_plan_item(item_id: str, data: dict[str, Any]) -> None:
         raise ValidationError(f"{item_id}: plan files have no status field (found {bad}); status is derived by gates")
 
 
+_AC_HASHED_FIELDS = ("id", "given", "when", "then", "kind", "verification", "tags")
+_AC_WS = re.compile(r"\s+")
+
+
+def _ac_norm(value: Any) -> Any:
+    if isinstance(value, str):
+        return _AC_WS.sub(" ", value).strip()
+    if isinstance(value, list):
+        return sorted(_ac_norm(v) for v in value) if all(isinstance(v, str) for v in value) \
+            else [_ac_norm(v) for v in value]
+    return value
+
+
+def _canonical_ac(criteria: list[dict]) -> list[dict]:
+    out = []
+    for ac in criteria or []:
+        item = {k: _ac_norm(ac.get(k)) for k in _AC_HASHED_FIELDS if ac.get(k) not in (None, [], "")}
+        out.append(item)
+    return sorted(out, key=lambda a: str(a.get("id", "")))
+
+
 def ac_hash(data: dict[str, Any]) -> str:
-    return "sha256:" + sha256_hex(canonical_json(data.get("acceptance_criteria") or []))
+    import json
+    payload = json.dumps(_canonical_ac(data.get("acceptance_criteria") or []),
+                         sort_keys=True, separators=(",", ":"), ensure_ascii=False)
+    return "sha256:" + sha256_hex(payload)
 
 
 def edges_for(item_id: str, kind: str, data: dict[str, Any]) -> set[tuple[str, str, str]]:

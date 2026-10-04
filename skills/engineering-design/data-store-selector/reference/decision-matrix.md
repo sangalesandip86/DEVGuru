@@ -1,6 +1,5 @@
 # Data Store Decision Matrix
 
-<!-- reconstructed: v2 source not provided; review -->
 
 ## Step 1 — Hard constraints (eliminate)
 

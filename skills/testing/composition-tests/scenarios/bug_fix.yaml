@@ -1,0 +1,100 @@
+# Scenario: "Fix null pointer in checkout" — bug fix, fast-track path
+name: bug_fix
+description: Bug fix with abbreviated ARCHITECTURE, PLAN inline
+story_type: BUG_FIX
+tier_floor: MEDIUM
+repositories: ["checkout-svc"]
+paths: ["src/checkout/cart.py"]
+
+stages:
+  INTAKE:
+    lead_role: product-planner
+    outputs:
+      requirement:
+        id: REQ-10
+        title: "Fix NullPointerException when cart is empty"
+        type: defect
+
+  PLAN:
+    lead_role: product-planner
+    inputs_from: [INTAKE]
+    outputs:
+      ready-story:
+        id: ST-10
+        title: "Handle empty cart in checkout flow"
+        type: BUG_FIX
+        tier_floor: MEDIUM
+        acceptance_criteria:
+          - id: ST-10/AC-1
+            given: empty cart
+            when: user clicks checkout
+            then: shows friendly message instead of 500
+
+  DESIGN:
+    lead_role: qa-derive
+    inputs_from: [PLAN]
+    outputs:
+      test-design:
+        story_ref: ST-10
+        ac_hash: "sha256:bbbbbbbb1234567890abcdef1234567890abcdef1234567890abcdef12345678"
+        scenarios:
+          - id: ST-10/SC-1
+            ac_ref: ST-10/AC-1
+            mode: A_SURGICAL
+
+  IMPLEMENT:
+    lead_role: developer
+    inputs_from: [PLAN]
+    outputs:
+      change-set:
+        id: CS-010
+        paths_changed:
+          - src/checkout/cart.py
+
+  TEST:
+    lead_role: test-engineer
+    inputs_from: [DESIGN, IMPLEMENT]
+    outputs:
+      test-suite:
+        files:
+          - tests/test_cart.py
+        coverage_pct: 88
+
+  REVIEW:
+    lead_role: code-reviewer
+    inputs_from: [IMPLEMENT, TEST]
+    outputs:
+      review-verdict:
+        reviewer: code-reviewer
+        verdict: ACCEPT
+
+handoff_chain:
+  - from: product-planner
+    to: product-planner
+    stage_from: INTAKE
+    stage_to: PLAN
+    artifacts: [requirement]
+
+  - from: product-planner
+    to: qa-derive
+    stage_from: PLAN
+    stage_to: DESIGN
+    artifacts: [ready-story]
+
+  - from: qa-derive
+    to: developer
+    stage_from: DESIGN
+    stage_to: IMPLEMENT
+    artifacts: [test-design]
+
+  - from: developer
+    to: test-engineer
+    stage_from: IMPLEMENT
+    stage_to: TEST
+    artifacts: [change-set]
+
+  - from: test-engineer
+    to: code-reviewer
+    stage_from: TEST
+    stage_to: REVIEW
+    artifacts: [test-suite]

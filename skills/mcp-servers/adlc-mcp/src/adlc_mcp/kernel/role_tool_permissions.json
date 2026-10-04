@@ -1,0 +1,59 @@
+{
+  "$comment": "Single source for server-side role-to-MCP-tool filtering (finding B5). Update this file; role_permissions.py loads it.",
+  "roles": {
+    "product-owner": [
+      "record_evidence", "query_evidence", "record_correction",
+      "get_change_set", "record_handoff",
+      "get_work_item", "query_work_graph", "evaluate_readiness"
+    ],
+    "product-planner": [
+      "record_evidence", "query_evidence", "record_correction",
+      "get_change_set", "record_handoff",
+      "get_work_item", "query_work_graph", "evaluate_readiness"
+    ],
+    "architect": [
+      "record_evidence", "query_evidence", "record_correction",
+      "get_change_set", "record_handoff", "record_dependency",
+      "check_compatibility", "detect_drift",
+      "get_work_item", "query_work_graph", "evaluate_readiness"
+    ],
+    "developer": [
+      "record_evidence", "query_evidence", "record_correction",
+      "get_change_set", "record_handoff",
+      "create_change_set", "update_status", "create_snapshot",
+      "validate_snapshot_currency", "record_dependency", "compute_risk_tier",
+      "record_task", "checkpoint_task", "record_task_failure",
+      "get_work_item", "query_work_graph", "evaluate_readiness", "evaluate_done",
+      "link_change_set"
+    ],
+    "qa-derive": [
+      "record_evidence", "query_evidence", "record_correction",
+      "get_change_set", "record_handoff",
+      "get_work_item", "query_work_graph", "evaluate_readiness"
+    ],
+    "qa-diagnose": [
+      "record_evidence", "query_evidence", "record_correction",
+      "get_change_set", "record_handoff",
+      "record_incident", "query_incidents",
+      "get_work_item", "query_work_graph"
+    ],
+    "test-engineer": [
+      "record_evidence", "query_evidence", "record_correction",
+      "get_change_set", "record_handoff",
+      "record_task", "checkpoint_task", "record_task_failure",
+      "get_work_item", "query_work_graph", "evaluate_done",
+      "link_change_set"
+    ],
+    "code-reviewer": [
+      "record_evidence", "query_evidence", "record_correction",
+      "get_change_set", "record_handoff",
+      "get_work_item", "query_work_graph"
+    ],
+    "security-reviewer": [
+      "record_evidence", "query_evidence", "record_correction",
+      "get_change_set", "record_handoff",
+      "query_incidents",
+      "get_work_item", "query_work_graph"
+    ]
+  }
+}

@@ -168,12 +168,47 @@ class TrustAndTaxonomy(LedgerTestCase):
         self.assertEqual(len(self.ledger.blocking_items("CS-9")), 1)
 
 
+class ExportPlanningEvidence(unittest.TestCase):
+    def test_real_ledger_export(self):
+        """D3: export from a real ledger with recorded entries, not synthetic data."""
+        env = TempEnv()
+        try:
+            script = Path(__file__).resolve().parents[2] / "scripts" / "ledger_cli.py"
+            run_env = dict(os.environ, ADLC_LEDGER_DB=str(env.dir / "l.db"),
+                           ADLC_REQUIRE_HOOK_TOKEN="0", ADLC_RUN_ID="ci-d3")
+            # 1. Append a FACT via hook path
+            payload = json.dumps({"run_id": "r1", "tool": "claude-code", "source_type": "file_read",
+                                  "content": "ST-1 requirement text", "source": "plans/requirements/REQ-1.yaml"})
+            subprocess.run([sys.executable, str(script), "append-fact"], input=payload, text=True,
+                           capture_output=True, env=run_env, check=True)
+            # 2. Record a gate as SYSTEM VERIFIED
+            subprocess.run([sys.executable, str(script), "record-gate", "--gate", "readiness",
+                           "--story", "ST-1", "--passed", "--ac-hash", "abc123"],
+                          env=run_env, check=True, capture_output=True, text=True)
+            # 3. Export
+            out = subprocess.run([sys.executable, str(script), "export-planning-evidence",
+                                 "--story", "ST-1"],
+                                env=run_env, check=True, capture_output=True, text=True)
+            export = json.loads(out.stdout)
+            self.assertEqual(export["generated_by"], "SYSTEM:ledger-export")
+            self.assertIn("generated_at", export)
+            self.assertIsInstance(export["reviews"], list)
+            self.assertIsInstance(export["gates"], list)
+            self.assertTrue(len(export["gates"]) >= 1, "expected at least one gate record")
+            gate = export["gates"][0]
+            self.assertEqual(gate["gate"], "readiness")
+            self.assertEqual(gate["result"], "VERIFIED")
+        finally:
+            env.close()
+
+
 class Cli(unittest.TestCase):
     def test_append_fact_verify_query(self):
         env = TempEnv()
         try:
             script = Path(__file__).resolve().parents[2] / "scripts" / "ledger_cli.py"
-            run_env = dict(os.environ, ADLC_LEDGER_DB=str(env.dir / "l.db"), ADLC_HOOK_NAME="fact-writer")
+            run_env = dict(os.environ, ADLC_LEDGER_DB=str(env.dir / "l.db"), ADLC_HOOK_NAME="fact-writer",
+                                       ADLC_REQUIRE_HOOK_TOKEN="0")
             payload = json.dumps({"run_id": "r1", "tool": "claude-code", "source_type": "file_read",
                                   "content": "def f(): ...", "source": "src/a.py:1-3"})
             out = subprocess.run([sys.executable, str(script), "append-fact"], input=payload, text=True,

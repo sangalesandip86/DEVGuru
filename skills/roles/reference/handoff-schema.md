@@ -6,7 +6,6 @@ Every transfer of work between roles is a typed handoff, recorded in the Evidenc
 (`record_handoff` on Server 2 for multi-repo work; a `DECISION` entry referencing the PR for
 single-repo forge-native work). Handoffs are what make a Change Set traceable and resumable.
 
-<!-- reconstructed: v2 source not provided; review -->
 
 ```yaml
 handoff:

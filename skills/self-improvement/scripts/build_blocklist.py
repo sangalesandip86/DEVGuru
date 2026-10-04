@@ -220,6 +220,8 @@ def build(roots: list[Path], corpus: Path | None) -> dict:
 
 
 def main(argv: list[str] | None = None) -> int:
+    if sys.stdout and hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8")
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--root", type=Path, action="append", required=True)
     ap.add_argument("--out", type=Path)

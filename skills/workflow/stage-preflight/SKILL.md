@@ -1,6 +1,6 @@
 ---
 name: stage-preflight
-description: Decides whether work can start at a given lifecycle stage by classifying each required input as SATISFIED, ADOPT, BACKFILL, ASK or BLOCK, using the stage graph, the resolved workspace, the plan files and the evidence export. Use in the Preflight of every stage skill and at the start of every /adlc run, including when a user jumps straight to a later stage ("implement ST-40", "write tests for this").
+description: Check whether work can start at a stage -- classify inputs as SATISFIED/ADOPT/BACKFILL/ASK/BLOCK. Use at every stage start.
 metadata:
   group: workflow
   phase: 1
@@ -59,11 +59,21 @@ Resolve the workspace first ([workspace-resolver](../workspace-resolver/SKILL.md
 5. **Characterization mode** is valid only at TEST, and only when the user chose it. The resulting
    tests never count as AC verification.
 
+## Overrides
+When the preflight output contains `overrides`, each override relaxes a preflight input.
+Record every override as a `RISK` entry via `record_evidence` with `source_type: "agent_analysis"`
+and `metadata: {"preflight_override": true, "override": "<the override text>"}`. This makes
+overrides auditable in the ledger — a downstream reviewer or gate can query for unacknowledged
+preflight risk.
+
 ## Outputs
 - Preflight JSON (or `--format text`), recorded as FACT by the fact-writer hook.
 - QUESTIONs for ASK outcomes, batched per run.
+- RISK entries for each override (see above).
 
 ## Enforcement
+**Enforced** (partial) — see rules below.
+
 - The preflight is a deterministic script, but it **informs**. What actually stops work without its
   input is the downstream CI and server gates:
   - `readiness_gate.py`: no READY means the story cannot be implemented under the DoD;

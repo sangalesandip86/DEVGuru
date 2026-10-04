@@ -1,6 +1,6 @@
 ---
 name: human-review-format
-description: Formats anything presented to a human for a decision — approval summaries, escalations, BLOCKED reports, conflicting reviews — so the decision, evidence, risk, and open questions are scannable and every claim is sourced. Use whenever output will be read by a human approver or escalation target.
+description: Format output for human decisions -- scannable, sourced, with risk and open questions. Use when output will be read by an approver.
 metadata:
   group: grounding
   phase: 0
@@ -12,7 +12,6 @@ metadata:
   repo_roles: []
 ---
 
-<!-- reconstructed: v2 source not provided; review -->
 
 # Human Review Format
 
@@ -29,7 +28,7 @@ agent prose they cannot verify.
 - Self-improvement candidate revisions awaiting `APPROVED`
 
 ## Preflight
-Run [stage-preflight](../../workflow/stage-preflight/SKILL.md) and [workspace-resolver](../../workflow/workspace-resolver/SKILL.md) before the Procedure. Cross-cutting: this skill has no stage inputs of its own and is loaded alongside whatever stage is running, so it never BACKFILLs or BLOCKs a stage by itself.
+See [standard-preflight](../../workflow/stage-preflight/reference/standard-preflight.md) (cross-cutting).
 
 - **Inputs:** the evidence package being put in front of a human (approval request, escalation, QUESTION batch).
 - **BACKFILL:** if the package is missing VERIFIED evidence the tier requires, say so explicitly rather than presenting it as complete.
@@ -76,6 +75,8 @@ A markdown summary (PR comment, issue comment, or approval-request body) plus a 
 referencing it.
 
 ## Enforcement
+**Guideline only** — no enforcement point yet.
+
 Guideline only — no enforcement point yet. The approval itself is enforced by the forge
 (CODEOWNERS review / environment approval) per §5.10; this skill governs what the human sees.
 

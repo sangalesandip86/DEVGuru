@@ -1,0 +1,63 @@
+{
+  "$comment": "Runner adapters for diff-scoped mutation testing (plan section 4.13, ADR 0003). Each adapter runs mutations only on changed production code (not test code). Used by DoD tier_gates at MEDIUM+. Adapter detection uses stack.json primary_language.",
+  "version": 1,
+  "adapters": {
+    "stryker": {
+      "languages": ["javascript", "typescript"],
+      "install": "npx stryker",
+      "diff_command": "npx stryker run --mutate '{changed_files}' --reporters json",
+      "score_path": "reports/mutation/mutation.json",
+      "score_extract": "metrics.mutationScore",
+      "min_score_default": 60,
+      "notes": "Stryker v8+ supports --mutate glob filtering. Use --concurrency for speed."
+    },
+    "pit": {
+      "languages": ["java", "kotlin"],
+      "install": "mvn org.pitest:pitest-maven:mutationCoverage",
+      "diff_command": "mvn org.pitest:pitest-maven:mutationCoverage -DtargetClasses={changed_classes} -DoutputFormats=JSON",
+      "score_path": "target/pit-reports/*/mutations.json",
+      "min_score_default": 60,
+      "notes": "PIT requires class-level targeting. Convert file paths to fully-qualified class names via source roots."
+    },
+    "mutmut": {
+      "languages": ["python"],
+      "install": "pip install mutmut",
+      "diff_command": "mutmut run --paths-to-mutate {changed_files} --runner 'python -m pytest'",
+      "score_command": "mutmut results --json",
+      "min_score_default": 60,
+      "notes": "mutmut v3+ supports --paths-to-mutate for diff-scoped runs."
+    },
+    "cargo-mutants": {
+      "languages": ["rust"],
+      "install": "cargo install cargo-mutants",
+      "diff_command": "cargo mutants --in-diff {diff_file}",
+      "score_command": "cargo mutants --in-diff {diff_file} --json",
+      "min_score_default": 60,
+      "notes": "cargo-mutants --in-diff reads a unified diff file. Generate with: git diff base...head > diff.patch"
+    },
+    "go-mutesting": {
+      "languages": ["go"],
+      "install": "go install github.com/zimmski/go-mutesting/cmd/go-mutesting@latest",
+      "diff_command": "go-mutesting {changed_packages}",
+      "min_score_default": 50,
+      "notes": "go-mutesting targets packages. Convert file paths to Go package paths."
+    }
+  },
+  "detection": {
+    "$comment": "Map stack.json primary_language to adapter key. When multiple languages exist, the adapter for the changed file's language is used.",
+    "javascript": "stryker",
+    "typescript": "stryker",
+    "java": "pit",
+    "kotlin": "pit",
+    "python": "mutmut",
+    "rust": "cargo-mutants",
+    "go": "go-mutesting"
+  },
+  "tier_gates": {
+    "$comment": "Story risk tier to mutation testing requirement (from DoD policy). null = not required at this tier.",
+    "LOW": null,
+    "MEDIUM": {"required": true, "min_score": 50},
+    "HIGH": {"required": true, "min_score": 60},
+    "CRITICAL": {"required": true, "min_score": 70}
+  }
+}

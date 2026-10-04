@@ -1,6 +1,6 @@
 ---
 name: drift-detection
-description: Compares declared contracts with observed reality — the spec in the registry versus the code, the deployed service, and the traffic — and reports drift. Use on a schedule in CI, after deployments, and when a compatibility check passes but production behaves differently.
+description: Compare declared contracts with observed reality and report drift. Use after deployments, in CI, or when production diverges from specs.
 metadata:
   group: contracts
   phase: 3
@@ -14,7 +14,6 @@ metadata:
 
 # Drift Detection
 
-<!-- reconstructed: v2 source not provided; review -->
 
 ## Purpose
 A registered contract is only useful while it matches reality. Drift detection finds where the
@@ -27,7 +26,7 @@ evidence that no longer describes production.
 - `dependency-discovery` finds an edge with no registered contract.
 
 ## Preflight
-Run [stage-preflight](../../workflow/stage-preflight/SKILL.md) and [workspace-resolver](../../workflow/workspace-resolver/SKILL.md) before the Procedure. Runs at LEARN (scheduled) and on demand during REVIEW.
+See [standard-preflight](../../workflow/stage-preflight/reference/standard-preflight.md). Runs at LEARN (scheduled) and on demand during REVIEW.
 
 - **Inputs:** registered contracts and observed reality (provider code, traffic samples, deployed versions).
 - **ADOPT:** contracts discovered in code but not registered are reported as drift, not silently registered.
@@ -54,6 +53,8 @@ Run [stage-preflight](../../workflow/stage-preflight/SKILL.md) and [workspace-re
 - `RISK` entries per finding; incident records for drift that caused a production signal.
 
 ## Enforcement
+**Guideline only** — no enforcement point yet.
+
 Guideline only until the drift job runs as a scheduled CI workflow with its results ingested by the
 server. Blocking an active Change Set on drift is enforced by the change_management module when the
 drift `RISK` is linked to it.

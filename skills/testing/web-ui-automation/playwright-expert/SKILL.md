@@ -1,6 +1,6 @@
 ---
 name: playwright-expert
-description: Writes, reviews, and stabilizes Playwright end-to-end tests (TypeScript/Python) using user-facing locators, web-first assertions, fixtures, and trace-based debugging. Use for any Playwright test authoring, review, or flake investigation.
+description: Write and stabilize Playwright E2E tests with user-facing locators and web-first assertions. Use for Playwright test authoring or review.
 metadata:
   group: testing
   phase: progressive
@@ -14,7 +14,6 @@ metadata:
 
 # Playwright Expert
 
-<!-- reconstructed: v2 source not provided; review -->
 
 ## Purpose
 Produce Playwright tests that prove user-visible behavior and stay stable across runs.
@@ -25,7 +24,7 @@ Produce Playwright tests that prove user-visible behavior and stay stable across
 - A Playwright test is reported flaky.
 
 ## Preflight
-Run the standard preflight before any step below: [`stage-preflight`](../../../workflow/stage-preflight/SKILL.md) and [`workspace-resolver`](../../../workflow/workspace-resolver/SKILL.md).
+See [standard-preflight](../../../workflow/stage-preflight/reference/standard-preflight.md).
 1. **Workspace.** Resolve repo roles `[app, tests]`. If found, record it as FACT `repo@sha`. If ambiguous, raise one QUESTION with ranked candidates. If missing, workspace-resolver offers local creation or a `repo-request.yaml`. If there is no test framework for this tier, that is **Mode C, as its own `TEST_AUTOMATION` story** ([suite-authoring](../../test-implementation/suite-authoring/SKILL.md)). It is never scaffolded inside a feature story.
 2. **Frozen test design** (`plans/test-designs/ST-n.yaml` or `.feature` at the story's current `ac_hash`): SATISFIED. If it's missing, offer **BACKFILL** (DESIGN via qa-derive, [test-case-design](../../test-design/test-case-design/SKILL.md)) or **characterization mode** ([ADR 0004 §3](../../../../docs/adr/0004-workflow-stages-and-workspace.md)): tests tagged `characterization`, an ASSUMPTION "current behaviour is intended" recorded, and they never count as AC verification or VERIFIED. If the `ac_hash` is stale, BLOCK.
 3. **Runner present.** `stack.json.e2e_driver` contains `playwright` and a `playwright.config.*` exists. The target environment is an ephemeral preview; shared staging is CI-only.
@@ -71,6 +70,8 @@ Never proceed on a missing input silently.
 - Review comments and flake diagnoses → `REVIEWED`.
 
 ## Enforcement
+**Guideline only** — no enforcement point yet.
+
 Test pass/fail is machine evidence ingested from CI (plan §5.5, §5.10). Fixed waits fail
 [no_fixed_sleep_check.py](../../../enforcement/ci-checks/test-integrity/no_fixed_sleep_check.py) (and the
 `playwright/no-wait-for-timeout` lint rule). Skips, `.only`, loosened timeouts and changed expectations

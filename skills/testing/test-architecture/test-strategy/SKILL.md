@@ -1,6 +1,6 @@
 ---
 name: test-strategy
-description: Produces a risk-proportionate test strategy for a Change Set — which test levels, environments, and gates apply. Use when planning verification for a new feature, a HIGH/CRITICAL change, or a repo with no documented strategy.
+description: Produce a risk-proportionate test strategy -- levels, environments, gates. Use when planning verification for a feature or HIGH change.
 metadata:
   group: testing
   phase: progressive
@@ -14,7 +14,6 @@ metadata:
 
 # Test Strategy
 
-<!-- reconstructed: v2 source not provided; review -->
 
 ## Purpose
 Decide *what* must be verified and *at which level* before anyone writes tests, scaled to the
@@ -27,7 +26,7 @@ Change Set's risk tier (plan §5.4) — a docs change and a payment migration do
 - qa-derive needs a frame for deriving test cases from acceptance criteria.
 
 ## Preflight
-Run the standard preflight before any step below: [`stage-preflight`](../../../workflow/stage-preflight/SKILL.md) and [`workspace-resolver`](../../../workflow/workspace-resolver/SKILL.md).
+See [standard-preflight](../../../workflow/stage-preflight/reference/standard-preflight.md).
 1. **Workspace.** Resolve repo roles `[app, planning]`. If found, record it as FACT `repo@sha`. If ambiguous, raise one QUESTION with ranked candidates. If missing, workspace-resolver offers local creation or a `repo-request.yaml`.
 2. **Inputs** `[ready-story, change-set]`. Each resolves to one of:
    - SATISFIED;
@@ -75,6 +74,8 @@ Never proceed on a missing input silently.
   `VERIFIED` — only executed checks are.
 
 ## Enforcement
+**Guideline only** — no enforcement point yet.
+
 Guideline only — no enforcement point yet. Tier gates themselves are enforced by risk-tiering
 and the approval matrix (`../../../change-management/`).
 

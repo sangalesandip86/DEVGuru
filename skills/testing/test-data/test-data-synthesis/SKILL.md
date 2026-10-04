@@ -1,6 +1,6 @@
 ---
 name: test-data-synthesis
-description: Produces reproducible test data for a story — the agent picks partitions from the frozen test design, tools generate the values (boundary_values.py, pairwise, seeded builders, property-based generators), domain-opaque data is requested once per story with a draft payload, secrets are referenced by name only, and fixtures pass the PII scan. Use whenever tests need input data, fixtures, builders, mocks or Examples rows.
+description: Generate reproducible test data from frozen test designs -- boundaries, pairwise, seeded builders. Use when tests need fixtures or data.
 metadata:
   group: testing
   phase: 1
@@ -28,8 +28,7 @@ Use correct, reproducible, safe data. Three rules carry most of the weight:
 - Someone offers "real sample data" or staging credentials.
 
 ## Preflight
-Run the standard preflight first: [`stage-preflight`](../../../workflow/stage-preflight/SKILL.md) and
-[`workspace-resolver`](../../../workflow/workspace-resolver/SKILL.md).
+See [standard-preflight](../../../workflow/stage-preflight/reference/standard-preflight.md).
 1. **Workspace.** Resolve `app`, plus `tests` and `contracts` where they apply. Fixtures go where the golden
    sample keeps them (`test-assets.json`).
 2. **Frozen test design.** `plans/test-designs/ST-n.yaml` or `.feature` files at the story's current `ac_hash`.
@@ -110,6 +109,8 @@ Run the standard preflight first: [`stage-preflight`](../../../workflow/stage-pr
   domain data at LOW tier. RISK: a credential leaked into the conversation.
 
 ## Enforcement
+**Guideline only** — no enforcement point yet.
+
 - [fixture_pii_scan.py](../../../enforcement/ci-checks/test-integrity/fixture_pii_scan.py) and secret
   scanning (gitleaks) in CI (§5.6 row "No real PII / production data / secrets in fixtures").
 - Secrets by reference: the Rule of Two (§5.9). The test-engineer role has no secret access.

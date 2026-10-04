@@ -1,6 +1,6 @@
 ---
 name: prompt-engineer
-description: Designs, revises, and evaluates prompts and system instructions for LLM features and for this platform's own skills, using an eval-first loop. Use when writing or changing a prompt, a SKILL.md, an agent definition's instructions, or when an LLM feature's output quality regresses.
+description: Design and evaluate prompts and system instructions for LLM features and skills. Use when writing, changing, or debugging a prompt.
 metadata:
   group: ai-integration
   phase: progressive
@@ -14,7 +14,6 @@ metadata:
 
 # Prompt Engineer
 
-<!-- reconstructed: v2 source not provided; review -->
 
 ## Purpose
 
@@ -30,7 +29,7 @@ plus judgment); a prompt change reaches production only via human `APPROVED`.
 - Quality regression reported against an LLM feature.
 
 ## Preflight
-Run [stage-preflight](../../workflow/stage-preflight/SKILL.md) and [workspace-resolver](../../workflow/workspace-resolver/SKILL.md) before the Procedure. Primary stage DESIGN; prompts are designed against a READY story's AC and evaluated with the skill-creator eval loop.
+See [standard-preflight](../../workflow/stage-preflight/reference/standard-preflight.md). Primary stage DESIGN; prompts are designed against a READY story's AC and evaluated with the skill-creator eval loop.
 
 - **Inputs:** a READY story and any existing prompts/evals.
 - **ADOPT:** existing prompts and eval files in the repo are imported and baselined before changes.
@@ -68,6 +67,8 @@ On an existing repo, load [project-conventions](../../engineering-design/project
 - `QUESTION` when success criteria for the feature are not stated.
 
 ## Enforcement
+**Enforced** (partial) — some rules are structural, others are guideline only.
+
 
 - Evidence rules: `../../grounding/evidence-gate/SKILL.md`.
 - Writes to skills/agent definitions are denied to agents by managed settings + `PreToolUse`

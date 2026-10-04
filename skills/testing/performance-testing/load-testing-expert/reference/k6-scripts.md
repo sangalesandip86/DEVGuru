@@ -1,6 +1,5 @@
 # k6 Script Patterns
 
-<!-- reconstructed: v2 source not provided; review -->
 
 ## Open-model load test with SLO thresholds
 

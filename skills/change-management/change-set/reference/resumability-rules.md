@@ -1,6 +1,5 @@
 # Resumability Rules
 
-<!-- reconstructed: v2 source not provided; review -->
 
 ## Resume procedure
 1. Read the task's `checkpoint` (`commit_sha`, `ledger_cursor`, `snapshot_id`).

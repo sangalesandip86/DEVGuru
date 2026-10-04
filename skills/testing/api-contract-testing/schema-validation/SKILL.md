@@ -1,6 +1,6 @@
 ---
 name: schema-validation
-description: Validates APIs and events against their declared schemas (OpenAPI, JSON Schema, AsyncAPI, Protobuf, Avro) and detects breaking schema changes with oasdiff, buf breaking, or a schema registry. Use when a Change Set edits an API spec, event schema, or serializer.
+description: Validate APIs against declared schemas (OpenAPI, AsyncAPI, Protobuf) and detect breaking changes. Use when an API spec changes.
 metadata:
   group: testing
   phase: progressive
@@ -14,7 +14,6 @@ metadata:
 
 # Schema Validation
 
-<!-- reconstructed: v2 source not provided; review -->
 
 ## Purpose
 Two deterministic checks: (1) the implementation conforms to its declared schema; (2) a schema change
@@ -25,7 +24,7 @@ is backward/forward compatible as its compatibility policy requires.
   or serializer/DTO code. These are always-overlap path classes for snapshot staleness (plan §4.5).
 
 ## Preflight
-Run the standard preflight before any step below: [`stage-preflight`](../../../workflow/stage-preflight/SKILL.md) and [`workspace-resolver`](../../../workflow/workspace-resolver/SKILL.md).
+See [standard-preflight](../../../workflow/stage-preflight/reference/standard-preflight.md).
 1. **Workspace.** Resolve repo roles `[app, contracts]`. If found, record it as FACT `repo@sha`. If ambiguous, raise one QUESTION with ranked candidates. If missing, workspace-resolver offers local creation or a `repo-request.yaml`. If there is no test framework for this tier, that is **Mode C, as its own `TEST_AUTOMATION` story** ([suite-authoring](../../test-implementation/suite-authoring/SKILL.md)). It is never scaffolded inside a feature story.
 2. **Frozen test design** (`plans/test-designs/ST-n.yaml` or `.feature` at the story's current `ac_hash`): SATISFIED. If it's missing, offer **BACKFILL** (DESIGN via qa-derive, [test-case-design](../../test-design/test-case-design/SKILL.md)) or **characterization mode** ([ADR 0004 §3](../../../../docs/adr/0004-workflow-stages-and-workspace.md)): tests tagged `characterization`, an ASSUMPTION "current behaviour is intended" recorded, and they never count as AC verification or VERIFIED. If the `ac_hash` is stale, BLOCK.
 3. **Schema source.** The OpenAPI, JSON Schema, Avro or Protobuf definition resolves as `repo@sha:path` from the contracts repo. Never validate against a schema inferred from code.
@@ -55,6 +54,8 @@ Never proceed on a missing input silently.
 - Tool unavailable or inconclusive → treat as `INCOMPATIBLE` (plan §5.3) and record `COMPATIBILITY_UNKNOWN`.
 
 ## Enforcement
+**Enforced** — see rules below.
+
 The diff tools are deterministic CI gates. Fail-safe default is enforced by compatibility-check.
 
 ## References

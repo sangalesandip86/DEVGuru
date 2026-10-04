@@ -1,0 +1,12 @@
+{
+  "required_fields": ["tier", "computed", "paths"],
+  "enum_fields": {
+    "tier": ["LOW", "MEDIUM", "HIGH", "CRITICAL"]
+  },
+  "type_fields": {
+    "tier": "string",
+    "computed": "bool",
+    "paths": "list",
+    "decompose_required": "bool"
+  }
+}

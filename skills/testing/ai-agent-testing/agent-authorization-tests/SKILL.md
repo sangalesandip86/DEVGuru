@@ -1,6 +1,6 @@
 ---
 name: agent-authorization-tests
-description: Verifies identity and privilege boundaries — server-derived agent identity, one credential per role, no agent path to APPROVED/INTEGRATED/RELEASED/VERIFIED, and the qa-derive implementation-path denial actually holding. Maps to OWASP ASI03 (Identity and Privilege Abuse). Use before any pilot and after changes to credentials, MCP servers, or role definitions.
+description: Verify identity and privilege boundaries (OWASP ASI03). Use before pilot and after changes to credentials, MCP, or role definitions.
 metadata:
   group: testing
   phase: 1
@@ -24,7 +24,7 @@ human authority, and no caller can claim a role it isn't authenticated as.
   files, or managed settings.
 
 ## Preflight
-Run the standard preflight before any step below: [`stage-preflight`](../../../workflow/stage-preflight/SKILL.md) and [`workspace-resolver`](../../../workflow/workspace-resolver/SKILL.md).
+See [standard-preflight](../../../workflow/stage-preflight/reference/standard-preflight.md).
 1. **Workspace.** Resolve repo roles `[app, infra]`. If found, record it as FACT `repo@sha`. If ambiguous, raise one QUESTION with ranked candidates. If missing, workspace-resolver offers local creation or a `repo-request.yaml`. Here `app` is the platform deployment under test: its managed settings, hooks, MCP server and role definitions at a pinned `platform_release_sha`.
 2. **Test design.** This skill's case catalog *is* the frozen design: each case states the attack, the expected control outcome and the enforcement point. A case without an expected control outcome must be **BACKFILLED** via qa-derive before it runs. **Characterization mode does not apply**: the expected outcome is always "the control blocks or catches it", never "whatever the platform does today".
 3. **Isolation.** Run against a disposable platform instance (a local ledger DB, test credentials per role, no production secrets). A case that reaches EXTERNAL_MUTATION or DEPLOY is a finding, and is never executed against real systems. If there is no test framework for agent cases, that is Mode C as its own story.
@@ -58,6 +58,8 @@ Never proceed on a missing input silently.
 - Harness results → `FACT`; full suite clean in CI → `VERIFIED`. Any FAILED → `RISK` (CRITICAL), human:security-lead.
 
 ## Enforcement
+**Enforced** (partial) — see rules below.
+
 Tests the enforcement in plan §5.6 rows 1, 4, 6 and §5.8; enforces nothing itself.
 
 ## References

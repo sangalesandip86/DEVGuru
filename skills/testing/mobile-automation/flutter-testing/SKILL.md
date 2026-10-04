@@ -1,6 +1,6 @@
 ---
 name: flutter-testing
-description: Flutter test expertise across tiers — unit and bloc tests (bloc_test, mocktail), widget tests with WidgetTester (pump vs pumpAndSettle caveats, Keys and Semantics finders), golden tests, and integration_test/Patrol journeys — with fake time, stubbed HTTP and no fixed delays. Use when stack.json reports ui_paradigm flutter.
+description: Write Flutter tests -- unit/bloc, widget, golden, and integration_test. Use when stack.json reports ui_paradigm flutter.
 metadata:
   group: testing
   phase: progressive
@@ -23,8 +23,7 @@ come from the frozen test design, never from reading the widget code
 - `stack.json.ui_paradigm` contains `flutter` (`flutter_test`, `integration_test`, `bloc_test`, `mocktail`, `patrol`).
 
 ## Preflight
-Run the standard preflight first: [`stage-preflight`](../../../workflow/stage-preflight/SKILL.md) and
-[`workspace-resolver`](../../../workflow/workspace-resolver/SKILL.md).
+See [standard-preflight](../../../workflow/stage-preflight/reference/standard-preflight.md).
 1. **Workspace.** Resolve the `app` repo with `pubspec.yaml`. If there are several packages (melos or a mono-repo), pick the
    package whose `lib/` contains the target. If that's ambiguous, raise one QUESTION.
 2. **Frozen design** at the current `ac_hash`: SATISFIED. If it's missing, offer BACKFILL DESIGN via qa-derive or
@@ -86,6 +85,8 @@ Run the standard preflight first: [`stage-preflight`](../../../workflow/stage-pr
 Tests, robots and builders (`REPO_WRITE`). Run results are recorded as FACT by hooks; CI passing is VERIFIED; the binding is REVIEWED.
 
 ## Enforcement
+**Guideline only** — no enforcement point yet.
+
 - `Future.delayed` and `sleep(Duration)` in test paths fail [no_fixed_sleep_check.py](../../../enforcement/ci-checks/test-integrity/no_fixed_sleep_check.py).
 - Weakening (skip, tolerance changes, golden mass updates) is caught by [test_integrity_guard.py](../../../enforcement/ci-checks/test-integrity/test_integrity_guard.py).
 - Finder preference is guideline only.

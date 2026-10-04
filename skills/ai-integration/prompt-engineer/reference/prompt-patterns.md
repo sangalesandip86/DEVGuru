@@ -1,6 +1,5 @@
 # Prompt Patterns
 
-<!-- reconstructed: v2 source not provided; review -->
 
 Patterns that reliably help, the failure each addresses, and how to verify the effect in evals.
 

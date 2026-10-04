@@ -39,7 +39,12 @@ def allowed_targets(status: str, blocked_from: str | None) -> set[str]:
     if status in TERMINAL:
         return set()
     if status == "BLOCKED":
-        return {blocked_from, "FAILED", "CANCELLED"} - {None}
+        exits = {blocked_from, "FAILED", "CANCELLED"} - {None}
+        if blocked_from == "PLAN_APPROVED":
+            exits.add("PLANNED")
+        if blocked_from == "INTEGRATED":
+            exits.add("EXECUTING")
+        return exits
     targets = set(FORWARD.get(status, ()))
     if status in ACTIVE:
         targets |= {"BLOCKED", "FAILED", "CANCELLED"}
@@ -89,15 +94,19 @@ def effective_tier(tier: str | None) -> str:
     return tier if tier in RISK_TIERS else "HIGH"
 
 
-def plan_approval_missing(tier: str | None, events: list[dict[str, Any]], accepted_reviews: set[str]) -> list[str]:
+def plan_approval_missing(
+    tier: str | None, events: list[dict[str, Any]], accepted_reviews: set[str],
+    approval_epoch: int = 0,
+) -> list[str]:
     req = APPROVAL_MATRIX[effective_tier(tier)]["plan"]
     missing = []
-    if req["verified"] and not any(e["event_type"] == "plan_check_passed" for e in events):
+    epoch_events = [e for e in events if e.get("payload", {}).get("approval_epoch", 0) == approval_epoch]
+    if req["verified"] and not any(e["event_type"] == "plan_check_passed" for e in epoch_events):
         missing.append("VERIFIED plan check (plan_check_passed CI event)")
     for role in req["reviews"]:
         if role not in accepted_reviews:
             missing.append(f"REVIEWED ACCEPT from {role}")
-    approved_by = {e["payload"].get("approver_role") for e in events
+    approved_by = {e["payload"].get("approver_role") for e in epoch_events
                    if e["event_type"] == "codeowners_review" and e["payload"].get("state") == "approved"}
     missing += [f"APPROVED by {h}" for h in req["humans"] if h not in approved_by]
     return missing
@@ -339,9 +348,14 @@ def validate_handoff_payload(payload: dict[str, Any]) -> None:
         if not CONTENT_HASH.match(inp.get("content_hash", "")):
             raise ValidationError(f"inputs[{i}].content_hash must be sha256:<64 hex>")
     for i, claim in enumerate(payload.get("claims", []) or []):
-        if not claim.get("source") and claim.get("classification") not in ("QUESTION", "ASSUMPTION"):
+        cls = claim.get("classification")
+        if not claim.get("source") and cls not in ("QUESTION", "ASSUMPTION"):
             raise ValidationError(
                 f"claims[{i}] has no source — evidence-gate: record it as a QUESTION or tagged ASSUMPTION"
+            )
+        if cls == "INFERENCE" and not claim.get("input_references"):
+            raise ValidationError(
+                f"claims[{i}] is an INFERENCE without input_references — INFERENCEs must cite their evidence"
             )
 
 

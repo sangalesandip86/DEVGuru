@@ -93,10 +93,24 @@ _FAILURE_CLASS = re.compile(r"^[A-Z][A-Z0-9_]{2,63}$")
 _LOCAL_POINTER = re.compile(r"\b(?:ENTRY|CS|INC|SNAP|TASK|FE|HO)-[0-9A-Za-z]+\b|@[0-9a-f]{7,40}:")
 
 
-def derive_trust(source_type: str, referenced: list[dict[str, Any]]) -> str:
-    """Trust = the lowest of the source's own level and every entry it was derived from (taint)."""
+IDENTITY_TRUST_CEILING: dict[str, str] = {
+    "SYSTEM": "SYSTEM",
+    "HUMAN": "ORGANIZATIONAL",
+    "AGENT": "REPOSITORY",
+}
+
+
+def derive_trust(source_type: str, referenced: list[dict[str, Any]], identity: Identity | None = None) -> str:
+    """Trust = lowest of identity ceiling, source level, and every referenced entry (taint).
+
+    The identity ceiling prevents callers from claiming a trust level above what their
+    credential permits (B3: trust derived from identity, not caller-supplied source_type).
+    """
     own = SOURCE_TYPE_TRUST.get(source_type, "EXTERNAL_UNSTRUCTURED")
-    return lowest_trust([own, *(e["trust_level"] for e in referenced)])
+    levels = [own, *(e["trust_level"] for e in referenced)]
+    if identity is not None:
+        levels.append(IDENTITY_TRUST_CEILING[identity.actor_type])
+    return lowest_trust(levels)
 
 
 def resolve_tool(identity: Identity, tool: str | None) -> str:

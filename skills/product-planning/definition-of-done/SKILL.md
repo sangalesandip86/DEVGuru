@@ -1,6 +1,6 @@
 ---
 name: definition-of-done
-description: Explains the machine-readable Definition of Done (policies/dod-policy.yaml) — the evidence a story needs to be DONE (integrated Change Sets, AC coverage, tier gates VERIFIED, reviews) and then ACCEPTED (human product owner), including the SPIKE variant. Use while implementing and verifying a story, and when interpreting a NOT_DONE completion-gate result.
+description: Check the Definition of Done -- evidence a story needs for DONE and ACCEPTED. Use when verifying a story or interpreting NOT_DONE.
 metadata:
   group: product-planning
   phase: 1
@@ -27,7 +27,7 @@ Like the DoR, this skill explains the rule, and `completion_gate.py` (SYSTEM CI)
 - When the completion gate reports NOT_DONE.
 
 ## Preflight
-Run [stage-preflight](../../workflow/stage-preflight/SKILL.md) and [workspace-resolver](../../workflow/workspace-resolver/SKILL.md) before the Procedure. Stage REVIEW (evaluated through INTEGRATE).
+See [standard-preflight](../../workflow/stage-preflight/reference/standard-preflight.md). Stage REVIEW (evaluated through INTEGRATE).
 
 - **Inputs:** the story, its linked Change Sets, test results and ac-coverage output.
 - **BACKFILL:** missing test evidence → propose running the TEST stage; DONE is never assumed.
@@ -58,6 +58,8 @@ and for every non-spike story at HIGH and above. Otherwise DONE is terminal.
 4. **Never claim DONE** in prose or in a handoff. Report the gate result, citing the CI run.
 
 ## Enforcement
+**Enforced** — see rules below.
+
 - **DONE and ACCEPTED are computed only by** `completion_gate.py` + `ac_coverage.py` (SYSTEM). There is no agent tool for story status (plan §5.6 row "Story is DONE only when the DoD is met").
 - **VERIFIED gates come only from SYSTEM evidence:** gate records with any other `actor_type` are ignored.
 - **INTEGRATED comes only from observed forge events** (plan §5.10).

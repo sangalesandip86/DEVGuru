@@ -1,8 +1,19 @@
 {
-  "$comment": "Canonical list of platform control files (plan \u00a74.1 control-files, \u00a74.11 control-file-policy). Single source of truth: hooks, managed-settings templates and CI checks read or are generated from this file. Globs are repo-relative, forward slashes, '**' matches any depth.",
-  "version": 1,
+  "$comment": "Canonical list of platform control files (plan §4.1 control-files, §4.11 control-file-policy). Single source of truth: hooks, managed-settings templates and CI checks read or are generated from this file. Globs are repo-relative, forward slashes, '**' matches any depth.",
+  "version": 2,
   "risk_tier": "CRITICAL",
   "requires_human_approval": true,
+  "profiles": {
+    "platform-repo": [
+      "agent-config", "hooks", "mcp-config", "instruction-files",
+      "ownership-and-rulesets", "ci-workflows",
+      "platform-definitions-platform-repo", "planning-policies"
+    ],
+    "target-repo": [
+      "agent-config", "hooks", "mcp-config", "instruction-files",
+      "ownership-and-rulesets", "ci-workflows", "planning-policies"
+    ]
+  },
   "categories": {
     "agent-config": [
       ".claude/**",
@@ -42,7 +53,7 @@
       "azure-pipelines.yml",
       "Jenkinsfile"
     ],
-    "platform-definitions": [
+    "platform-definitions-platform-repo": [
       "skills/**",
       "dist/**"
     ],
@@ -51,6 +62,8 @@
     ]
   },
   "explicit_reasons": {
-    "skills/product-planning/policies/**": "DoR/DoD/story-type policy (plan v3.1 \u00a74.12, \u00a75.6) must never be agent-weakenable. Listed explicitly so it stays protected even if 'skills/**' is ever narrowed."
+    "skills/product-planning/policies/**": "DoR/DoD/story-type policy (plan v3.1 §4.12, §5.6) must never be agent-weakenable. Listed explicitly so it stays protected even if 'skills/**' is ever narrowed.",
+    "skills/**": "Platform source. Only applies when profile=platform-repo; target repos use profile=target-repo which omits this glob.",
+    "dist/**": "Generated platform output. Only applies when profile=platform-repo; target repos commonly use dist/ for build output."
   }
 }

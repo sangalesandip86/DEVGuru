@@ -65,6 +65,12 @@
   },
   "allowManagedHooksOnly": true,
   "allowManagedPermissionRulesOnly": true,
+  "allowManagedMcpServersOnly": true,
+  "allowedMcpServers": [
+    "adlc"
+  ],
+  "strictKnownMarketplaces": true,
+  "disableSkillShellExecution": true,
   "hooks": {
     "PreToolUse": [
       {
@@ -95,5 +101,220 @@
         ]
       }
     ]
+  },
+  "subagentPermissions": {
+    "architect": {
+      "permissions": {
+        "deny": [
+          "Edit(src/**)",
+          "Write(src/**)",
+          "Edit(lib/**)",
+          "Write(lib/**)",
+          "Edit(app/**)",
+          "Write(app/**)",
+          "Edit(pkg/**)",
+          "Write(pkg/**)",
+          "Edit(internal/**)",
+          "Write(internal/**)",
+          "Edit(cmd/**)",
+          "Write(cmd/**)",
+          "Edit(services/**)",
+          "Write(services/**)",
+          "Edit(test/**)",
+          "Write(test/**)",
+          "Edit(tests/**)",
+          "Write(tests/**)",
+          "Edit(**/__tests__/**)",
+          "Write(**/__tests__/**)",
+          "Edit(**/*.test.*)",
+          "Write(**/*.test.*)",
+          "Edit(**/*.spec.*)",
+          "Write(**/*.spec.*)",
+          "Edit(**/test_*.py)",
+          "Write(**/test_*.py)",
+          "Edit(**/*_test.go)",
+          "Write(**/*_test.go)",
+          "Edit(e2e/**)",
+          "Write(e2e/**)",
+          "Bash"
+        ]
+      }
+    },
+    "code-reviewer": {
+      "permissions": {
+        "deny": [
+          "Edit(**)",
+          "Write(**)",
+          "Bash",
+          "Edit",
+          "Write"
+        ]
+      }
+    },
+    "product-owner": {
+      "permissions": {
+        "deny": [
+          "Edit(src/**)",
+          "Write(src/**)",
+          "Edit(lib/**)",
+          "Write(lib/**)",
+          "Edit(app/**)",
+          "Write(app/**)",
+          "Edit(pkg/**)",
+          "Write(pkg/**)",
+          "Edit(internal/**)",
+          "Write(internal/**)",
+          "Edit(cmd/**)",
+          "Write(cmd/**)",
+          "Edit(services/**)",
+          "Write(services/**)",
+          "Edit(test/**)",
+          "Write(test/**)",
+          "Edit(tests/**)",
+          "Write(tests/**)",
+          "Edit(**/__tests__/**)",
+          "Write(**/__tests__/**)",
+          "Edit(**/*.test.*)",
+          "Write(**/*.test.*)",
+          "Edit(**/*.spec.*)",
+          "Write(**/*.spec.*)",
+          "Edit(**/test_*.py)",
+          "Write(**/test_*.py)",
+          "Edit(**/*_test.go)",
+          "Write(**/*_test.go)",
+          "Edit(e2e/**)",
+          "Write(e2e/**)",
+          "Bash"
+        ]
+      }
+    },
+    "product-planner": {
+      "permissions": {
+        "deny": [
+          "Edit(src/**)",
+          "Write(src/**)",
+          "Edit(lib/**)",
+          "Write(lib/**)",
+          "Edit(app/**)",
+          "Write(app/**)",
+          "Edit(pkg/**)",
+          "Write(pkg/**)",
+          "Edit(internal/**)",
+          "Write(internal/**)",
+          "Edit(cmd/**)",
+          "Write(cmd/**)",
+          "Edit(services/**)",
+          "Write(services/**)",
+          "Edit(test/**)",
+          "Write(test/**)",
+          "Edit(tests/**)",
+          "Write(tests/**)",
+          "Edit(**/__tests__/**)",
+          "Write(**/__tests__/**)",
+          "Edit(**/*.test.*)",
+          "Write(**/*.test.*)",
+          "Edit(**/*.spec.*)",
+          "Write(**/*.spec.*)",
+          "Edit(**/test_*.py)",
+          "Write(**/test_*.py)",
+          "Edit(**/*_test.go)",
+          "Write(**/*_test.go)",
+          "Edit(e2e/**)",
+          "Write(e2e/**)",
+          "Bash"
+        ]
+      }
+    },
+    "qa-derive": {
+      "permissions": {
+        "deny": [
+          "Read(src/**)",
+          "Read(lib/**)",
+          "Read(app/**)",
+          "Read(pkg/**)",
+          "Read(internal/**)",
+          "Read(cmd/**)",
+          "Read(services/**)",
+          "Edit(src/**)",
+          "Write(src/**)",
+          "Edit(lib/**)",
+          "Write(lib/**)",
+          "Edit(app/**)",
+          "Write(app/**)",
+          "Edit(pkg/**)",
+          "Write(pkg/**)",
+          "Edit(internal/**)",
+          "Write(internal/**)",
+          "Edit(cmd/**)",
+          "Write(cmd/**)",
+          "Edit(services/**)",
+          "Write(services/**)",
+          "Bash"
+        ]
+      }
+    },
+    "qa-diagnose": {
+      "permissions": {
+        "deny": [
+          "Edit(src/**)",
+          "Write(src/**)",
+          "Edit(lib/**)",
+          "Write(lib/**)",
+          "Edit(app/**)",
+          "Write(app/**)",
+          "Edit(pkg/**)",
+          "Write(pkg/**)",
+          "Edit(internal/**)",
+          "Write(internal/**)",
+          "Edit(cmd/**)",
+          "Write(cmd/**)",
+          "Edit(services/**)",
+          "Write(services/**)",
+          "Edit(plans/test-designs/**)",
+          "Write(plans/test-designs/**)",
+          "Edit(**/*.feature)",
+          "Write(**/*.feature)"
+        ]
+      }
+    },
+    "security-reviewer": {
+      "permissions": {
+        "deny": [
+          "Edit(**)",
+          "Write(**)",
+          "Edit",
+          "Write"
+        ]
+      }
+    },
+    "test-engineer": {
+      "permissions": {
+        "deny": [
+          "Read(.env)",
+          "Read(.env.*)",
+          "Read(**/secrets/**)",
+          "Read(**/*.pem)",
+          "Read(**/*.key)",
+          "Edit(src/**)",
+          "Write(src/**)",
+          "Edit(lib/**)",
+          "Write(lib/**)",
+          "Edit(app/**)",
+          "Write(app/**)",
+          "Edit(pkg/**)",
+          "Write(pkg/**)",
+          "Edit(internal/**)",
+          "Write(internal/**)",
+          "Edit(cmd/**)",
+          "Write(cmd/**)",
+          "Edit(services/**)",
+          "Write(services/**)",
+          "Edit(plans/test-designs/**)",
+          "Write(plans/test-designs/**)",
+          "Edit(**/*.feature)",
+          "Write(**/*.feature)"
+        ]
+      }
+    }
   }
 }

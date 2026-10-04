@@ -134,6 +134,8 @@ examples/plans/                                             worked example REQ-1
 ```
 `*` = Markdown stub where a script is claimed.
 
+**Planned consolidation (v4, §9 item 20):** the 83 skills above collapse to **31** — one skill per capability or test surface, stack variants as `reference/` files keyed by `stack.json` with `paths:` scoping, always-on rules as `.claude/rules/adlc-*.md` + role `skills:` lists, config explainers as reference docs. Full target catalog and move manifest: review Appendix B. *Why:* the level-1 skill listing is budget-capped (~1% of context) and 83 descriptions overflow it, so skills under-trigger; overlapping stack skills make the model choose what `stack.json` already knows; 20 copies of the same Preflight paragraph drift. Nothing is deleted — content moves one disclosure level down.
+
 **Planned additions (v4, §9):** `skills/core/repo-facts/` (shared engine: manifests, workspace walker, path tiers, AC hash, canonical JSON); `skills/skill-routing/skill-router/scripts/route.py`; `test-integrity/{red_green_check.py, flake_gate.py, mutation_adapters.json, impact_plan_check.py}`; `ledger_cli.py {export-planning-evidence, record-planning-status, ingest-ac-coverage, record-gate}`; `tools/tracker_projection.py`; `tools/metrics_export.py`; `governance/ai-inventory.md`; `.github/workflows/release.yml` (cosign + in-toto).
 
 ---
@@ -347,8 +349,9 @@ Checkbox = exists and is tested; `~` = exists, gap noted; `☐` = absent.
 | 17 | **(new)** Signed releases, SBOM, SLSA L2, marketplace pinning | ☐ | Release workflow |
 | 18 | **(new)** AI-authorship + run-id trailers, CI check | ☐ | Small; links commit → ledger |
 | 19 | **(new)** Enforcement-claim CI check (Enforced rows must name a test; `## Enforcement` uses fixed phrases) | ☐ | Makes §5.6 self-policing |
+| 20 | **(new)** Skill catalog consolidation 83 → 31 (review Appendix B), one reviewed PR; descriptions ≤160 chars, shared preflight reference, `paths:` on stack skills, rules files generated | ☐ | Fits the skill-listing budget; removes trigger overlap and boilerplate drift; done **before** 10–18 so enforcement wiring targets final paths |
 
-**Order (one engineer, ~8–10 weeks):** P0 items from the review §8 (1–9) → `repo-facts` + routing → test-integrity gates → MCP 2026-07-28 + HTTP → signing/trailers/metrics → P2 polish. **Rationale for the order:** P0 makes the headline journey (documents → READY → DONE) actually run and removes the three ways evidence can be forged (`.adlc/**`, `append-fact`, raw content); `repo-facts` fixes correctness of routing for every stack; test gates make the oracle promise real; protocol/supply-chain work is needed for enterprise adoption but not for the first pilot.
+**Order (one engineer, ~8–10 weeks):** P0 items from the review §8 (1–9) → **catalog consolidation (20)** → `repo-facts` + routing → test-integrity gates → MCP 2026-07-28 + HTTP → signing/trailers/metrics → P2 polish. **Rationale for the order:** P0 makes the headline journey (documents → READY → DONE) actually run and removes the three ways evidence can be forged (`.adlc/**`, `append-fact`, raw content); consolidation comes next because every later item references skill paths; `repo-facts` fixes correctness of routing for every stack; test gates make the oracle promise real; protocol/supply-chain work is needed for enterprise adoption but not for the first pilot.
 
 ---
 

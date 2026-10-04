@@ -25,7 +25,7 @@ class TempEnv:
     def __init__(self, modules: str = "evidence_ledger") -> None:
         self._tmp = tempfile.TemporaryDirectory(ignore_cleanup_errors=True)
         self.dir = Path(self._tmp.name)
-        self.config = Config.from_env(modules=modules, data_dir=str(self.dir))
+        self.config = Config.from_env(modules=modules, data_dir=str(self.dir), workspace_id=None)
         self.credentials = self.dir / "credentials.json"
 
     def issue(self, actor_type: str, actor_id: str, **kw) -> str:

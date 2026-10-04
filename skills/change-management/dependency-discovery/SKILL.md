@@ -1,6 +1,6 @@
 ---
 name: dependency-discovery
-description: Discovers what a change depends on and what depends on it — imports, cross-repo packages, HTTP calls and routes — by static analysis, reporting anything unprovable as UNRESOLVED. Use when scoping a Change Set, when more than one repo may be involved, or before computing a risk tier.
+description: Discover what a change depends on via static analysis. Use when scoping a Change Set, multi-repo work, or before computing risk tier.
 metadata:
   group: change-management
   phase: 2
@@ -14,7 +14,6 @@ metadata:
 
 # Dependency Discovery
 
-<!-- reconstructed: v2 source not provided; review -->
 
 ## Purpose
 Find the repositories, packages, and services a change touches, using static analysis
@@ -27,7 +26,7 @@ patterns this skill surfaces.
 - Before `compute_risk_tier` / the path lookup is finalized.
 
 ## Preflight
-Run [stage-preflight](../../workflow/stage-preflight/SKILL.md) and [workspace-resolver](../../workflow/workspace-resolver/SKILL.md) before the Procedure. Primary stage IMPLEMENT; also used at PLAN by dependency-mapper and at ARCHITECTURE for the integration inventory.
+See [standard-preflight](../../workflow/stage-preflight/reference/standard-preflight.md). Primary stage IMPLEMENT; also used at PLAN by dependency-mapper and at ARCHITECTURE for the integration inventory.
 
 - **Inputs:** the source trees of the repos in scope.
 - **ASK:** if a dependency target resolves to a repo not in the workspace, raise one QUESTION listing candidate repos; until answered, the dependency is UNRESOLVED.
@@ -55,6 +54,8 @@ Run [stage-preflight](../../workflow/stage-preflight/SKILL.md) and [workspace-re
 - `RISK` entries for unresolved edges; Change Set `repositories[]` updates.
 
 ## Enforcement
+**Enforced** (partial) — some rules are structural, others are guideline only.
+
 Completion criterion 2 (no `UNRESOLVED` dependencies) is enforced by the change_management module
 of the adlc MCP server (plan's Server 2) before `INTEGRATED`. In forge-native mode it is guideline
 only unless the scan runs as a required CI check with `--fail-on-unresolved`.

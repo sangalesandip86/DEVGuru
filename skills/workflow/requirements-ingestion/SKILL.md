@@ -1,6 +1,6 @@
 ---
 name: requirements-ingestion
-description: Ingests requirement documents (Markdown, Word .docx, HTML/Confluence exports, text, PDF) into hash-anchored sections and produces the sourced INTAKE document set (requirements, NFR catalog, glossary/domain model, personas, constraints, open questions, traceability matrix). Use when a user hands over requirement or specification documents, or when a source document changes and must be re-ingested.
+description: Ingest requirement documents into hash-anchored sections with a sourced INTAKE set. Use when requirement docs arrive or a source changes.
 metadata:
   group: workflow
   phase: 1
@@ -28,11 +28,11 @@ them and continue."* The skill turns documents into a **sourced, reviewable INTA
   For a single short request, use [requirement-intake](../../product-planning/requirement-intake/SKILL.md) directly.
 
 ## Preflight
-- Resolve the `planning` repo with [workspace-resolver](../workspace-resolver/SKILL.md). INTAKE outputs go to
-  `plans/` there. If it is MISSING, offer `--init-local planning`.
-- Run [stage-preflight](../stage-preflight/SKILL.md) `--start INTAKE`:
-  - `source-doc` must be ADOPT (documents supplied) or SATISFIED (already registered).
-  - ASK means the user hasn't said where the documents are. Propose the likely paths you found.
+See [standard-preflight](../stage-preflight/reference/standard-preflight.md). Stage INTAKE.
+
+- **Inputs:** `planning` repo (INTAKE outputs go to `plans/` there; if MISSING, offer `--init-local planning`).
+- `source-doc` must be ADOPT (documents supplied) or SATISFIED (already registered).
+- ASK means the user hasn't said where the documents are. Propose the likely paths you found.
 
 ## Procedure
 1. **Register the sources.** Run
@@ -88,6 +88,8 @@ them and continue."* The skill turns documents into a **sourced, reviewable INTA
 - Handoff to ARCHITECTURE: the REQs, NFR catalog and constraints, pinned `repo@sha:path` plus content hash.
 
 ## Enforcement
+**Enforced** (partial) — some rules are structural, others are guideline only.
+
 - **Schema and no status fields:** `plan_lint.py` on `plans/requirements/`, and `intake-documents.schema.json`
   through `stage_preflight.py`.
 - **Every section dispositioned:** the intake-coverage check in `stage_preflight.py` (INTAKE exit gate).

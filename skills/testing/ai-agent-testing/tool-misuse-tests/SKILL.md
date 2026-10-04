@@ -1,6 +1,6 @@
 ---
 name: tool-misuse-tests
-description: Verifies that agents cannot use tools outside their authorized scope — out-of-scope file writes, forbidden operation classes, destructive shell commands, unscoped MCP tools, and chained tool calls that achieve a forbidden effect. Maps to OWASP ASI02 (Tool Misuse). Use before enabling autonomy and after any change to tool permissions or MCP scoping.
+description: Verify agents cannot use tools outside authorized scope (OWASP ASI02). Use before autonomy and after tool permission changes.
 metadata:
   group: testing
   phase: 1
@@ -24,7 +24,7 @@ Show that each role's tool boundary holds at the tool-permission layer, includin
   or MCP server tool lists. Run on both Claude Code and Copilot — scoping is configured differently in each.
 
 ## Preflight
-Run the standard preflight before any step below: [`stage-preflight`](../../../workflow/stage-preflight/SKILL.md) and [`workspace-resolver`](../../../workflow/workspace-resolver/SKILL.md).
+See [standard-preflight](../../../workflow/stage-preflight/reference/standard-preflight.md).
 1. **Workspace.** Resolve repo roles `[app, infra]`. If found, record it as FACT `repo@sha`. If ambiguous, raise one QUESTION with ranked candidates. If missing, workspace-resolver offers local creation or a `repo-request.yaml`. Here `app` is the platform deployment under test: its managed settings, hooks, MCP server and role definitions at a pinned `platform_release_sha`.
 2. **Test design.** This skill's case catalog *is* the frozen design: each case states the attack, the expected control outcome and the enforcement point. A case without an expected control outcome must be **BACKFILLED** via qa-derive before it runs. **Characterization mode does not apply**: the expected outcome is always "the control blocks or catches it", never "whatever the platform does today".
 3. **Isolation.** Run against a disposable platform instance (a local ledger DB, test credentials per role, no production secrets). A case that reaches EXTERNAL_MUTATION or DEPLOY is a finding, and is never executed against real systems. If there is no test framework for agent cases, that is Mode C as its own story.
@@ -57,6 +57,8 @@ Never proceed on a missing input silently.
 - Harness results → `FACT`; full suite clean in CI → `VERIFIED`. Any FAILED → `RISK` (CRITICAL) + incident.
 
 ## Enforcement
+**Enforced** (partial) — see rules below.
+
 Tests the enforcement in plan §4.11 role-tool-permissions and §5.6; enforces nothing itself.
 
 ## References

@@ -113,6 +113,21 @@ class MinYamlTest(unittest.TestCase):
         for name in ("story-types", "dor-policy", "dod-policy"):
             self.assertIsInstance(pl.load_policy(name), dict)
 
+    def test_policies_match_pyyaml(self):
+        try:
+            import yaml
+        except ImportError:
+            self.skipTest("PyYAML not installed")
+        policies = Path(__file__).resolve().parents[2] / "planning-gates"
+        policy_dir = policies.parent.parent.parent / "product-planning" / "policies"
+        for name in ("story-types", "dor-policy", "dod-policy"):
+            path = policy_dir / f"{name}.yaml"
+            with open(path, encoding="utf-8") as fh:
+                text = fh.read()
+            mine = minyaml.loads(text)
+            theirs = yaml.safe_load(text)
+            self.assertEqual(mine, theirs, f"minyaml ≠ PyYAML for {name}.yaml")
+
 
 class JudgmentNeverStructuralTest(unittest.TestCase):
     def _qa_status(self, recs):

@@ -50,6 +50,14 @@ class ChangeStore:
     def set_risk_tier(self, cs_id: str, tier: str) -> None:
         self.conn.execute("UPDATE change_sets SET risk_tier = ?, updated_at = ? WHERE id = ?", (tier, now_iso(), cs_id))
 
+    def increment_approval_epoch(self, cs_id: str) -> int:
+        self.conn.execute(
+            "UPDATE change_sets SET approval_epoch = approval_epoch + 1, updated_at = ? WHERE id = ?",
+            (now_iso(), cs_id),
+        )
+        row = self.conn.execute("SELECT approval_epoch FROM change_sets WHERE id = ?", (cs_id,)).fetchone()
+        return row[0] if row else 0
+
     def append_history(self, row: dict[str, Any]) -> dict[str, Any]:
         return db.append_chained(self.conn, "status_history", row)
 

@@ -1,4 +1,3 @@
-<!-- reconstructed: v2 source not provided; review -->
 
 # Trust Level Classification
 

@@ -1,6 +1,6 @@
 ---
 name: ambiguity-escalation
-description: Decides whether to ask a QUESTION or record an ASSUMPTION when information is missing, and applies fail-safe defaults (toward more scrutiny) when evidence is incomplete. Use whenever a requirement, dependency, compatibility result, or risk tier is unclear.
+description: Decide whether to ask a QUESTION or record an ASSUMPTION when information is missing. Use when a requirement or dependency is unclear.
 metadata:
   group: grounding
   phase: 0
@@ -12,7 +12,6 @@ metadata:
   repo_roles: []
 ---
 
-<!-- reconstructed: v2 source not provided; review -->
 
 # Ambiguity Escalation
 
@@ -28,7 +27,7 @@ ASSUMPTION — never a silent guess.
 - Two roles disagree on a fact or a risk level
 
 ## Preflight
-Run [stage-preflight](../../workflow/stage-preflight/SKILL.md) and [workspace-resolver](../../workflow/workspace-resolver/SKILL.md) before the Procedure. Cross-cutting: this skill has no stage inputs of its own and is loaded alongside whatever stage is running, so it never BACKFILLs or BLOCKs a stage by itself.
+See [standard-preflight](../../workflow/stage-preflight/reference/standard-preflight.md) (cross-cutting).
 
 - **Inputs:** the open ambiguity plus whatever partial evidence exists; the ask-vs-assume matrix needs the effective risk tier, so resolve the tier first (fail-safe HIGH if it can't be computed).
 - **ASK** is this skill's own outcome: one batched QUESTION per story or Change Set, with a proposed default and explicit options.
@@ -71,6 +70,8 @@ QUESTION entries (OPEN/ANSWERED/EXPIRED, `blocking`), ASSUMPTION entries (`impac
 `expires_at`), and escalation requests carrying a reason code.
 
 ## Enforcement
+**Enforced** (partial) — some rules are structural, others are guideline only.
+
 - Completion-criteria gate on blocking QUESTIONs and impact > LOW ASSUMPTIONs: enforced by the
   Change Management server (Phase 2) or by the PR required-check in forge-native mode.
 - Choosing ASK vs ASSUME correctly: **guideline only** — audited by human review and

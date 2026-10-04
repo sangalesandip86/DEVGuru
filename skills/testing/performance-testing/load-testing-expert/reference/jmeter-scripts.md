@@ -1,6 +1,5 @@
 # JMeter Script Patterns
 
-<!-- reconstructed: v2 source not provided; review -->
 
 Use JMeter when the team already has `.jmx` plans, needs protocols k6 lacks out of the box (JMS, JDBC,
 LDAP, FTP), or uses a vendor platform built on it. Otherwise prefer k6 for code-reviewable scripts.

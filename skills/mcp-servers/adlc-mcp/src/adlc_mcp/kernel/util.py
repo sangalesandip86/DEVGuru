@@ -34,6 +34,21 @@ def sha256_hex(text: str) -> str:
     return hashlib.sha256(text.encode("utf-8")).hexdigest()
 
 
+def response_envelope(ok: bool, data: Any = None, *, scope: str | None = None,
+                      warnings: list[str] | None = None, error: str | None = None) -> dict:
+    """Standard response envelope so callers detect scope mismatches and staleness."""
+    env: dict[str, Any] = {"ok": ok, "as_of": now_iso()}
+    if scope:
+        env["scope"] = scope
+    if data is not None:
+        env["data"] = data
+    if warnings:
+        env["warnings"] = warnings
+    if error:
+        env["error"] = error
+    return env
+
+
 def row_digest(prev_hash: str, row: dict[str, Any]) -> str:
     """Hash of a chained row: sha256(prev_hash + canonical JSON of its non-null columns except row_hash).
 

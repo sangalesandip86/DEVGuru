@@ -1,6 +1,6 @@
 ---
 name: self-healing-locators
-description: Repairs broken UI test locators after UI changes by proposing replacement locators with evidence, without ever silently changing what a test asserts. Use when UI tests fail with element-not-found after a front-end change.
+description: Repair broken UI test locators after UI changes with evidence-backed replacements. Use when UI tests fail with element-not-found.
 metadata:
   group: testing
   phase: progressive
@@ -14,7 +14,6 @@ metadata:
 
 # Self-Healing Locators
 
-<!-- reconstructed: v2 source not provided; review -->
 
 ## Purpose
 Cut the maintenance cost of UI suites while preserving their meaning. "Self-healing" that quietly
@@ -25,7 +24,7 @@ so every heal is a reviewed proposal, never a silent runtime substitution.
 - Failure is element-not-found / strict-mode violation after a UI change, and the user journey still exists.
 
 ## Preflight
-Run the standard preflight before any step below: [`stage-preflight`](../../../workflow/stage-preflight/SKILL.md) and [`workspace-resolver`](../../../workflow/workspace-resolver/SKILL.md).
+See [standard-preflight](../../../workflow/stage-preflight/reference/standard-preflight.md).
 1. **Workspace.** Resolve repo roles `[app, tests]`. If found, record it as FACT `repo@sha`. If ambiguous, raise one QUESTION with ranked candidates. If missing, workspace-resolver offers local creation or a `repo-request.yaml`. If there is no test framework for this tier, that is **Mode C, as its own `TEST_AUTOMATION` story** ([suite-authoring](../../test-implementation/suite-authoring/SKILL.md)). It is never scaffolded inside a feature story.
 2. **Frozen test design** (`plans/test-designs/ST-n.yaml` or `.feature` at the story's current `ac_hash`): SATISFIED. If it's missing, offer **BACKFILL** (DESIGN via qa-derive, [test-case-design](../../test-design/test-case-design/SKILL.md)) or **characterization mode** ([ADR 0004 §3](../../../../docs/adr/0004-workflow-stages-and-workspace.md)): tests tagged `characterization`, an ASSUMPTION "current behaviour is intended" recorded, and they never count as AC verification or VERIFIED. If the `ac_hash` is stale, BLOCK.
 3. **Evidence of a locator break.** You need the last passing and the current failing trace or DOM snapshot of the same journey. Without both, treat it as a product failure until shown otherwise.
@@ -53,6 +52,8 @@ Never proceed on a missing input silently.
 - Locator patch → `PROPOSAL`; reviewer acceptance → `REVIEWED`; re-run green in CI → `VERIFIED`.
 
 ## Enforcement
+**Guideline only** — no enforcement point yet.
+
 - A heal is never auto-committed by a runtime library or a bot. It is a PROPOSAL on the branch, and qa-diagnose or code-reviewer
   must record REVIEWED before merge.
 - A heal that touches an assertion, an expectation or a skip marker is caught by

@@ -1,6 +1,6 @@
 ---
 name: autonomy-gating
-description: Sets how much autonomy agents get in a repository based on that repo's measured verification strength (CI reliability, coverage of changed code). Use before starting work in a repo, and whenever deciding whether a change may merge without per-change human review.
+description: Set agent autonomy level based on measured verification strength. Use before starting repo work or deciding on per-change human review.
 metadata:
   group: governance
   phase: 1
@@ -25,7 +25,7 @@ own measured verification strength rises.
 - Periodically (weekly in a pilot), to recompute levels from ledger and CI data.
 
 ## Preflight
-Run [stage-preflight](../../workflow/stage-preflight/SKILL.md) and [workspace-resolver](../../workflow/workspace-resolver/SKILL.md) before the Procedure. Cross-cutting: this skill has no stage inputs of its own and is loaded alongside whatever stage is running, so it never BACKFILLs or BLOCKs a stage by itself.
+See [standard-preflight](../../workflow/stage-preflight/reference/standard-preflight.md) (cross-cutting).
 
 - **Inputs:** each `app` repo's measured verification strength (CI reliability, changed-code coverage, mutation score).
 - **ADOPT/create:** a newly adopted or newly created repo has no history, so it starts in assist mode.
@@ -44,6 +44,8 @@ Run [stage-preflight](../../workflow/stage-preflight/SKILL.md) and [workspace-re
 - `DECISION` (autonomy level + metric sources), `RISK` when a repo is downgraded.
 
 ## Enforcement
+**Guideline only** — no enforcement point yet.
+
 Guideline only — no enforcement point yet. Target enforcement: branch ruleset requiring
 human review in `ASSIST` repos, configured from the computed level.
 

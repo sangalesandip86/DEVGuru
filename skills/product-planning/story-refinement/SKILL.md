@@ -1,6 +1,6 @@
 ---
 name: story-refinement
-description: Runs the three-amigos refinement loop (product-planner drafts, qa-derive tests the AC blind, developer checks feasibility and size) that turns a drafted story into one that can pass the Definition of Ready; splits oversized stories. Use after story-writer, whenever a story is NOT_READY, or when AC change after READY.
+description: Run three-amigos refinement (product, QA, developer) to reach Definition of Ready. Use after story-writer or when a story is NOT_READY.
 metadata:
   group: product-planning
   phase: 1
@@ -30,7 +30,7 @@ It also splits stories that are too large.
 - A story is sized `L`.
 
 ## Preflight
-Run [stage-preflight](../../workflow/stage-preflight/SKILL.md) and [workspace-resolver](../../workflow/workspace-resolver/SKILL.md) before the Procedure. Stage PLAN.
+See [standard-preflight](../../workflow/stage-preflight/reference/standard-preflight.md). Stage PLAN.
 
 - **Inputs:** DRAFT or REFINING stories.
 - **ADOPT:** imported stories enter refinement directly; they're never treated as READY until the gate says so.
@@ -62,6 +62,8 @@ Follow [reference/refinement-protocol.md](reference/refinement-protocol.md). In 
 - qa-derive's test outline, which becomes its Pass 1 input, pinned to `repo@sha:path` with the AC hash.
 
 ## Enforcement
+**Guideline only** — no enforcement point yet.
+
 - **Reviews count only from the right actor at the current AC hash:** `readiness_gate.py`. SYSTEM or VERIFIED records never satisfy a judgment.
 - **qa-derive is code-blind:** tool-permission denial of implementation paths (plan §5.6 row "QA Pass 1 is implementation-blind"), generated in `dist/claude/settings.roles.json` from [`roles/qa-derive/role.yaml`](../../roles/qa-derive/role.yaml).
 - **Max 3 cycles:** orchestrator counter (plan §4.1, §4.7). It is a guideline until the orchestrator enforces it.

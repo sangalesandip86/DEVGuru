@@ -1,6 +1,6 @@
 ---
 name: test-case-design
-description: qa-derive's code-blind test design — derives scenarios, expected outcomes and data partitions from a READY story's acceptance criteria and contracts using boundary-value analysis, equivalence partitioning, decision tables, state-transition and pairwise techniques, and freezes them as plans/test-designs/ST-n.yaml. Use when a story becomes READY (or during refinement as the DoR testability proof).
+description: Derive code-blind test designs from ACs using boundary-value, equivalence, and decision-table techniques. Use when a story becomes READY.
 metadata:
   group: testing
   phase: 1
@@ -29,8 +29,7 @@ are read from the code turns its bugs into green tests (ADR 0003). This skill is
 - **When the AC changed after READY** (the AC freeze). The previous design is invalidated, and you redo it.
 
 ## Preflight
-Run the standard preflight first: [`stage-preflight`](../../../workflow/stage-preflight/SKILL.md) and
-[`workspace-resolver`](../../../workflow/workspace-resolver/SKILL.md).
+See [standard-preflight](../../../workflow/stage-preflight/reference/standard-preflight.md).
 1. **Workspace.** Resolve the `planning` repo role (where `plans/` lives) and the `contracts` role, if the story
    has `touches.api_contracts`. A missing planning repo means BACKFILL via workspace-resolver.
 2. **Story input.**
@@ -96,6 +95,8 @@ they need your REVIEWED before they count.
 - QUESTION and ASSUMPTION entries for gaps.
 
 ## Enforcement
+**Enforced** — see rules below.
+
 - Code-blindness: qa-derive's implementation-path denial (§5.6 row "QA Pass 1 is implementation-blind").
 - Oracle protection: test-engineer is write-denied on `plans/test-designs/**` and `**/*.feature`
   (§5.6 row "Test expectations come from AC, not code").

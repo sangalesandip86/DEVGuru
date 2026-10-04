@@ -1,6 +1,6 @@
 ---
 name: bottleneck-analysis
-description: Locates the cause of a performance regression or saturation point using the USE and RED methods, profiling, traces, and query analysis, producing evidence-cited root-cause hypotheses. Use after a load test misses its thresholds or a latency regression is detected.
+description: Locate performance regression causes using USE/RED methods, profiling, and traces. Use after a load test misses thresholds.
 metadata:
   group: testing
   phase: progressive
@@ -14,7 +14,6 @@ metadata:
 
 # Bottleneck Analysis
 
-<!-- reconstructed: v2 source not provided; review -->
 
 ## Purpose
 Find *where* the time goes, with evidence, before anyone changes code to "optimize" it.
@@ -23,7 +22,7 @@ Find *where* the time goes, with evidence, before anyone changes code to "optimi
 - A load test missed its thresholds, perf-baseline-tracker flagged a regression, or production latency rose.
 
 ## Preflight
-Run the standard preflight before any step below: [`stage-preflight`](../../../workflow/stage-preflight/SKILL.md) and [`workspace-resolver`](../../../workflow/workspace-resolver/SKILL.md).
+See [standard-preflight](../../../workflow/stage-preflight/reference/standard-preflight.md).
 1. **Workspace.** Resolve repo roles `[app, infra]`. If found, record it as FACT `repo@sha`. If ambiguous, raise one QUESTION with ranked candidates. If missing, workspace-resolver offers local creation or a `repo-request.yaml`.
 2. **Inputs** `[test-suite]`. Each resolves to one of:
    - SATISFIED;
@@ -59,6 +58,8 @@ Never proceed on a missing input silently.
   experiment's CI run → `VERIFIED` for the measured improvement, `REVIEWED` for the diagnosis.
 
 ## Enforcement
+**Guideline only** — no enforcement point yet.
+
 Guideline only — no enforcement point yet.
 
 ## References

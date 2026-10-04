@@ -1,6 +1,5 @@
 # Contract Schema
 
-<!-- reconstructed: v2 source not provided; review -->
 
 | Field | Type | Required | Notes |
 |---|---|---|---|

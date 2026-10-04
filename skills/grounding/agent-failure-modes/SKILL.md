@@ -1,6 +1,6 @@
 ---
 name: agent-failure-modes
-description: Defines how agents detect and handle their own failures — loops, invalid output, scope violations, tool failures, context exhaustion, crashes, permission denials, security rejections — with a per-failure-class retry policy (RETRY / STOP / ESCALATE / REPLAN / RESUME). Use whenever an attempt fails or a task stalls.
+description: Handle agent failures -- loops, crashes, permission denials -- with per-class retry policy (RETRY/STOP/ESCALATE/REPLAN). Use on task failure.
 metadata:
   group: grounding
   phase: 0
@@ -23,7 +23,7 @@ On every failed attempt, rejected handoff, tool error, permission denial, or sig
 pressure — and at the start of every run (to check for a prior partial run to resume).
 
 ## Preflight
-Run [stage-preflight](../../workflow/stage-preflight/SKILL.md) and [workspace-resolver](../../workflow/workspace-resolver/SKILL.md) before the Procedure. Cross-cutting: this skill has no stage inputs of its own and is loaded alongside whatever stage is running, so it never BACKFILLs or BLOCKs a stage by itself.
+See [standard-preflight](../../workflow/stage-preflight/reference/standard-preflight.md) (cross-cutting).
 
 - **Inputs:** the failing step's output, its failure class and the attempt count from the Change Set task checkpoint (if one exists).
 - **ADOPT:** on resume, read prior ledger entries and the last checkpoint before retrying — RESUME, never restart blind.
@@ -60,6 +60,8 @@ Run [stage-preflight](../../workflow/stage-preflight/SKILL.md) and [workspace-re
 - BLOCKED summaries for human review
 
 ## Enforcement
+**Enforced** (partial) — some rules are structural, others are guideline only.
+
 - 3-attempt iteration cap: orchestrator-enforced counter, scoped by failure class (§5.6). In
   forge-native mode (Phase 1) the counter lives in the ledger, keyed by task.
 - Permission denial: blocked at the tool-permission layer (managed settings / agent frontmatter)

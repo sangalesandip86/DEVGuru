@@ -1,6 +1,6 @@
 ---
 name: milestone-planner
-description: Defines outcome-based milestones (plans/milestones/MS-n.yaml) with measurable success and exit criteria, groups epics/stories into them many-to-many, maps them to releases, and produces an advisory, sourced prioritization PROPOSAL for a human to decide. Use when sequencing work across epics toward a release or business checkpoint.
+description: Define outcome-based milestones with exit criteria and map epics to releases. Use when sequencing work toward a release or checkpoint.
 metadata:
   group: product-planning
   phase: 2
@@ -29,7 +29,7 @@ decisions. The platform does not plan iterations, capacity or velocity.
 - An existing milestone's scope changes. Edit the file through a PR so the change is reviewable.
 
 ## Preflight
-Run [stage-preflight](../../workflow/stage-preflight/SKILL.md) and [workspace-resolver](../../workflow/workspace-resolver/SKILL.md) before the Procedure. Stage PLAN.
+See [standard-preflight](../../workflow/stage-preflight/reference/standard-preflight.md). Stage PLAN.
 
 - **Inputs:** epics and stories.
 - **ADOPT:** existing tracker milestones are imported as DRAFT; their scope is re-validated against outcomes, not copied.
@@ -53,6 +53,8 @@ Run [stage-preflight](../../workflow/stage-preflight/SKILL.md) and [workspace-re
 - A PROPOSAL ledger entry with the prioritization and its inputs; RISK entries for unresolved dependencies.
 
 ## Enforcement
+**Enforced** — see rules below.
+
 - **Schema, membership references and exit-criterion shape:** `plan_lint.py`, which also **warns on layer-shaped milestone names**.
 - **Exit-criteria evaluation** is a Phase 2 milestone gate, built as part of the `work_planning` module. Until then, exit criteria are checked by a human at milestone review, using the per-story gate results.
 - **Prioritization is advisory by construction:** the planner has no tool to set order in the tracker, and the human owns the DECISION.

@@ -306,6 +306,8 @@ def scan(root: Path, repo_name: str, known: dict[str, str], only: list[str] | No
 
 
 def main(argv: list[str] | None = None) -> int:
+    if sys.stdout and hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8")
     ap = argparse.ArgumentParser(description="Static import scan for dependency discovery.")
     ap.add_argument("root", type=Path, help="repository root to scan")
     ap.add_argument("--repo-name", help="name recorded as the dependency source (default: dir name)")

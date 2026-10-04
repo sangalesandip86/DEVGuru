@@ -1,6 +1,5 @@
 # Scaling Playbook
 
-<!-- reconstructed: v2 source not provided; review -->
 
 Apply steps in order of cost. Each step lists the signal that justifies it — cite that
 signal (metric, load test, capacity plan) as the source. Without a signal, the step is

@@ -77,8 +77,10 @@ cannot be confirmed (so integration blocks), `NullEvaluator` reports the gate ca
   so nothing else changes.
 - **Hooks** write through `scripts/ledger_cli.py append-fact`, in-process, as
   `SYSTEM` / `hook:<ADLC_HOOK_NAME>`. It is deliberately not an MCP tool. Because an agent with
-  shell access could run the CLI, managed settings deny agent Bash access to it, and
-  `ADLC_REQUIRE_HOOK_TOKEN=1` additionally requires a SYSTEM credential in `ADLC_HOOK_TOKEN`.
+  shell access could run the CLI, `ADLC_REQUIRE_HOOK_TOKEN=1` (planned default) requires a
+  SYSTEM credential in `ADLC_HOOK_TOKEN` so an agent session cannot impersonate a hook.
+  **Note:** no managed-settings Bash deny on the CLI path exists today; the hook token is the
+  control. qa-derive has no Bash; developer/test-engineer keep Bash but cannot hold a SYSTEM token.
 - **Known pilot limitation:** a stdio server inherits its token from the client's
   environment. If an agent session can read its own environment, it holds only *its own*
   role's token — still never a SYSTEM or HUMAN one, which is what the authority split needs.

@@ -1,4 +1,3 @@
-<!-- reconstructed: v2 source not provided; review -->
 
 # Ask vs. Assume Matrix (§5.2)
 

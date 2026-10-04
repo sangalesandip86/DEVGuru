@@ -1,0 +1,9 @@
+{
+  "required_fields": ["ok"],
+  "type_fields": {
+    "ok": "bool",
+    "matched": "list",
+    "undeclared": "list",
+    "missing": "list"
+  }
+}

@@ -199,6 +199,8 @@ def write_inbox(items: list[dict], out: Path) -> dict:
 
 
 def main(argv: list[str] | None = None) -> int:
+    if sys.stdout and hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8")
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("export", help="export file")
     ap.add_argument("--format", required=True, choices=["github", "jira-json", "jira-csv"])

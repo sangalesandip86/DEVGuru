@@ -1,6 +1,6 @@
 ---
 name: detox-react-native
-description: React Native testing expertise — component tests with React Native Testing Library and Jest, and gray-box E2E with Detox using testID/accessibilityLabel matchers, Detox's automatic synchronization and waitFor().withTimeout() instead of sleeps, launch-arg based configuration and screen robots. Use when stack.json reports ui_paradigm react-native.
+description: Write React Native tests -- RNTL component tests and Detox gray-box E2E. Use when stack.json reports ui_paradigm react-native.
 metadata:
   group: testing
   phase: progressive
@@ -26,8 +26,7 @@ When a test seems to need one, the cause is an app-side idle problem to fix, not
 - `stack.json.ui_paradigm` contains `react-native`, or `e2e_driver` contains `detox`.
 
 ## Preflight
-Run the standard preflight first: [`stage-preflight`](../../../workflow/stage-preflight/SKILL.md) and
-[`workspace-resolver`](../../../workflow/workspace-resolver/SKILL.md).
+See [standard-preflight](../../../workflow/stage-preflight/reference/standard-preflight.md).
 1. **Workspace.** Resolve the `app` repo with `package.json` (and `ios/`, `android/`). If there's an Expo or bare-workflow
    ambiguity, read it from the manifest; don't guess.
 2. **Frozen design** at the current `ac_hash`: SATISFIED. If it's missing, offer BACKFILL DESIGN via qa-derive or
@@ -70,6 +69,8 @@ Run the standard preflight first: [`stage-preflight`](../../../workflow/stage-pr
 Tests, robots and builders (`REPO_WRITE`). Results are FACT via hooks; CI passing is VERIFIED; the binding is REVIEWED.
 
 ## Enforcement
+**Guideline only** — no enforcement point yet.
+
 - [no_fixed_sleep_check.py](../../../enforcement/ci-checks/test-integrity/no_fixed_sleep_check.py) (the `js-settimeout` rule).
 - [test_integrity_guard.py](../../../enforcement/ci-checks/test-integrity/test_integrity_guard.py), which catches loosened `withTimeout` values and skips.
 - Matcher preference is guideline only.

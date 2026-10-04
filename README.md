@@ -9,8 +9,9 @@ environment it touches, pinned to a snapshot. For single-repo work the issue + P
 *is* the Change Set. Reasoning is evidence-grounded: every claim in a structured artifact
 traces to a source, or it becomes a QUESTION or an expiring ASSUMPTION.
 
-Source plan: [docs/ai-sdlc-platform-plan-v3.1.md](docs/ai-sdlc-platform-plan-v3.1.md)
-(v3 kept for history: [docs/ai-sdlc-platform-plan-v3.md](docs/ai-sdlc-platform-plan-v3.md)).
+Source plan: [docs/ai-sdlc-platform-plan-v4.md](docs/ai-sdlc-platform-plan-v4.md)
+(v3.1 and v3 kept for history).
+Full review: [docs/review/2026-10-03-platform-review.md](docs/review/2026-10-03-platform-review.md).
 Architecture decisions: [ADR 0001 — modular-monolith MCP server](docs/adr/0001-mcp-modular-monolith.md),
 [ADR 0002 — product planning layer](docs/adr/0002-product-planning-layer.md),
 [ADR 0003 — test engineering & test data](docs/adr/0003-test-engineering-and-data.md),
@@ -86,27 +87,34 @@ Enforcement ships from an **organization-managed** location, not from each repo.
 4. Register MCP server `adlc`. Handoffs on the Copilot cloud agent go through MCP, not the
    native handoff feature (see [docs/tool-compatibility.md](docs/tool-compatibility.md)).
 
-## Build sequence status (plan v3.1 §9)
+## Build sequence status (v4 §9)
 
-- [x] 1. Control-files definition + managed-settings denial — `governance/default-permissions/reference/control-file-paths.json`, `enforcement/managed-settings/`
-- [x] 2. `AGENTS.md` + `CLAUDE.md` shim + CI check — root files, `enforcement/ci-checks/control-file-policy-check/check_agents_md_shim.py`
-- [x] 3. `/core` + `/grounding` + `/enforcement` — scaffolded
-- [x] 4. Evidence Ledger MCP (module of `adlc-mcp`) — scaffolded; needs pilot auth wiring
-- [x] 5. Path-based risk-tier lookup — `change-management/risk-tiering/path-tiers.json`
-- [x] 6. `/governance/default-permissions`
-- [x] 7. `/skill-routing`
-- [x] 8. Minimum `/roles` + handoff-schema + conflict-resolution
-- [ ] 8a. Product Planning core (v3.1) — policies registered as control files ✔ (`control-file-paths.json` `planning-policies`); skills + `planning-gates` CI checks + tracker-projection job in progress
-- [x] 9. `/self-improvement`
-- [ ] 9a. Test engineering core (v3.1 §4.13) — `test-engineer` role, discovery scripts, test-case-design, bdd-feature-authoring, test-data-synthesis, suite-authoring, bdd-step-binding; CI checks in `enforcement/ci-checks/test-integrity/` (integrity guard, fixture PII scan, red/green, new-test flake gate, no-fixed-sleep). Required before any agent updates an existing suite.
-- [x] 10. `/testing/security-testing` + `/testing/ai-agent-testing`
-- [ ] 11. `/change-management` + change_management module — scaffolded; enable when multi-repo work appears
-- [ ] 12. Populate `/testing`, `/engineering-design`, `/ai-integration` progressively
-- [ ] 13. `/contracts` + contract_registry module + remaining roles/governance — scaffolded; enable in Phase 3
-- [ ] 14. Baseline the five pilot metrics — template in [docs/pilot-measurement.md](docs/pilot-measurement.md)
-- [x] 15. Tool-specific generator — `skills/roles/scripts/generate_agents.py` → `dist/`
+Legend: `[x]` exists and tested; `[~]` exists with noted gaps; `[ ]` absent.
 
-"Scaffolded" means the artifacts exist; nothing here has run against a real pilot repo yet.
+- [x] 1. Control-files definition + managed-settings denial — gaps: `skills/**`/`dist/**` globs overreach in target repos (split platform/target planned)
+- [x] 2. `AGENTS.md` + `CLAUDE.md` shim + CI check
+- [~] 3. `/core` + `/grounding` + `/enforcement` — gaps: fact-writer stores raw file content (no redaction); `record_handoff` does not validate `source`/`input_references`; enforcement map overclaimed (now fixed as three-column)
+- [~] 4. Evidence Ledger MCP — gaps: no SYSTEM write path (VERIFIED unreachable); no workspace anchoring; `source_type` caller-supplied; credentials have no expiry
+- [~] 5. Path-based risk-tier lookup — gap: second path-tier table inside MCP `change_management` module disagrees with `path-tiers.json`
+- [~] 6. `/governance/default-permissions` — gaps: managed-settings key placement unverified; missing `allowManagedMcpServersOnly`, `strictKnownMarketplaces`, `disableSkillShellExecution`; no deployed-vs-template check
+- [~] 7. `/skill-routing` — gap: no `route.py` script; mandatory routing is prose; no `paths:` frontmatter on stack skills
+- [x] 8. Minimum `/roles` + handoff-schema + conflict-resolution — gaps: generated subagents lack `maxTurns`/`disallowedTools`/`isolation`; Copilot agents carry denials as prose (instructed, not enforced)
+- [~] 8a. Product Planning core — gaps: AC hash diverges between planning-gates and MCP `work_planning`; `export-planning-evidence`/`record-planning-status`/`ingest-ac-coverage` CLI commands missing; tracker projection absent; single-repo `planning` resolves MISSING
+- [~] 9. `/self-improvement` — gaps: incident/lesson JSON schemas differ from MCP validation; no test that sanitizer blocks glossary terms
+- [~] 9a. Test engineering core — gaps: `red_green_check.py`, `flake_gate.py` are Markdown stubs (no scripts); mutation testing absent; `test_integrity_guard --overrides` reads from head/ (agent-writable); `impact_plan_check.py` missing; fingerprint tables ~10x smaller than Renovate
+- [~] 10. `/testing/security-testing` + `/testing/ai-agent-testing` — gap: no harness runs the AI-agent-testing catalogs in CI
+- [~] 11. `/change-management` + module — gaps: approvals not epoch-scoped; BLOCKED exits incomplete; two path-tier engines; `dependency-decision-check` not wired to gates
+- [~] 12. `/testing`, `/engineering-design`, `/ai-integration` — gap: description/size budgets unenforced; stack skills lack `paths:` scoping
+- [~] 13. `/contracts` + module + remaining roles — gap: Phase 3 CI wiring absent
+- [ ] 14. Baseline the five pilot metrics — `metrics_export.py` absent; template in [docs/pilot-measurement.md](docs/pilot-measurement.md)
+- [x] 15. Tool-specific generator — gaps: needs spec-currency CI check
+- [ ] 16. `repo-facts` shared engine — absent; four scanners parse manifests independently
+- [ ] 17. Signed releases / SBOM / SLSA L2 — absent
+- [ ] 18. AI-authorship + run-id trailers + CI check — absent
+- [ ] 19. Enforcement-claim CI check — absent (Enforced rows must name a test)
+- [ ] 20. Skill catalog consolidation 83 → 31 — planned; see review Appendix B
+
+All 83 test suites pass (enforcement: 40, MCP: 82, planning-gates: 31). No item has run against a real pilot repo yet.
 
 ## Tests
 

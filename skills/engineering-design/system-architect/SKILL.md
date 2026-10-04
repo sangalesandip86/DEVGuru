@@ -1,6 +1,6 @@
 ---
 name: system-architect
-description: Produces and reviews system-level design — service decomposition, boundaries, data ownership, and scaling approach — grounded in stated scale numbers. Use for HIGH/CRITICAL tier changes, new services, cross-repo Change Sets, or any "how should we structure / split / scale this system" question.
+description: Design system-level architecture -- decomposition, boundaries, scaling. Use for HIGH/CRITICAL changes, new services, or cross-repo work.
 metadata:
   group: engineering-design
   phase: progressive
@@ -14,7 +14,6 @@ metadata:
 
 # System Architect
 
-<!-- reconstructed: v2 source not provided; review -->
 
 ## Purpose
 
@@ -29,7 +28,7 @@ pattern-matching ("use microservices", "add Kafka"). Output is a judgment: `REVI
 - Explicit request for an architecture decision or ADR.
 
 ## Preflight
-Run [stage-preflight](../../workflow/stage-preflight/SKILL.md) and [workspace-resolver](../../workflow/workspace-resolver/SKILL.md) before the Procedure. Primary stage ARCHITECTURE; ARCHITECTURE-stage document assembly (C4 views, solution doc, NFR → tactic map, threat model, risk register, service/repo map) lives in [architecture-package](../architecture-package/SKILL.md) — this skill supplies the design reasoning it assembles.
+See [standard-preflight](../../workflow/stage-preflight/reference/standard-preflight.md). Primary stage ARCHITECTURE; ARCHITECTURE-stage document assembly (C4 views, solution doc, NFR → tactic map, threat model, risk register, service/repo map) lives in [architecture-package](../architecture-package/SKILL.md) — this skill supplies the design reasoning it assembles.
 
 - **Inputs:** requirements and the measurable NFR catalog from INTAKE.
 - **ADOPT:** existing architecture docs/ADRs found by ingestion are imported as DRAFT with citations and reviewed, not regenerated.
@@ -91,6 +90,8 @@ Revisit when: <measurable trigger, e.g. "write QPS > 5k sustained">
 - ADR file as a handoff artifact.
 
 ## Enforcement
+**Enforced** (partial) — some rules are structural, others are guideline only.
+
 
 - Evidence rules: `../../grounding/evidence-gate/SKILL.md`.
 - `architect` cannot set `VERIFIED`/`APPROVED` — enforced by the MCP tool surface (§5.6 row 1).

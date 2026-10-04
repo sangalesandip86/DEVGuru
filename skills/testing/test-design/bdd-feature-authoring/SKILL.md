@@ -1,6 +1,6 @@
 ---
 name: bdd-feature-authoring
-description: qa-derive's Gherkin authoring for BDD repositories — writes declarative, business-readable .feature files from a READY story's AC, reusing existing step phrasing from the phrases-only step-pattern catalog, with Scenario Outline/Examples for data variation and @ST-n/AC-n tags for traceability. Use instead of (or alongside) a test-design YAML when the repo uses Cucumber/behave/SpecFlow/Reqnroll/godog/flutter_gherkin.
+description: Write declarative .feature files from ACs, reusing existing step phrasing. Use for BDD repos (Cucumber/behave/SpecFlow/godog).
 metadata:
   group: testing
   phase: 1
@@ -27,8 +27,7 @@ the exception, not the default.
   replace or accompany `plans/test-designs/ST-n.yaml`; scenario IDs are shared.
 
 ## Preflight
-Run the standard preflight first: [`stage-preflight`](../../../workflow/stage-preflight/SKILL.md) and
-[`workspace-resolver`](../../../workflow/workspace-resolver/SKILL.md).
+See [standard-preflight](../../../workflow/stage-preflight/reference/standard-preflight.md).
 1. **Workspace.** Resolve the repo that holds `features/`. That is usually `tests`, or `app` when tests are
    co-located. If none is found and BDD isn't set up, stop and route to Mode C as its own
    `TEST_AUTOMATION` story. Do not scaffold Cucumber inside a feature story.
@@ -89,6 +88,8 @@ Run the standard preflight first: [`stage-preflight`](../../../workflow/stage-pr
 - REVIEWED: test design ACCEPT, pinned to `ac_hash`.
 
 ## Enforcement
+**Enforced** — see rules below.
+
 - `cucumber --dry-run --strict` in CI fails on undefined or ambiguous steps
   ([workflow.example.yml](../../../enforcement/ci-checks/test-integrity/workflow.example.yml), job `bdd-dry-run`).
 - test-engineer is write-denied on `**/*.feature`, so it cannot change the oracle (§5.6, row "Test expectations come from AC, not code").

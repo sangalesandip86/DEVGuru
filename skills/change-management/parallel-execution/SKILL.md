@@ -1,6 +1,6 @@
 ---
 name: parallel-execution
-description: Rules for running several tasks of one Change Set concurrently — one isolated git worktree per task, conflict detection, partial completion, merge ordering — and the operation classes agents may use. Use whenever more than one task runs at the same time.
+description: Run multiple tasks concurrently with isolated worktrees and conflict detection. Use when more than one task runs at the same time.
 metadata:
   group: change-management
   phase: 2
@@ -22,7 +22,7 @@ an unsafe order.
 A Change Set has two or more tasks whose `depends_on` are satisfied at the same time.
 
 ## Preflight
-Run [stage-preflight](../../workflow/stage-preflight/SKILL.md) and [workspace-resolver](../../workflow/workspace-resolver/SKILL.md) before the Procedure. Applies only when a Change Set has more than one concurrently runnable task.
+See [standard-preflight](../../workflow/stage-preflight/reference/standard-preflight.md). Applies only when a Change Set has more than one concurrently runnable task.
 
 - **Inputs:** the Change Set's `tasks[]` with dependencies and checkpoints.
 - **ADOPT:** existing worktrees for a task are reused only if their checkpoint SHA matches; otherwise a fresh worktree is created (WORKSPACE_WRITE).
@@ -44,6 +44,8 @@ Run [stage-preflight](../../workflow/stage-preflight/SKILL.md) and [workspace-re
 - `RISK` entry on any detected conflict; `DECISION` entry for merge order.
 
 ## Enforcement
+**Enforced** (partial) — some rules are structural, others are guideline only.
+
 - Operation classes: agent credentials and tool scoping expose no deploy or external-mutation tool
   (§5.6; `governance/default-permissions`).
 - Worktree isolation: orchestrator-enforced when it spawns tasks; guideline only otherwise.

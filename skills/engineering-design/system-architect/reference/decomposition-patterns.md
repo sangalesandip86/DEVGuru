@@ -1,6 +1,5 @@
 # Decomposition Patterns
 
-<!-- reconstructed: v2 source not provided; review -->
 
 Default: **don't split.** A module boundary inside one deployable gives most of the benefit of
 a service boundary at a fraction of the operational cost. Split only when a specific force

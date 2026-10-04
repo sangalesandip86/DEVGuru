@@ -25,17 +25,27 @@ class RealRolesTest(unittest.TestCase):
                                  "qa-diagnose", "test-engineer", "security-reviewer", "code-reviewer"})
 
     def test_qa_derive_denies_implementation_reads(self):
-        settings = json.loads(ga.build(ROLES_DIR)["claude/settings.roles.json"])
-        deny = settings["roles"]["qa-derive"]["permissions"]["deny"]
-        self.assertIn("Read(src/**)", deny)
-        self.assertNotIn("Read(src/**)", settings["roles"]["qa-diagnose"]["permissions"]["deny"])
+        specs = {r["name"]: r for r in ga.load_roles(ROLES_DIR)}
+        self.assertIn("src/**", specs["qa-derive"]["denied_paths"]["read"])
+        self.assertNotIn("src/**", specs["qa-diagnose"]["denied_paths"].get("read", []))
 
     def test_readonly_reviewers_have_no_write_tools(self):
         files = ga.build(ROLES_DIR)
         for role in ("code-reviewer", "security-reviewer"):
             fm = files[f"claude/.claude/agents/{role}.md"].split("---")[1]
-            self.assertNotIn("Edit", fm)
-            self.assertNotIn("Write", fm)
+            tools_line = [l for l in fm.splitlines() if l.startswith("tools:")][0]
+            self.assertNotIn("Edit", tools_line)
+            self.assertNotIn("Write", tools_line)
+            disallowed_line = [l for l in fm.splitlines() if l.startswith("disallowedTools:")][0]
+            self.assertIn("Edit", disallowed_line)
+            self.assertIn("Write", disallowed_line)
+
+    def test_all_agents_have_max_turns_and_isolation(self):
+        files = ga.build(ROLES_DIR)
+        for spec in ga.load_roles(ROLES_DIR):
+            fm = files[f"claude/.claude/agents/{spec['name']}.md"].split("---")[1]
+            self.assertIn('maxTurns: 3', fm, f"{spec['name']} missing maxTurns")
+            self.assertIn('isolation: "worktree"', fm, f"{spec['name']} missing isolation")
 
     def test_all_mcp_tools_use_single_adlc_server(self):
         for spec in ga.load_roles(ROLES_DIR):
@@ -51,20 +61,18 @@ class RealRolesTest(unittest.TestCase):
         self.assertEqual(spec["operation_classes"], ["READ", "WORKSPACE_WRITE", "REPO_WRITE"])
         files = ga.build(ROLES_DIR)
         self.assertIn("Rule of Two", files["claude/.claude/agents/product-planner.md"])
-        deny = json.loads(files["claude/settings.roles.json"])["roles"]["product-planner"]["permissions"]["deny"]
-        self.assertIn("Bash", deny)
+        fm = files["claude/.claude/agents/product-planner.md"].split("---")[1]
+        self.assertIn("Bash", [l for l in fm.splitlines() if l.startswith("disallowedTools:")][0])
 
     def test_oracle_binding_split(self):
-        deny = json.loads(ga.build(ROLES_DIR)["claude/settings.roles.json"])["roles"]
         specs = {r["name"]: r for r in ga.load_roles(ROLES_DIR)}
         self.assertEqual(specs["qa-derive"]["can_modify"], ["plans/test-designs/**", "**/*.feature"])
         for role in ("test-engineer", "qa-diagnose"):
-            d = deny[role]["permissions"]["deny"]
-            self.assertIn("Edit(plans/test-designs/**)", d)
-            self.assertIn("Write(**/*.feature)", d)
-            self.assertIn("Edit(src/**)", d)
-        self.assertIn("Read(.env)", deny["test-engineer"]["permissions"]["deny"])
-        self.assertIn("Read(src/**)", deny["qa-derive"]["permissions"]["deny"])
+            self.assertIn("plans/test-designs/**", specs[role]["denied_paths"]["write"])
+            self.assertIn("**/*.feature", specs[role]["denied_paths"]["write"])
+            self.assertIn("src/**", specs[role]["denied_paths"]["write"])
+        self.assertIn(".env", specs["test-engineer"]["denied_paths"]["read"])
+        self.assertIn("src/**", specs["qa-derive"]["denied_paths"]["read"])
         self.assertIn(".adlc/catalog/step-patterns.json", specs["qa-derive"]["can_read"])
         self.assertIn("integrity-guard", " ".join(c["scope"] for c in specs["qa-diagnose"]["can_set"]))
 

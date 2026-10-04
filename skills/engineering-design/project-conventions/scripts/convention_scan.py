@@ -519,6 +519,8 @@ def scan(root: Path, target: str | None = None, junit: Path | None = None, golde
 
 
 def main(argv: list[str] | None = None) -> int:
+    if sys.stdout and hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8")
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--repo", default=".", help="repository root (default: .)")
     ap.add_argument("--target", help="file or dir you will change (repo-relative) — enables golden-file ranking")

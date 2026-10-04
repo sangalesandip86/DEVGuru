@@ -1,6 +1,6 @@
 ---
 name: suite-authoring
-description: test-engineer's procedure for creating or surgically updating test suites from a frozen test design — chooses Mode A (surgical update), B (convention mirror) or C (greenfield, its own story), declares a CREATE/UPDATE/REUSE impact plan, binds scenarios to code via page objects/robots, builders and contract-validated mocks, and never changes an existing expectation unless the AC changed. Use for any unit, component/widget, contract, BDD-binding or E2E test-writing task.
+description: Create or update test suites from frozen test designs (Mode A/B/C with impact plan). Use for any unit, component, contract, or E2E task.
 metadata:
   group: testing
   phase: 1
@@ -27,8 +27,7 @@ come from the design (ADR 0003).
 - Read "Update rules" before touching anything; most damage happens here.
 
 ## Preflight
-Run the standard preflight first: [`stage-preflight`](../../../workflow/stage-preflight/SKILL.md) and
-[`workspace-resolver`](../../../workflow/workspace-resolver/SKILL.md).
+See [standard-preflight](../../../workflow/stage-preflight/reference/standard-preflight.md).
 1. **Workspace.** Resolve `app`, plus `tests` (separate E2E repo) and `contracts` where they apply. Every
    path you write must be in Change Set scope.
 2. **Frozen design for the story at its current `ac_hash`:**
@@ -125,6 +124,8 @@ Run the standard preflight first: [`stage-preflight`](../../../workflow/stage-pr
 - QUESTION or defect: spec-versus-code discrepancies, reported to qa-derive or developer, never resolved in the test.
 
 ## Enforcement
+**Enforced** — see rules below.
+
 - [test_integrity_guard.py](../../../enforcement/ci-checks/test-integrity/test_integrity_guard.py): an expectation change requires an AC-hash
   change, and weakening is flagged (§5.6 row "Agents don't weaken tests to go green").
 - [red_green_check.md](../../../enforcement/ci-checks/test-integrity/red_green_check.md) and diff-scoped mutation testing

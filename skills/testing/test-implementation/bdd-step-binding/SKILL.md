@@ -1,6 +1,6 @@
 ---
 name: bdd-step-binding
-description: test-engineer's step-definition work for BDD suites — binds qa-derive's .feature steps to code by reusing existing step definitions, adding definitions only for net-new phrases, defining parameter types, and keeping steps thin over page objects/robots and builders; verified by cucumber --dry-run. Use whenever .feature files are added or changed, or a dry-run reports undefined/ambiguous steps.
+description: Bind .feature steps to code, reusing existing definitions, keeping steps thin over page objects. Use when features are added or changed.
 metadata:
   group: testing
   phase: 1
@@ -26,8 +26,7 @@ robot, builder and API-client calls. It holds no assertions logic beyond what th
 - `cucumber --dry-run` reports undefined or ambiguous steps.
 
 ## Preflight
-Run the standard preflight first: [`stage-preflight`](../../../workflow/stage-preflight/SKILL.md) and
-[`workspace-resolver`](../../../workflow/workspace-resolver/SKILL.md).
+See [standard-preflight](../../../workflow/stage-preflight/reference/standard-preflight.md).
 1. **Workspace.** Resolve the repo with `features/` and the step-definition glue (`app` or `tests`).
 2. **Frozen feature files** at the story's current `ac_hash`:
    - SATISFIED: proceed. You may **read** feature files but never edit them; you are write-denied.
@@ -98,6 +97,8 @@ features/
 - REVIEWED: binding fidelity, meaning every scenario resolves and each step does what its text says.
 
 ## Enforcement
+**Enforced** — see rules below.
+
 - `cucumber --dry-run --strict` CI job, `bdd-dry-run` in
   [workflow.example.yml](../../../enforcement/ci-checks/test-integrity/workflow.example.yml).
 - test-engineer is write-denied on `**/*.feature` (role permissions; §5.6 row "Test expectations come from AC, not code").

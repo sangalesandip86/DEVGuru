@@ -100,6 +100,8 @@ def can_i_deploy(registry: dict, app: str, version: str, env: str) -> dict:
 
 
 def main(argv: list[str] | None = None) -> int:
+    if sys.stdout and hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8")
     ap = argparse.ArgumentParser(description="Check compatibility against recorded deployed versions.")
     ap.add_argument("--registry", type=Path, required=True, help="registry export JSON")
     ap.add_argument("--application", required=True)

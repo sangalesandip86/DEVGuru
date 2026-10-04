@@ -1,6 +1,6 @@
 ---
 name: improvement-review
-description: Clusters project incidents by (skill, step, failure_class), drafts one sanitized, lint-checked lesson per cluster with a synthetic red/green reproduction, selects the remedy (gate/lint before skill text, within the skill size budget), prunes remedies that no longer fire, and routes everything through REVIEWED → human APPROVED before any skill change or org-level sharing. Use on the scheduled review or when a pattern threshold is crossed.
+description: Cluster incidents, draft lessons with synthetic reproduction, route through human approval. Use on schedule or when a pattern fires.
 metadata:
   group: self-improvement
   phase: 1
@@ -24,7 +24,7 @@ On a schedule (default: every 2 weeks during a pilot) or when a cluster crosses 
 [reference/pattern-threshold.md](reference/pattern-threshold.md).
 
 ## Preflight
-Run [stage-preflight](../../workflow/stage-preflight/SKILL.md) and [workspace-resolver](../../workflow/workspace-resolver/SKILL.md) before the Procedure. This skill runs at LEARN, on a schedule or on a pattern-threshold hit.
+See [standard-preflight](../../workflow/stage-preflight/reference/standard-preflight.md). This skill runs at LEARN, on a schedule or on a pattern-threshold hit.
 
 - **Inputs:** OPEN, `pattern_eligible` incidents in the project ledger.
 - **BACKFILL:** if the project has no sanitization blocklist yet, build it with `scripts/build_blocklist.py` before drafting anything.
@@ -76,6 +76,8 @@ Lessons (`lesson.schema.json`), synthetic reproductions (`evals.json` cases), PR
 REVIEWED candidates with grading evidence, PRs awaiting human approval, pruning proposals.
 
 ## Enforcement
+**Enforced** (partial) — some rules are structural, others are guideline only.
+
 | Rule | Enforced by |
 |---|---|
 | Lesson names a real skill/step and taxonomy class, with checkable advice | `scripts/lesson_lint.py` (BLOCK in Preflight) |

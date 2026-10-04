@@ -1,6 +1,6 @@
 ---
 name: load-testing-expert
-description: Designs and runs load, stress, soak, and spike tests with k6 or JMeter, using workload models derived from production traffic and pass/fail thresholds tied to SLOs. Use when a change can affect throughput or latency, or before a CRITICAL release.
+description: Design and run load/stress/soak tests with k6 or JMeter against SLO thresholds. Use when a change can affect throughput or latency.
 metadata:
   group: testing
   phase: progressive
@@ -14,7 +14,6 @@ metadata:
 
 # Load Testing Expert
 
-<!-- reconstructed: v2 source not provided; review -->
 
 ## Purpose
 Answer "will it hold at the load we actually expect?" with numbers, not intuition.
@@ -25,7 +24,7 @@ Answer "will it hold at the load we actually expect?" with numbers, not intuitio
 - CRITICAL-tier release requiring staged rollout.
 
 ## Preflight
-Run the standard preflight before any step below: [`stage-preflight`](../../../workflow/stage-preflight/SKILL.md) and [`workspace-resolver`](../../../workflow/workspace-resolver/SKILL.md).
+See [standard-preflight](../../../workflow/stage-preflight/reference/standard-preflight.md).
 1. **Workspace.** Resolve repo roles `[app, tests, infra]`. If found, record it as FACT `repo@sha`. If ambiguous, raise one QUESTION with ranked candidates. If missing, workspace-resolver offers local creation or a `repo-request.yaml`. If there is no test framework for this tier, that is **Mode C, as its own `TEST_AUTOMATION` story** ([suite-authoring](../../test-implementation/suite-authoring/SKILL.md)). It is never scaffolded inside a feature story.
 2. **Frozen test design** (`plans/test-designs/ST-n.yaml` or `.feature` at the story's current `ac_hash`): SATISFIED. If it's missing, offer **BACKFILL** (DESIGN via qa-derive, [test-case-design](../../test-design/test-case-design/SKILL.md)) or **characterization mode** ([ADR 0004 §3](../../../../docs/adr/0004-workflow-stages-and-workspace.md)): tests tagged `characterization`, an ASSUMPTION "current behaviour is intended" recorded, and they never count as AC verification or VERIFIED. If the `ac_hash` is stale, BLOCK.
 3. **Numeric targets and environment.** The NFR AC state numbers (p95, RPS, error rate), and a load-target environment sized like production is resolved. Load against shared or production environments is scheduled only by CI or a human.
@@ -59,6 +58,8 @@ Tool recipes: [`reference/k6-scripts.md`](reference/k6-scripts.md), [`reference/
 - Capacity conclusions → `INFERENCE` citing run results; workload model → `ASSUMPTION`s with sources.
 
 ## Enforcement
+**Enforced** (partial) — see rules below.
+
 Threshold results are machine evidence. Running against production is blocked by operation-class scoping (plan §4.5).
 
 ## References

@@ -1,6 +1,6 @@
 ---
 name: selenium-expert
-description: Writes and maintains Selenium WebDriver tests (Java, Python, C#, JS) with explicit waits, page objects, and Selenium Grid execution. Use when the repo's UI automation is Selenium-based or cross-browser coverage requires Grid or a device cloud.
+description: Write Selenium WebDriver tests with explicit waits, page objects, and Grid execution. Use when the repo uses Selenium or needs Grid.
 metadata:
   group: testing
   phase: progressive
@@ -14,7 +14,6 @@ metadata:
 
 # Selenium Expert
 
-<!-- reconstructed: v2 source not provided; review -->
 
 ## Purpose
 Keep Selenium suites reliable and maintainable; recommend migration only with evidence.
@@ -24,7 +23,7 @@ Keep Selenium suites reliable and maintainable; recommend migration only with ev
 - The cross-browser matrix includes browsers or real-device clouds served via Grid.
 
 ## Preflight
-Run the standard preflight before any step below: [`stage-preflight`](../../../workflow/stage-preflight/SKILL.md) and [`workspace-resolver`](../../../workflow/workspace-resolver/SKILL.md).
+See [standard-preflight](../../../workflow/stage-preflight/reference/standard-preflight.md).
 1. **Workspace.** Resolve repo roles `[app, tests]`. If found, record it as FACT `repo@sha`. If ambiguous, raise one QUESTION with ranked candidates. If missing, workspace-resolver offers local creation or a `repo-request.yaml`. If there is no test framework for this tier, that is **Mode C, as its own `TEST_AUTOMATION` story** ([suite-authoring](../../test-implementation/suite-authoring/SKILL.md)). It is never scaffolded inside a feature story.
 2. **Frozen test design** (`plans/test-designs/ST-n.yaml` or `.feature` at the story's current `ac_hash`): SATISFIED. If it's missing, offer **BACKFILL** (DESIGN via qa-derive, [test-case-design](../../test-design/test-case-design/SKILL.md)) or **characterization mode** ([ADR 0004 §3](../../../../docs/adr/0004-workflow-stages-and-workspace.md)): tests tagged `characterization`, an ASSUMPTION "current behaviour is intended" recorded, and they never count as AC verification or VERIFIED. If the `ac_hash` is stale, BLOCK.
 3. **Runner present.** Selenium/WebDriver bindings are in the manifest and a grid or driver config exists. If the repo also has Playwright, follow the golden sample's driver; don't introduce a second one.
@@ -57,6 +56,8 @@ Never proceed on a missing input silently.
 - Tests (`REPO_WRITE`). CI pass/fail → server-set `VERIFIED`. Reviews and diagnoses → `REVIEWED`.
 
 ## Enforcement
+**Guideline only** — no enforcement point yet.
+
 Pass/fail is machine evidence from CI. Style rules are guideline only.
 
 ## References

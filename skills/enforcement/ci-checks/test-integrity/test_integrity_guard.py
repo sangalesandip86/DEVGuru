@@ -411,6 +411,35 @@ def apply_overrides(report: dict, overrides: list[dict]) -> dict:
     return report
 
 
+def load_overrides_from_ledger(db_path: str) -> list[dict]:
+    """Query the evidence ledger for REVIEWED DECISION entries that accept test-integrity findings.
+
+    Expected entry shape: classification=DECISION, lifecycle_state=REVIEWED,
+    metadata.test_integrity_override=true, metadata.finding_id=<id>.
+    Only qa-diagnose (AGENT) or HUMAN actors may write these.
+    """
+    import sqlite3
+    conn = sqlite3.connect(db_path)
+    conn.row_factory = sqlite3.Row
+    try:
+        rows = conn.execute(
+            "SELECT entry_id, metadata FROM entries "
+            "WHERE classification = 'DECISION' AND lifecycle_state = 'REVIEWED' "
+            "AND actor_type IN ('AGENT', 'HUMAN') "
+            "ORDER BY created_at DESC"
+        ).fetchall()
+    except sqlite3.OperationalError:
+        return []
+    finally:
+        conn.close()
+    overrides = []
+    for row in rows:
+        meta = json.loads(row["metadata"]) if row["metadata"] else {}
+        if meta.get("test_integrity_override") and meta.get("finding_id"):
+            overrides.append({"finding_id": meta["finding_id"], "ledger_entry": row["entry_id"]})
+    return overrides
+
+
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--diff")
@@ -420,7 +449,8 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--ac-changed", default="")
     ap.add_argument("--ac-changed-file")
     ap.add_argument("--snapshot-threshold", type=int, default=5)
-    ap.add_argument("--overrides")
+    ap.add_argument("--overrides", help="(deprecated: use --ledger-db) local JSON [{finding_id, ledger_entry}]")
+    ap.add_argument("--ledger-db", help="evidence_ledger.db path; overrides are read from the ledger instead of a local file")
     args = ap.parse_args(argv)
     try:
         if args.diff:
@@ -438,7 +468,9 @@ def main(argv: list[str] | None = None) -> int:
         if bad:
             raise ValueError(f"malformed AC ids: {bad}")
         report = Guard(ac, head_root, args.snapshot_threshold).run(parse_unified_diff(text))
-        if args.overrides:
+        if args.ledger_db:
+            report = apply_overrides(report, load_overrides_from_ledger(args.ledger_db))
+        elif args.overrides:
             report = apply_overrides(report, json.loads(Path(args.overrides).read_text(encoding="utf-8")))
     except (OSError, ValueError, json.JSONDecodeError) as exc:
         print(json.dumps({"error": str(exc)}), file=sys.stderr)

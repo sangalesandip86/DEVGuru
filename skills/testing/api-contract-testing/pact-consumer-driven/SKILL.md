@@ -1,6 +1,6 @@
 ---
 name: pact-consumer-driven
-description: Implements consumer-driven contract tests with Pact (HTTP and message pacts), publishing to a Pact Broker and gating deploys with can-i-deploy against recorded deployed versions. Use when a Change Set changes an API or event that another service consumes.
+description: Implement consumer-driven contract tests with Pact and gate deploys via can-i-deploy. Use when a change affects a consumed API.
 metadata:
   group: testing
   phase: progressive
@@ -14,7 +14,6 @@ metadata:
 
 # Pact Consumer-Driven Contracts
 
-<!-- reconstructed: v2 source not provided; review -->
 
 ## Purpose
 Prove that a provider change won't break the consumers that are *actually deployed*, without
@@ -25,7 +24,7 @@ standing up the whole system.
 - Risk tier is HIGH (public API change — plan §5.4 requires contract analysis).
 
 ## Preflight
-Run the standard preflight before any step below: [`stage-preflight`](../../../workflow/stage-preflight/SKILL.md) and [`workspace-resolver`](../../../workflow/workspace-resolver/SKILL.md).
+See [standard-preflight](../../../workflow/stage-preflight/reference/standard-preflight.md).
 1. **Workspace.** Resolve repo roles `[app, contracts]`. If found, record it as FACT `repo@sha`. If ambiguous, raise one QUESTION with ranked candidates. If missing, workspace-resolver offers local creation or a `repo-request.yaml`. If there is no test framework for this tier, that is **Mode C, as its own `TEST_AUTOMATION` story** ([suite-authoring](../../test-implementation/suite-authoring/SKILL.md)). It is never scaffolded inside a feature story.
 2. **Frozen test design** (`plans/test-designs/ST-n.yaml` or `.feature` at the story's current `ac_hash`): SATISFIED. If it's missing, offer **BACKFILL** (DESIGN via qa-derive, [test-case-design](../../test-design/test-case-design/SKILL.md)) or **characterization mode** ([ADR 0004 §3](../../../../docs/adr/0004-workflow-stages-and-workspace.md)): tests tagged `characterization`, an ASSUMPTION "current behaviour is intended" recorded, and they never count as AC verification or VERIFIED. If the `ac_hash` is stale, BLOCK.
 3. **Contract and broker.** The provider/consumer pair is registered in the contract registry, and a Pact Broker (or PactFlow) is reachable from CI. can-i-deploy runs against **recorded deployed versions**, not the latest ones.
@@ -61,6 +60,8 @@ Never proceed on a missing input silently.
 - A missing pact for a known consumer → `RISK` + `COMPATIBILITY_UNKNOWN` reason code (escalates the tier by one).
 
 ## Enforcement
+**Guideline only** — no enforcement point yet.
+
 can-i-deploy is a deterministic CI gate; its result is machine evidence. Writing pacts is guideline only.
 
 ## References

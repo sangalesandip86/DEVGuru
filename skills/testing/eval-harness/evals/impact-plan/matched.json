@@ -1,0 +1,17 @@
+{
+  "description": "All test files match the impact plan",
+  "input": {
+    "planned": [{"path": "tests/test_foo.py", "action": "create"}],
+    "actual": {"tests/test_foo.py": "create"}
+  },
+  "output": {
+    "ok": true,
+    "matched": [{"path": "tests/test_foo.py"}],
+    "undeclared": [],
+    "missing": []
+  },
+  "checks": [
+    {"field": "matched", "op": "len_gte", "value": 1},
+    {"field": "undeclared", "op": "len_gte", "value": 0}
+  ]
+}

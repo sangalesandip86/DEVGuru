@@ -1,6 +1,5 @@
 # Model Tiering
 
-<!-- reconstructed: v2 source not provided; review -->
 
 Two tiers only — a capability matrix is deferred (§2) because model capabilities change every release.
 

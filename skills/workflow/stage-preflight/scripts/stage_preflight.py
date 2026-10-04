@@ -134,6 +134,9 @@ class Ctx:
     def existing_repo(self) -> bool:
         if self.args.existing_repo in ("yes", "no"):
             return self.args.existing_repo == "yes"
+        return self._auto_existing_repo()
+
+    def _auto_existing_repo(self) -> bool:
         if not self.app_root or not self.app_root.is_dir():
             return False
         return any((self.app_root / d).is_dir() for d in CODE_HINTS) or any(
@@ -524,12 +527,20 @@ def preflight(args) -> dict:
         cov = intake_coverage(ctx)
         if cov:
             results.append(cov)
+    overrides = []
+    if args.existing_repo in ("yes", "no"):
+        auto = ctx._auto_existing_repo()
+        if (args.existing_repo == "yes") != auto:
+            overrides.append(f"--existing-repo {args.existing_repo} (auto-detected: {'yes' if auto else 'no'})")
+    if args.mode == "characterization":
+        overrides.append("--mode characterization (relaxes test-design requirement)")
+
     worst = max((r["outcome"] for r in results), key=ORDER.get, default="SATISFIED")
     rng = order[order.index(args.start): order.index(end) + 1]
     observed = [s for s in rng if stages["stages"][s]["observed_only"]]
     lead = stage["lead_roles"]
     degraded = {r: stages["degraded_mode"][r] for r in lead if r in stages["degraded_mode"]}
-    return {
+    result = {
         "start": args.start, "end": end, "stages_in_range": rng,
         "observed_only_in_range": observed,
         "effective_tier": ctx.tier, "story": ctx.story_id,
@@ -541,6 +552,10 @@ def preflight(args) -> dict:
         "degraded_mode_if_role_unavailable": degraded,
         "summary": summarize(args.start, end, results, worst, observed),
     }
+    if overrides:
+        result["overrides"] = overrides
+        result["override_risk"] = "RISK: agent-supplied overrides relax preflight inputs — record as evidence"
+    return result
 
 
 def summarize(start, end, results, worst, observed) -> str:
@@ -553,6 +568,8 @@ def summarize(start, end, results, worst, observed) -> str:
 
 
 def main(argv: list[str] | None = None) -> int:
+    if sys.stdout and hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8")
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--start", required=True)
     ap.add_argument("--end")

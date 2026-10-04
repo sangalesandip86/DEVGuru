@@ -1,6 +1,6 @@
 ---
 name: policy-drift-check
-description: Detects drift between declared platform policy (control-file list, role permissions, managed settings, generated agent files) and what is actually deployed. Use on a schedule, after any platform release, and before a pilot review.
+description: Detect drift between declared platform policy and deployed settings. Use on a schedule, after platform releases, and before pilot reviews.
 metadata:
   group: governance
   phase: 3
@@ -14,7 +14,6 @@ metadata:
 
 # Policy Drift Check
 
-<!-- reconstructed: v2 source not provided; review -->
 
 ## Purpose
 Policy that exists only on paper is not policy. This check compares the declared sources of
@@ -26,7 +25,7 @@ truth against the artifacts that actually enforce them and reports every gap.
 - Before any pilot checkpoint review.
 
 ## Preflight
-Run [stage-preflight](../../workflow/stage-preflight/SKILL.md) and [workspace-resolver](../../workflow/workspace-resolver/SKILL.md) before the Procedure. Cross-cutting: this skill has no stage inputs of its own and is loaded alongside whatever stage is running, so it never BACKFILLs or BLOCKs a stage by itself.
+See [standard-preflight](../../workflow/stage-preflight/reference/standard-preflight.md) (cross-cutting).
 
 - **Inputs:** deployed managed settings and the canonical policy files.
 - **ADOPT:** newly resolved or created repos are added to the drift-check scope on their first run.
@@ -48,6 +47,8 @@ Run [stage-preflight](../../workflow/stage-preflight/SKILL.md) and [workspace-re
 - `FACT` (check results, written by CI), `RISK` per drift finding.
 
 ## Enforcement
+**Enforced** — see rules below.
+
 CI check (`skills/enforcement/ci-checks/`) failing the build; required status check on
 the platform repo's default branch.
 

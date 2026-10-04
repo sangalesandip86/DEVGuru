@@ -1,6 +1,6 @@
 ---
 name: project-conventions
-description: Discovers an existing project's declared standards and observed conventions (deterministically, via convention_scan.py) and tells architects, developers and reviewers to follow them — consistency over preference, deviations as DECISIONs, bad patterns reported not fixed in passing. Use before any ARCHITECTURE, DESIGN, or IMPLEMENT task on an existing repo, and when reviewing a brownfield change for convention conformance.
+description: Discover declared standards and observed conventions via convention_scan.py. Use before any task on an existing repo.
 metadata:
   group: engineering-design
   phase: 1
@@ -111,6 +111,8 @@ from an agent.
 - Handoff field `conventions_ref: repo@sha:.adlc/catalog/conventions.json` + content hash.
 
 ## Enforcement
+**Enforced** (partial) — some rules are structural, others are guideline only.
+
 
 | Rule | Enforced by |
 |---|---|

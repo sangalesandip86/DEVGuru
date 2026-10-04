@@ -1,6 +1,6 @@
 ---
 name: brownfield-adoption
-description: Brings work that already exists outside the platform (tracker items in GitHub Issues or Jira, existing architecture docs/ADRs/diagrams, existing tests and code) into the workflow as DRAFT artifacts with trust levels, so the normal gates can run on them. Also defines characterization mode for testing legacy code that has no acceptance criteria. Use when a user starts from a backlog, an existing system, or existing code rather than from new requirement documents.
+description: Import existing work (tracker items, docs, tests, code) as DRAFT artifacts with trust levels. Use when starting from a backlog or legacy.
 metadata:
   group: workflow
   phase: 1
@@ -90,6 +90,8 @@ Existing suites are adopted through [test-repo-discovery](../../testing/test-arc
   from declared standards) and INFERENCE (mapping decisions).
 
 ## Enforcement
+**Enforced** (partial) — some rules are structural, others are guideline only.
+
 - **Inbox files can't be READY:** they live outside `plans/{requirements,epics,stories}`, so neither
   `plan_lint` nor `readiness_gate` treats them as plans. Only promoted files can become READY.
 - **Characterization tests never count as AC coverage:** `ac_coverage.py` counts only `ST-n/AC-n`

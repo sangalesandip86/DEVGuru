@@ -1,6 +1,6 @@
 ---
 name: postman-newman
-description: Builds and runs Postman collections headlessly with Newman in CI, with environment files, scripted assertions, and JUnit output. Use when a team maintains API tests as Postman collections or needs black-box API smoke tests against a deployed environment.
+description: Build and run Postman collections headlessly with Newman in CI. Use when API tests are Postman collections or for smoke tests.
 metadata:
   group: testing
   phase: progressive
@@ -14,7 +14,6 @@ metadata:
 
 # Postman / Newman
 
-<!-- reconstructed: v2 source not provided; review -->
 
 ## Purpose
 Turn Postman collections into reproducible CI checks, mainly API smoke and black-box regression tests
@@ -25,7 +24,7 @@ against deployed environments.
 - Post-deploy smoke tests are needed (see [`../../security-testing/deployment-verification/SKILL.md`](../../security-testing/deployment-verification/SKILL.md)).
 
 ## Preflight
-Run the standard preflight before any step below: [`stage-preflight`](../../../workflow/stage-preflight/SKILL.md) and [`workspace-resolver`](../../../workflow/workspace-resolver/SKILL.md).
+See [standard-preflight](../../../workflow/stage-preflight/reference/standard-preflight.md).
 1. **Workspace.** Resolve repo roles `[app, tests, contracts]`. If found, record it as FACT `repo@sha`. If ambiguous, raise one QUESTION with ranked candidates. If missing, workspace-resolver offers local creation or a `repo-request.yaml`. If there is no test framework for this tier, that is **Mode C, as its own `TEST_AUTOMATION` story** ([suite-authoring](../../test-implementation/suite-authoring/SKILL.md)). It is never scaffolded inside a feature story.
 2. **Frozen test design** (`plans/test-designs/ST-n.yaml` or `.feature` at the story's current `ac_hash`): SATISFIED. If it's missing, offer **BACKFILL** (DESIGN via qa-derive, [test-case-design](../../test-design/test-case-design/SKILL.md)) or **characterization mode** ([ADR 0004 §3](../../../../docs/adr/0004-workflow-stages-and-workspace.md)): tests tagged `characterization`, an ASSUMPTION "current behaviour is intended" recorded, and they never count as AC verification or VERIFIED. If the `ac_hash` is stale, BLOCK.
 3. **Collection and environment.** The collection lives in the repo. Environment variables are names only (`required-secrets.yaml`), and CI injects the values.
@@ -57,6 +56,8 @@ Never proceed on a missing input silently.
 - Collections (`REPO_WRITE`). JUnit results from CI → `VERIFIED`. Coverage gaps → `REVIEWED`.
 
 ## Enforcement
+**Enforced** — see rules below.
+
 Pass/fail is machine evidence from CI. Secret hygiene is enforced by secret scanning, not this skill.
 
 ## References

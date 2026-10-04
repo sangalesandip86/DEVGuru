@@ -1,0 +1,17 @@
+{
+  "description": "Feature story with jest stack → mandatory + no extra tier escalation",
+  "input": {
+    "stack": {"unit_runner": ["jest"]},
+    "story_type": "FEATURE_STORY"
+  },
+  "output": {
+    "bindings": ["grounding/evidence-gate"],
+    "roles": [],
+    "tier_floor": "LOW",
+    "triggers": []
+  },
+  "checks": [
+    {"field": "tier_floor", "op": "eq", "value": "LOW"},
+    {"field": "bindings", "op": "contains", "value": "grounding/evidence-gate"}
+  ]
+}

@@ -1,6 +1,6 @@
 ---
 name: contract-registry
-description: Registers and looks up the contracts between services — HTTP/gRPC/GraphQL APIs and events — with their type, provider, consumers, and compatibility policy. Use when a change touches an API or event schema, when an API_CONTRACT story is written, or when dependency discovery surfaces a cross-repo call.
+description: Register and look up service contracts (HTTP/gRPC/event schemas). Use when a change touches an API, an API_CONTRACT story, or cross-repo calls.
 metadata:
   group: contracts
   phase: 3
@@ -14,7 +14,6 @@ metadata:
 
 # Contract Registry
 
-<!-- reconstructed: v2 source not provided; review -->
 
 ## Purpose
 Make inter-service contracts explicit so compatibility can be checked against what is actually
@@ -27,7 +26,7 @@ speculative model.
 - An `API_CONTRACT` story is created (v3.1 §4.12 requires a registry entry).
 
 ## Preflight
-Run [stage-preflight](../../workflow/stage-preflight/SKILL.md) and [workspace-resolver](../../workflow/workspace-resolver/SKILL.md) before the Procedure. Primary stage ARCHITECTURE (integration/contract inventory); also used at DESIGN when a story changes a contract.
+See [standard-preflight](../../workflow/stage-preflight/reference/standard-preflight.md). Primary stage ARCHITECTURE (integration/contract inventory); also used at DESIGN when a story changes a contract.
 
 - **Inputs:** the integration inventory from the architecture package, or the story's `touches.api_contracts`.
 - **ADOPT:** existing OpenAPI/AsyncAPI/protobuf/JSON Schema files found in resolved repos are registered as DRAFT contracts citing `repo@sha:path`.
@@ -49,6 +48,8 @@ Run [stage-preflight](../../workflow/stage-preflight/SKILL.md) and [workspace-re
 - `FACT` entries for the spec location and hash; `DECISION` for the chosen compatibility policy.
 
 ## Enforcement
+**Guideline only** — no enforcement point yet.
+
 Registration is a server tool call; `record_deployment` is fed by CI only (no agent caller).
 Whether every cross-repo edge has a contract is guideline only until `drift-detection` runs in CI.
 

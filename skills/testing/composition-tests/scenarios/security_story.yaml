@@ -1,0 +1,134 @@
+# Scenario: "Add OAuth2 token rotation" — security story, HIGH tier
+name: security_story
+description: Security story requiring security-reviewer ACCEPT before merge
+story_type: SECURITY_STORY
+tier_floor: HIGH
+repositories: ["auth-svc"]
+paths: ["src/auth/token_rotation.py", "src/auth/oauth.py"]
+
+stages:
+  INTAKE:
+    lead_role: product-planner
+    outputs:
+      requirement:
+        id: REQ-20
+        title: Implement OAuth2 token rotation for session security
+        type: security
+
+  ARCHITECTURE:
+    lead_role: architect
+    inputs_from: [INTAKE]
+    outputs:
+      architecture-package:
+        components: ["TokenRotator", "SessionStore", "OAuthProvider"]
+        adr:
+          - id: ADR-5
+            title: Rotate refresh tokens on every use
+            status: accepted
+
+  PLAN:
+    lead_role: product-planner
+    inputs_from: [INTAKE, ARCHITECTURE]
+    outputs:
+      ready-story:
+        id: ST-20
+        title: "Rotate OAuth2 refresh tokens on each token refresh"
+        type: SECURITY_STORY
+        tier_floor: HIGH
+        acceptance_criteria:
+          - id: ST-20/AC-1
+            given: valid refresh token
+            when: token refresh request
+            then: old token invalidated, new token issued
+          - id: ST-20/AC-2
+            given: reused (rotated-out) refresh token
+            when: token refresh request
+            then: all tokens for session revoked (replay detection)
+
+  DESIGN:
+    lead_role: qa-derive
+    inputs_from: [PLAN]
+    outputs:
+      test-design:
+        story_ref: ST-20
+        ac_hash: "sha256:cccccccc1234567890abcdef1234567890abcdef1234567890abcdef12345678"
+        scenarios:
+          - id: ST-20/SC-1
+            ac_ref: ST-20/AC-1
+            mode: A_SURGICAL
+          - id: ST-20/SC-2
+            ac_ref: ST-20/AC-2
+            mode: A_SURGICAL
+
+  IMPLEMENT:
+    lead_role: developer
+    inputs_from: [PLAN, ARCHITECTURE]
+    outputs:
+      change-set:
+        id: CS-020
+        paths_changed:
+          - src/auth/token_rotation.py
+          - src/auth/oauth.py
+
+  TEST:
+    lead_role: test-engineer
+    inputs_from: [DESIGN, IMPLEMENT]
+    outputs:
+      test-suite:
+        files:
+          - tests/test_token_rotation.py
+        coverage_pct: 95
+
+  REVIEW:
+    lead_role: code-reviewer
+    inputs_from: [IMPLEMENT, TEST]
+    outputs:
+      review-verdict:
+        reviewer: code-reviewer
+        verdict: ACCEPT
+    security_review:
+      reviewer: security-reviewer
+      verdict: ACCEPT
+
+handoff_chain:
+  - from: product-planner
+    to: architect
+    stage_from: INTAKE
+    stage_to: ARCHITECTURE
+    artifacts: [requirement]
+
+  - from: architect
+    to: product-planner
+    stage_from: ARCHITECTURE
+    stage_to: PLAN
+    artifacts: [architecture-package]
+
+  - from: product-planner
+    to: qa-derive
+    stage_from: PLAN
+    stage_to: DESIGN
+    artifacts: [ready-story]
+
+  - from: qa-derive
+    to: developer
+    stage_from: DESIGN
+    stage_to: IMPLEMENT
+    artifacts: [test-design]
+
+  - from: developer
+    to: test-engineer
+    stage_from: IMPLEMENT
+    stage_to: TEST
+    artifacts: [change-set]
+
+  - from: test-engineer
+    to: code-reviewer
+    stage_from: TEST
+    stage_to: REVIEW
+    artifacts: [test-suite]
+
+  - from: code-reviewer
+    to: security-reviewer
+    stage_from: REVIEW
+    stage_to: REVIEW
+    artifacts: [review-verdict]

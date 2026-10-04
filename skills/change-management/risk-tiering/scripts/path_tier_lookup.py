@@ -219,6 +219,8 @@ def git_changes(base: str, repo: str) -> tuple[list[str], int]:
 
 
 def main(argv: list[str] | None = None) -> int:
+    if sys.stdout and hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8")
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("paths", nargs="*", help="changed file paths (repo-relative)")
     ap.add_argument("--stdin", action="store_true", help="read newline-separated paths from stdin")

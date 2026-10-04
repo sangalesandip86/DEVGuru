@@ -1,6 +1,6 @@
 ---
 name: requirement-intake
-description: Turns a raw request (issue, email, meeting note, stakeholder ask) into a sourced, neutral requirement record (plans/requirements/REQ-n.yaml) with trust levels, success metrics and explicit unknowns. Use when new product intent arrives, before any epic or story is written.
+description: Turn raw requests into sourced requirement records with trust levels and unknowns. Use when new product intent arrives, before stories.
 metadata:
   group: product-planning
   phase: 1
@@ -27,7 +27,7 @@ known is recorded as an open question in the ledger, never filled in silently.
 It does not apply to trivial LOW-tier `BUG_FIX` or `DOCUMENTATION` changes. Those may use an inline story in the PR body (plan §1).
 
 ## Preflight
-Run [stage-preflight](../../workflow/stage-preflight/SKILL.md) and [workspace-resolver](../../workflow/workspace-resolver/SKILL.md) before the Procedure. Primary stage INTAKE. Bulk document ingestion (normalization, section anchors, source register) is done by [requirements-ingestion](../../workflow/requirements-ingestion/SKILL.md); this skill turns the ingested material or a single raw request into requirement records.
+See [standard-preflight](../../workflow/stage-preflight/reference/standard-preflight.md). Primary stage INTAKE. Bulk document ingestion (normalization, section anchors, source register) is done by [requirements-ingestion](../../workflow/requirements-ingestion/SKILL.md); this skill turns the ingested material or a single raw request into requirement records.
 
 - **Inputs:** ingested source docs, tracker items, or a raw request.
 - **ADOPT:** existing tracker items are imported as DRAFT requirements, EXTERNAL_UNSTRUCTURED, citing their URL.
@@ -59,6 +59,8 @@ Run [stage-preflight](../../workflow/stage-preflight/SKILL.md) and [workspace-re
 - Handoff to `story-writer` (small request) or `epic-decomposer` (large request). The artifact is pinned as `repo@sha:plans/requirements/REQ-n.yaml` plus its content hash ([handoff schema](../../roles/reference/handoff-schema.md)).
 
 ## Enforcement
+**Enforced** (partial) — some rules are structural, others are guideline only.
+
 - **Schema, references and no-status** are enforced by `plan_lint.py` ([planning-gates](../../enforcement/ci-checks/planning-gates/README.md)) on every PR touching `plans/`.
 - **No tracker writes:** the product-planner role has no tracker tool, and only the SYSTEM CI job projects to the tracker (plan §5.6 row "Planner cannot write the tracker").
 - The quality of the neutral restatement is a **guideline**, caught in PR review.

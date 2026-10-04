@@ -89,6 +89,8 @@ def analyze(runs: list[dict[str, str]], min_runs: int = 2, threshold: float = 0.
 
 
 def main(argv: list[str] | None = None) -> int:
+    if sys.stdout and hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8")
     p = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     p.add_argument("reports", nargs="*", type=Path, help="JUnit XML files, one per run")
     p.add_argument("--dir", type=Path, help="directory of JUnit XML files")

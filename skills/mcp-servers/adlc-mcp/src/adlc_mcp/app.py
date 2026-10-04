@@ -14,6 +14,7 @@ from typing import Any
 from adlc_mcp.kernel.config import Config
 from adlc_mcp.kernel.identity import Identity, system_identity
 from adlc_mcp.kernel.module import ModuleRegistry
+from adlc_mcp.kernel.role_permissions import allowed_tools
 from adlc_mcp.modules.change_management import api as change_management_api
 from adlc_mcp.modules.contract_registry import api as contract_registry_api
 from adlc_mcp.modules.evidence_ledger import api as evidence_ledger_api
@@ -86,12 +87,34 @@ def build_modules(config: Config) -> ModuleRegistry:
     return registry
 
 
+class _FilteredServer:
+    """Proxy that drops tool registrations not in the identity's allowed set."""
+
+    def __init__(self, inner: Any, allowed: frozenset[str] | None) -> None:
+        self._inner = inner
+        self._allowed = allowed
+        self.skipped: list[str] = []
+
+    def tool(self, *, name: str, description: str | None = None):
+        if self._allowed is not None and name not in self._allowed:
+            self.skipped.append(name)
+            return lambda fn: fn
+        return self._inner.tool(name=name, description=description)
+
+    def __getattr__(self, item: str) -> Any:
+        return getattr(self._inner, item)
+
+
 def build_server(config: Config, identity: Identity, server: Any = None) -> tuple[Any, ModuleRegistry, list[str]]:
     """Build one MCP server hosting every enabled module's tools for ``identity``."""
     if server is None:
         server = _new_mcp_server()
+    allowed = allowed_tools(identity)
+    filtered = _FilteredServer(server, allowed) if allowed is not None else server
     registry = build_modules(config)
     tools: list[str] = []
     for module in registry:
-        tools += module.register_tools(server, identity)
+        tools += module.register_tools(filtered, identity)
+    if isinstance(filtered, _FilteredServer):
+        tools = [t for t in tools if t not in filtered.skipped]
     return server, registry, tools

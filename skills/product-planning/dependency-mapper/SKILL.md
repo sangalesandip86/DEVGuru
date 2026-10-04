@@ -1,6 +1,6 @@
 ---
 name: dependency-mapper
-description: Maps story- and epic-level dependencies (other stories, contracts, external systems, data, environments, teams) into the plan files' dependencies[] with evidence levels, reusing the change-management dependency-discovery scanners; anything not confirmed stays UNRESOLVED. Use during decomposition, refinement and milestone planning.
+description: Map story and epic dependencies with evidence levels; unconfirmed stays UNRESOLVED. Use during decomposition, refinement, and milestones.
 metadata:
   group: product-planning
   phase: 2
@@ -29,7 +29,7 @@ and does not duplicate them.
 - Milestone planning, for cross-story ordering and risks.
 
 ## Preflight
-Run [stage-preflight](../../workflow/stage-preflight/SKILL.md) and [workspace-resolver](../../workflow/workspace-resolver/SKILL.md) before the Procedure. Stage PLAN.
+See [standard-preflight](../../workflow/stage-preflight/reference/standard-preflight.md). Stage PLAN.
 
 - **Inputs:** stories and the resolved repos they touch.
 - **ASK:** a dependency pointing at an unresolved repo produces one QUESTION with candidates; it stays UNRESOLVED until answered.
@@ -58,6 +58,8 @@ Run [stage-preflight](../../workflow/stage-preflight/SKILL.md) and [workspace-re
 - Ledger: INFERENCE (the graph summary), QUESTIONs for suspected but unconfirmed dependencies, and RISKs for dependencies on unowned systems.
 
 ## Enforcement
+**Guideline only** — no enforcement point yet.
+
 - **UNRESOLVED blocks READY:** `readiness_gate.py` (DoR item `dependencies_resolved`).
 - **ACCEPTED_RISK needs a human owner, and referenced stories and epics must exist:** `plan_lint.py`.
 - **Completeness of discovery** is a guideline: static analysis is bounded. The backstops are the developer feasibility review and the snapshot staleness rules at execution time.

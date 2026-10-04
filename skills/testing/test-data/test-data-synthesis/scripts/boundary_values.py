@@ -308,6 +308,8 @@ def generate(spec: dict, seed: int | None = None) -> dict:
 
 
 def main(argv: list[str] | None = None) -> int:
+    if sys.stdout and hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8")
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("spec", nargs="?", help="spec JSON file (default: stdin)")
     ap.add_argument("--seed", type=int)

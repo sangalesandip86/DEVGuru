@@ -1,6 +1,6 @@
 ---
 name: messaging-selector
-description: Decides whether asynchronous messaging is warranted and, if so, selects the pattern (queue, pub/sub, log/stream) and broker from stated throughput, ordering, delivery, and retention requirements. Use when a design introduces events, queues, background jobs, or cross-service notifications.
+description: Select async messaging pattern and broker from throughput and delivery needs. Use when a design introduces events, queues, or jobs.
 metadata:
   group: engineering-design
   phase: progressive
@@ -14,7 +14,6 @@ metadata:
 
 # Messaging Selector
 
-<!-- reconstructed: v2 source not provided; review -->
 
 ## Purpose
 
@@ -28,7 +27,7 @@ over-engineering (a streaming platform for 50 messages/minute). Output is `REVIE
 - Proposal to introduce or replace a broker.
 
 ## Preflight
-Run [stage-preflight](../../workflow/stage-preflight/SKILL.md) and [workspace-resolver](../../workflow/workspace-resolver/SKILL.md) before the Procedure. Primary stage ARCHITECTURE; also DESIGN when a story introduces a new channel.
+See [standard-preflight](../../workflow/stage-preflight/reference/standard-preflight.md). Primary stage ARCHITECTURE; also DESIGN when a story introduces a new channel.
 
 - **Inputs:** throughput, ordering, delivery-guarantee and retention NFRs.
 - **ASK:** missing numbers are batched into one QUESTION with proposed defaults.
@@ -63,6 +62,8 @@ On an existing repo, load [project-conventions](../project-conventions/SKILL.md)
 - `QUESTION` for missing numbers.
 
 ## Enforcement
+**Guideline only** — no enforcement point yet.
+
 
 - Evidence rules: `../../grounding/evidence-gate/SKILL.md`.
 - Event-contract compatibility: `../../contracts/compatibility-check/` (Phase 3; until then, raise

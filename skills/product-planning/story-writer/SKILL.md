@@ -1,6 +1,6 @@
 ---
 name: story-writer
-description: Writes typed, vertically sliced stories (plans/stories/ST-n.yaml) with acceptance criteria that meet the AC standard (ST-n/AC-n IDs, Given/When/Then, kind, verification), predicted affected paths and size. Use when turning a requirement, epic or feature into implementable work, or when a fix needs a story.
+description: Write typed, vertically sliced stories with AC (Given/When/Then, kind, verification). Use when turning requirements or epics into stories.
 metadata:
   group: product-planning
   phase: 1
@@ -29,7 +29,7 @@ is **traceable**, and the story is **sliced vertically** so it delivers observab
 - Any change at MEDIUM tier or above. A LOW-tier `BUG_FIX` or `DOCUMENTATION` change may use an inline story in the PR body, which the DoR gate still checks.
 
 ## Preflight
-Run [stage-preflight](../../workflow/stage-preflight/SKILL.md) and [workspace-resolver](../../workflow/workspace-resolver/SKILL.md) before the Procedure. Stage PLAN.
+See [standard-preflight](../../workflow/stage-preflight/reference/standard-preflight.md). Stage PLAN.
 
 - **Inputs:** requirements (and the epic, if any).
 - **ADOPT:** existing tracker stories are converted to `plans/stories/ST-*.yaml` as DRAFT, keeping the original AC text as a source citation.
@@ -69,6 +69,8 @@ Run [stage-preflight](../../workflow/stage-preflight/SKILL.md) and [workspace-re
 - A PR containing the story file(s). One PR per coherent set, so reviewers see the slicing.
 
 ## Enforcement
+**Enforced** (partial) — see rules below.
+
 - **AC standard, schema and references:** `plan_lint.py` on every PR.
 - **AC freeze after READY:** `plan_lint.py` diffs the canonical AC hash (`ac_hash.py`). A change reports `REQUIRES_REFINING`, and the earlier qa-derive and developer reviews stop counting (plan §5.6 row "AC are frozen once READY").
 - **READY itself:** `readiness_gate.py` against [`policies/dor-policy.yaml`](../policies/dor-policy.yaml).

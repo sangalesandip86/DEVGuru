@@ -126,6 +126,8 @@ def commands(req: dict, target: Path) -> list[list[str]]:
 
 
 def main(argv: list[str] | None = None) -> int:
+    if sys.stdout and hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8")
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("request", help="repo-request.yaml")
     ap.add_argument("--target", required=True, help="directory to render the new repository into")

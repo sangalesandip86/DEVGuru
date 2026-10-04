@@ -113,6 +113,8 @@ It does three things:
 - The stage artifacts themselves are produced by the stage skills, not by the conductor.
 
 ## Enforcement
+**Enforced** (partial) — some rules are structural, others are guideline only.
+
 - **Gates between stages** are enforced by CI and the server, not by this skill:
   - `plan_lint.py`, `readiness_gate.py`, `completion_gate.py`, `ac_coverage.py` and the test-integrity checks;
   - the forge events behind INTEGRATE and RELEASE (§5.10).

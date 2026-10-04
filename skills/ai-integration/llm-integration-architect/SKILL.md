@@ -1,6 +1,6 @@
 ---
 name: llm-integration-architect
-description: Designs how an application integrates an LLM — model selection and tiering, API patterns (streaming, tool use, structured output, batching, caching), cost and latency budgets, failure handling, and safety boundaries — grounded in stated volume and latency numbers. Use when adding or changing an LLM-backed feature or agent.
+description: Design LLM integration -- model selection, API patterns, cost budgets, safety. Use when adding or changing an LLM feature or agent.
 metadata:
   group: ai-integration
   phase: progressive
@@ -14,7 +14,6 @@ metadata:
 
 # LLM Integration Architect
 
-<!-- reconstructed: v2 source not provided; review -->
 
 ## Purpose
 
@@ -28,7 +27,7 @@ failure handling and trust boundaries. Output is `REVIEWED`; never `VERIFIED`.
 - Cost or latency of an LLM feature exceeds budget.
 
 ## Preflight
-Run [stage-preflight](../../workflow/stage-preflight/SKILL.md) and [workspace-resolver](../../workflow/workspace-resolver/SKILL.md) before the Procedure. Primary stage ARCHITECTURE; also DESIGN for story-level LLM features.
+See [standard-preflight](../../workflow/stage-preflight/reference/standard-preflight.md). Primary stage ARCHITECTURE; also DESIGN for story-level LLM features.
 
 - **Inputs:** use-case requirements, latency/cost/quality NFRs, data-classification constraints.
 - **ASK:** missing volume, latency or cost targets are batched into one QUESTION with proposed defaults.
@@ -100,6 +99,8 @@ Do not leak provider-specific response objects past that interface.
 - `QUESTION` entries for missing numbers or quality bar.
 
 ## Enforcement
+**Enforced** (partial) — some rules are structural, others are guideline only.
+
 
 - Evidence rules: `../../grounding/evidence-gate/SKILL.md`.
 - Rule of Two for agentic features is enforced in this platform by session scoping (§5.6 row 2);

@@ -59,22 +59,64 @@ jobs:
       - run: npm ci && npx cucumber-js --dry-run --strict   # adapt: mvn -Dcucumber.execution.dry-run=true test, behave --dry-run
 
   red-green:
-    # See red_green_check.md. Runs only the NEW tests on base (red) and head (green).
     runs-on: ubuntu-latest
     needs: integrity-guard
     steps:
-      - run: echo "stack-specific; see red_green_check.md"
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - uses: actions/checkout@v4
+        with: { repository: my-org/adlc-platform, path: platform }
+      - name: Red/green check
+        run: |
+          python platform/$CHECKS/red_green_check.py \
+            --base "${{ github.event.pull_request.base.sha }}" \
+            --head "${{ github.event.pull_request.head.sha }}" \
+            > red-green.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with: { name: red-green, path: red-green.json }
 
   new-test-flake-gate:
-    # See new_test_flake_gate.md. Five random-order reruns of new/changed tests -> flaky-detector.
     runs-on: ubuntu-latest
     needs: integrity-guard
     steps:
-      - run: echo "stack-specific; see new_test_flake_gate.md"
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - uses: actions/checkout@v4
+        with: { repository: my-org/adlc-platform, path: platform }
+      - name: Flake gate (5 randomized runs)
+        run: |
+          python platform/$CHECKS/flake_gate.py \
+            --runs 5 --base "${{ github.event.pull_request.base.ref }}" \
+            > flake-gate.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with: { name: flake-gate, path: flake-gate.json }
+
+  impact-plan-check:
+    runs-on: ubuntu-latest
+    if: hashFiles('plans/test-designs/**/impact-plan.json') != ''
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - uses: actions/checkout@v4
+        with: { repository: my-org/adlc-platform, path: platform }
+      - name: Impact plan vs actual test files
+        run: |
+          for plan in plans/test-designs/*/impact-plan.json; do
+            python platform/$CHECKS/impact_plan_check.py \
+              --plan "$plan" --base "${{ github.event.pull_request.base.ref }}"
+          done
 
   mutation-diff-scoped:
-    # Mutation testing only on changed lines: Stryker (--mutate from git diff), PIT (scmMutationCoverage),
-    # mutmut (--paths-to-mutate), cargo-mutants (--in-diff). Score threshold per tier lives in dod-policy.yaml.
+    # Mutation testing on changed production code only. Adapter selection per stack from mutation_adapters.json.
+    # Score threshold per tier lives in dod-policy.yaml.
     runs-on: ubuntu-latest
     steps:
-      - run: echo "stack-specific; e.g. npx stryker run --mutate $(git diff --name-only origin/main -- 'src/**/*.ts' | paste -sd,)"
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - name: Diff-scoped mutation (stack-specific)
+        run: |
+          echo "Select adapter from mutation_adapters.json based on stack.json primary_language."
+          echo "Example (TypeScript): npx stryker run --mutate \$(git diff --name-only origin/main -- 'src/**/*.ts' | paste -sd,)"
+          echo "Example (Python): mutmut run --paths-to-mutate \$(git diff --name-only origin/main -- '*.py' | grep -v test_ | paste -sd,)"

@@ -1,6 +1,6 @@
 ---
 name: sast-scanner
-description: Runs and triages static application security testing (Semgrep, CodeQL, language linters like Bandit/gosec) on changed code, with SARIF results ingested as machine evidence. Use for every Change Set at MEDIUM tier and above, and whenever code handling auth, input parsing, crypto, or data access changes.
+description: Run and triage SAST (Semgrep, CodeQL) on changed code with SARIF evidence. Use for every MEDIUM+ Change Set on security paths.
 metadata:
   group: testing
   phase: 1
@@ -14,7 +14,6 @@ metadata:
 
 # SAST Scanner
 
-<!-- reconstructed: v2 source not provided; review -->
 
 ## Purpose
 Catch known-dangerous code patterns (injection, unsafe deserialization, path traversal, weak crypto,
@@ -25,7 +24,7 @@ SSRF, missing authz checks) deterministically, before review. A clean scan is ev
 - Any change in `auth/`, `payment/`, request parsing, query construction, file handling, or crypto usage.
 
 ## Preflight
-Run the standard preflight before any step below: [`stage-preflight`](../../../workflow/stage-preflight/SKILL.md) and [`workspace-resolver`](../../../workflow/workspace-resolver/SKILL.md).
+See [standard-preflight](../../../workflow/stage-preflight/reference/standard-preflight.md).
 1. **Workspace.** Resolve repo roles `[app]`. If found, record it as FACT `repo@sha`. If ambiguous, raise one QUESTION with ranked candidates. If missing, workspace-resolver offers local creation or a `repo-request.yaml`.
 2. **Inputs** `[change-set]`. Each resolves to one of:
    - SATISFIED;
@@ -64,6 +63,8 @@ Never proceed on a missing input silently.
 - Proposed suppression → `PROPOSAL` awaiting human approval.
 
 ## Enforcement
+**Enforced** — see rules below.
+
 CI gate on SARIF results (deterministic). VERIFIED is server-set from ingested evidence (plan §5.6 row 1).
 Suppression approval is enforced only if suppression files are CODEOWNERS-protected.
 

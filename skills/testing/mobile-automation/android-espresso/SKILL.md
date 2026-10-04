@@ -1,6 +1,6 @@
 ---
 name: android-espresso
-description: Writes native Android UI tests with Espresso (Views) and Compose UI Test, run via Gradle managed devices or emulators with Android Test Orchestrator. Use for Android apps built in the same repo.
+description: Write native Android UI tests with Espresso and Compose UI Test. Use for Android apps when stack.json reports android.
 metadata:
   group: testing
   phase: progressive
@@ -14,7 +14,6 @@ metadata:
 
 # Android Espresso / Compose UI Test
 
-<!-- reconstructed: v2 source not provided; review -->
 
 ## Purpose
 Fast, synchronized Android UI verification. Espresso waits for the main thread and registered idling
@@ -24,7 +23,7 @@ resources, removing most timing flakes by construction.
 - `androidTest` source set exists, or the app uses Jetpack Compose / Views with UI behavior changes.
 
 ## Preflight
-Run the standard preflight before any step below: [`stage-preflight`](../../../workflow/stage-preflight/SKILL.md) and [`workspace-resolver`](../../../workflow/workspace-resolver/SKILL.md).
+See [standard-preflight](../../../workflow/stage-preflight/reference/standard-preflight.md).
 1. **Workspace.** Resolve repo roles `[app, tests]`. If found, record it as FACT `repo@sha`. If ambiguous, raise one QUESTION with ranked candidates. If missing, workspace-resolver offers local creation or a `repo-request.yaml`. If there is no test framework for this tier, that is **Mode C, as its own `TEST_AUTOMATION` story** ([suite-authoring](../../test-implementation/suite-authoring/SKILL.md)). It is never scaffolded inside a feature story.
 2. **Frozen test design** (`plans/test-designs/ST-n.yaml` or `.feature` at the story's current `ac_hash`): SATISFIED. If it's missing, offer **BACKFILL** (DESIGN via qa-derive, [test-case-design](../../test-design/test-case-design/SKILL.md)) or **characterization mode** ([ADR 0004 §3](../../../../docs/adr/0004-workflow-stages-and-workspace.md)): tests tagged `characterization`, an ASSUMPTION "current behaviour is intended" recorded, and they never count as AC verification or VERIFIED. If the `ac_hash` is stale, BLOCK.
 3. **Target present.** An `androidTest` source set with Espresso or Compose test dependencies exists (`stack.json.e2e_driver` contains `espresso`). Idling resources are registered for async work.
@@ -63,6 +62,8 @@ Never proceed on a missing input silently.
 - Tests (`REPO_WRITE`). JUnit XML from `build/outputs/androidTest-results` → `VERIFIED` via CI. Diagnoses → `REVIEWED`.
 
 ## Enforcement
+**Guideline only** — no enforcement point yet.
+
 Pass/fail is machine evidence from CI. Practices are guideline only.
 
 ## References

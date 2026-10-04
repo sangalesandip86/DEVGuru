@@ -192,5 +192,52 @@ class ShimCheckTests(unittest.TestCase):
             self.assertEqual(len(check_agents_md_shim.check(root, strict=True)), 1)
 
 
+REPO_ROOT = Path(__file__).resolve().parents[3]
+sys.path.insert(0, str(ENF / "ci-checks" / "planning-gates"))
+import minyaml  # noqa: E402
+
+
+class VocabCrossCheckTest(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.stages_data = minyaml.load(REPO_ROOT / "skills" / "workflow" / "stages.yaml")
+        sys.path.insert(0, str(REPO_ROOT / "docs" / "tools"))
+        import check_skill_contracts as csc
+        cls.csc = csc
+        cls.vocab = csc.load_vocab(REPO_ROOT / "docs" / "authoring-conventions.md")
+
+    def test_stages_yaml_matches_conventions_vocab(self):
+        stages_order = set(self.stages_data["order"])
+        artifact_kinds = set(self.stages_data.get("artifact_kinds", {}).keys())
+
+        conv_stages = self.vocab["stage"] - {"CROSS_CUTTING"}
+        conv_artifacts = self.vocab["artifacts"]
+
+        missing_stages = stages_order - conv_stages
+        extra_stages = conv_stages - stages_order
+        self.assertFalse(missing_stages, f"stages.yaml stages not in conventions: {missing_stages}")
+        self.assertFalse(extra_stages, f"conventions stages not in stages.yaml: {extra_stages}")
+
+        missing_artifacts = artifact_kinds - conv_artifacts
+        self.assertFalse(missing_artifacts, f"stages.yaml artifact_kinds not in conventions: {missing_artifacts}")
+
+    def test_check_skill_contracts_stages_match_stages_yaml(self):
+        """F5: check_skill_contracts.py's VALID_STAGES == stages.yaml order + CROSS_CUTTING."""
+        expected = set(self.stages_data["order"]) | {"CROSS_CUTTING"}
+        self.assertEqual(self.vocab["stage"], expected,
+                         "check_skill_contracts vocab['stage'] drifted from stages.yaml")
+
+    def test_check_skill_contracts_repo_roles_in_stages_yaml(self):
+        """F5: repo_roles used in stages.yaml are a subset of conventions repo_roles."""
+        yaml_roles: set[str] = set()
+        for stage in self.stages_data.get("stages", {}).values():
+            rr = stage.get("repo_roles", {})
+            yaml_roles.update(rr.get("required", []))
+            yaml_roles.update(rr.get("optional", []))
+        missing = yaml_roles - self.vocab["repo_roles"]
+        self.assertFalse(missing,
+                         f"stages.yaml uses repo_roles not in conventions: {missing}")
+
+
 if __name__ == "__main__":
     unittest.main()

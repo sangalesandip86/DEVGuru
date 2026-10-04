@@ -1,6 +1,5 @@
 # Caching Strategy
 
-<!-- reconstructed: v2 source not provided; review -->
 
 - Order prompts stable-first: platform policy → binding skills → role definition → repo guidance → task.
   Stable prefixes cache well across tasks.

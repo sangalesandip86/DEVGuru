@@ -1,6 +1,5 @@
 # Anti-Patterns Catalog
 
-<!-- reconstructed: v2 source not provided; review -->
 
 Each entry: how to detect it, why it costs, the usual fix. Report with `file:line`.
 Prefer deterministic tool output (complexity, duplication, dependency-cycle analyzers) as the

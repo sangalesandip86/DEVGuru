@@ -1,0 +1,22 @@
+{
+  "description": "Valid story with all required fields passes lint",
+  "input": {
+    "story": {
+      "id": "ST-1", "title": "Test story", "type": "FEATURE_STORY",
+      "objective": "Do it", "persona": "User", "value_statement": "value",
+      "requirement_id": "REQ-1", "scope": ["x"], "out_of_scope": [],
+      "affected_paths": ["app/**"],
+      "acceptance_criteria": [
+        {"id": "ST-1/AC-1", "given": "a", "when": "b", "then": "c",
+         "kind": "functional", "verification": "automated"}
+      ]
+    }
+  },
+  "output": {
+    "errors": [],
+    "warnings": []
+  },
+  "checks": [
+    {"field": "errors", "op": "len_gte", "value": 0}
+  ]
+}

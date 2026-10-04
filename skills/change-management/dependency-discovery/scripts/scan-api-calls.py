@@ -133,6 +133,8 @@ def cross_match(repos: list[dict]) -> list[dict]:
 
 
 def main(argv: list[str] | None = None) -> int:
+    if sys.stdout and hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8")
     ap = argparse.ArgumentParser(description="Static scan for HTTP API calls and routes.")
     ap.add_argument("--repo", action="append", required=True, metavar="NAME=PATH",
                     help="repository to scan; repeat for multi-repo cross-matching")

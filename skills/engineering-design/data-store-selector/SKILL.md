@@ -1,6 +1,6 @@
 ---
 name: data-store-selector
-description: Recommends a data store (relational, document, key-value, wide-column, search, time-series, graph, object storage) from stated access patterns, volume, consistency, and throughput numbers. Use when a Change Set introduces a new store, a new access pattern that strains the current one, or asks "which database should we use".
+description: Recommend a data store from access patterns, volume, and consistency needs. Use when introducing a new store or access pattern.
 metadata:
   group: engineering-design
   phase: progressive
@@ -14,7 +14,6 @@ metadata:
 
 # Data Store Selector
 
-<!-- reconstructed: v2 source not provided; review -->
 
 ## Purpose
 
@@ -28,7 +27,7 @@ Output is a `REVIEWED` recommendation for the `architect` role; never `VERIFIED`
 - Existing store showing a measured limit (latency, write throughput, storage cost).
 
 ## Preflight
-Run [stage-preflight](../../workflow/stage-preflight/SKILL.md) and [workspace-resolver](../../workflow/workspace-resolver/SKILL.md) before the Procedure. Primary stage ARCHITECTURE; also DESIGN when a story introduces a new store.
+See [standard-preflight](../../workflow/stage-preflight/reference/standard-preflight.md). Primary stage ARCHITECTURE; also DESIGN when a story introduces a new store.
 
 - **Inputs:** data volumes, access patterns, consistency and retention NFRs.
 - **ASK:** missing numbers are batched into one QUESTION with proposed defaults.
@@ -62,6 +61,8 @@ On an existing repo, load [project-conventions](../project-conventions/SKILL.md)
 - `RISK` for operational cost of any new store; `QUESTION` for missing numbers.
 
 ## Enforcement
+**Guideline only** — no enforcement point yet.
+
 
 - Evidence rules: `../../grounding/evidence-gate/SKILL.md`.
 - Introducing a store touching schema/migrations triggers the `*/migrations/` path tier

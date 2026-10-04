@@ -10,10 +10,11 @@ to self-check, but a local run is never evidence.
 | Test integrity guard | [test_integrity_guard.py](test_integrity_guard.py) | Weakened tests; any changed expectation not covered by a changed AC | "Agents don't weaken tests to go green" |
 | Fixture PII scan | [fixture_pii_scan.py](fixture_pii_scan.py) | Real-looking emails, card numbers, IBANs or SSNs in test assets | "No real PII / production data / secrets in fixtures" |
 | No fixed sleeps | [no_fixed_sleep_check.py](no_fixed_sleep_check.py) | `waitForTimeout`, `time.sleep`, `Thread.sleep`, `Future.delayed`… in test paths | "No fixed sleeps in tests" |
-| Red/green proof | [red_green_check.md](red_green_check.md) (workflow design) | A new test that passes on the base SHA | "New tests actually detect the change" |
-| New-test flake gate | [new_test_flake_gate.md](new_test_flake_gate.md) (workflow design) | New or changed tests flaky over 5 random-order reruns | (part of §4.13 rule 6) |
+| Red/green proof | [red_green_check.py](red_green_check.py) | A new test that passes on the base SHA | "New tests actually detect the change" |
+| New-test flake gate | [flake_gate.py](flake_gate.py) | New or changed tests flaky over 5 random-order reruns | (part of §4.13 rule 6) |
+| Impact plan check | [impact_plan_check.py](impact_plan_check.py) | Undeclared or missing test files vs the declared impact plan | "Test scope matches the plan" |
 | BDD dry run | `cucumber --dry-run --strict` ([workflow.example.yml](workflow.example.yml)) | Undefined or ambiguous steps | (step deduplication) |
-| Diff-scoped mutation | Stryker, PIT, mutmut or cargo-mutants ([workflow.example.yml](workflow.example.yml)) | A score below the tier threshold in `dod-policy.yaml` | "New tests actually detect the change" |
+| Diff-scoped mutation | Runner adapters in [mutation_adapters.json](mutation_adapters.json); Stryker, PIT, mutmut or cargo-mutants | A score below the tier threshold in `dod-policy.yaml` | "New tests actually detect the change" |
 
 ## Integrity guard finding types
 | Type | Severity | AC-coverable? |

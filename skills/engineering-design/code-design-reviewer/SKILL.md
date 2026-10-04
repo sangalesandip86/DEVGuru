@@ -1,6 +1,6 @@
 ---
 name: code-design-reviewer
-description: Reviews a code change for design quality — SOLID adherence, known anti-patterns, and performance hazards — and emits a REVIEWED ACCEPT/REJECT with file:line evidence. Use when a Change Set's gates include code review at MEDIUM tier or above, or when asked to assess the design of a diff, module, or class.
+description: Review code for SOLID adherence, anti-patterns, and performance hazards. Use for code review at MEDIUM+ tier or design assessment.
 metadata:
   group: engineering-design
   phase: progressive
@@ -14,7 +14,6 @@ metadata:
 
 # Code Design Reviewer
 
-<!-- reconstructed: v2 source not provided; review -->
 
 ## Purpose
 
@@ -30,7 +29,7 @@ that tests will not catch. The output is a judgment, so it is `REVIEWED` — nev
   security findings (`security-reviewer`).
 
 ## Preflight
-Run [stage-preflight](../../workflow/stage-preflight/SKILL.md) and [workspace-resolver](../../workflow/workspace-resolver/SKILL.md) before the Procedure. Runs at REVIEW on a Change Set at VERIFYING.
+See [standard-preflight](../../workflow/stage-preflight/reference/standard-preflight.md). Runs at REVIEW on a Change Set at VERIFYING.
 
 - **Inputs:** the Change Set diff pinned to its snapshot, plus the story and design notes.
 - **BLOCK:** a Change Set not yet at VERIFYING isn't reviewed — report that it's early.
@@ -74,6 +73,8 @@ On an existing repo, load [project-conventions](../project-conventions/SKILL.md)
 - Handoff to `developer` per `../../roles/reference/handoff-schema.md`.
 
 ## Enforcement
+**Enforced** (partial) — some rules are structural, others are guideline only.
+
 
 - Every claim must carry a source per `../../grounding/evidence-gate/SKILL.md`.
 - That this skill can only produce `REVIEWED` is enforced by the MCP tool surface (§5.6 row 1):

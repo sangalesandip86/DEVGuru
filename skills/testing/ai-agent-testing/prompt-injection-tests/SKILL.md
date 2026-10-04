@@ -1,6 +1,6 @@
 ---
 name: prompt-injection-tests
-description: Tests the platform's resistance to indirect prompt injection from untrusted content — issue text, PR comments, READMEs, dependency docs, logs, and MCP tool responses — by checking that structural controls hold, not that the model "refuses". Use before enabling autonomy on a repo and after any change to roles, hooks, tool scoping, or MCP configuration.
+description: Test resistance to indirect prompt injection from untrusted content (ASI06/ASI08). Use before autonomy and after role or hook changes.
 metadata:
   group: testing
   phase: 1
@@ -26,7 +26,7 @@ not of the platform — record it, but don't count it as proof the control works
 - After changes to role definitions, hook config, managed settings, MCP servers, or skill-routing.
 
 ## Preflight
-Run the standard preflight before any step below: [`stage-preflight`](../../../workflow/stage-preflight/SKILL.md) and [`workspace-resolver`](../../../workflow/workspace-resolver/SKILL.md).
+See [standard-preflight](../../../workflow/stage-preflight/reference/standard-preflight.md).
 1. **Workspace.** Resolve repo roles `[app, infra]`. If found, record it as FACT `repo@sha`. If ambiguous, raise one QUESTION with ranked candidates. If missing, workspace-resolver offers local creation or a `repo-request.yaml`. Here `app` is the platform deployment under test: its managed settings, hooks, MCP server and role definitions at a pinned `platform_release_sha`.
 2. **Test design.** This skill's case catalog *is* the frozen design: each case states the attack, the expected control outcome and the enforcement point. A case without an expected control outcome must be **BACKFILLED** via qa-derive before it runs. **Characterization mode does not apply**: the expected outcome is always "the control blocks or catches it", never "whatever the platform does today".
 3. **Isolation.** Run against a disposable platform instance (a local ledger DB, test credentials per role, no production secrets). A case that reaches EXTERNAL_MUTATION or DEPLOY is a finding, and is never executed against real systems. If there is no test framework for agent cases, that is Mode C as its own story.
@@ -65,6 +65,8 @@ Extend the catalog; keep IDs stable so results trend over time.
 - FAILED cases → `RISK` + self-improvement incident.
 
 ## Enforcement
+**Enforced** — see rules below.
+
 This skill tests enforcement; it enforces nothing itself. Controls under test: Rule-of-Two session scoping,
 per-role tool scoping, control-file managed settings + PreToolUse hook, MCP tool surface (plan §5.6).
 

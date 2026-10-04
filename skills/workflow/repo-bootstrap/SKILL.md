@@ -1,6 +1,6 @@
 ---
 name: repo-bootstrap
-description: Creates a new remote repository from a reviewed repo-request.yaml using the platform template (AGENTS.md + CLAUDE.md shim, CODEOWNERS routing dependency manifests and ADRs to the tech lead, CI gates, PR template, plans/, workspace manifest). Agents only draft the request and preview the plan; a human or approved CI renders and executes it. Use when the workspace resolver reports a role MISSING and the user wants a real remote repository, or when the architecture service map calls for a new repo.
+description: Create a new repository from a reviewed repo-request.yaml using the platform template. Use when a role is MISSING and a new repo is needed.
 metadata:
   group: workflow
   phase: 1
@@ -74,6 +74,8 @@ agents never perform (§4.5, §5.9). This skill splits the job:
   repository is observed as a SYSTEM FACT.
 
 ## Enforcement
+**Enforced** (partial) — see rules below.
+
 - **Agents can't create remote repos:** they hold no org-admin token, `--execute` requires
   `ADLC_ACTOR=human|ci`, and the operation class is CI/server only.
 - **Agents can't write the template's control files:** rendering requires `ADLC_ACTOR=human|ci`,

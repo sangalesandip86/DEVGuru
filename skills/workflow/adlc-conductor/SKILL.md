@@ -1,6 +1,6 @@
 ---
 name: adlc-conductor
-description: The user entry point for the ADLC workflow (`/adlc`). Use when someone asks to run work through the lifecycle, e.g. "ingest these requirement docs and go through architecture and planning", "implement ST-40", "only plan this epic", "write tests for this legacy service", "take this from design to PR", or "resume from DESIGN". It runs any stage range in order with every gate and ends with a checkpoint.
+description: Run work through the ADLC lifecycle (/adlc) -- any stage range with every gate. Use for ingest, plan, implement, test, or resume requests.
 metadata:
   group: workflow
   phase: 1
@@ -116,6 +116,8 @@ It does three things:
 - The stage artifacts themselves are produced by the stage skills, not by the conductor.
 
 ## Enforcement
+**Enforced** (partial) — some rules are structural, others are guideline only.
+
 - **Gates between stages** are enforced by CI and the server, not by this skill:
   - `plan_lint.py`, `readiness_gate.py`, `completion_gate.py`, `ac_coverage.py` and the test-integrity checks;
   - the forge events behind INTEGRATE and RELEASE (§5.10).

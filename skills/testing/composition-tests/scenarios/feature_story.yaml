@@ -1,0 +1,156 @@
+# Scenario: "Add payment endpoint" — feature story through the full pipeline
+# Used by test_composition.py in both canned and live modes.
+name: feature_story
+description: API feature story from INTAKE through REVIEW
+story_type: API_CONTRACT
+tier_floor: HIGH
+repositories: ["payments-svc"]
+paths: ["src/payments/api.py", "api/openapi.yaml"]
+
+stages:
+  INTAKE:
+    lead_role: product-planner
+    outputs:
+      requirement:
+        id: REQ-1
+        title: Accept card payments via REST endpoint
+        type: functional
+      nfr-catalog:
+        - id: NFR-1
+          category: latency
+          threshold: "p99 < 500ms"
+      traceability-matrix:
+        - section: "3.1 Card Payments"
+          maps_to: REQ-1
+
+  ARCHITECTURE:
+    lead_role: architect
+    inputs_from: [INTAKE]
+    outputs:
+      architecture-package:
+        components: ["PaymentController", "PaymentService", "CardGatewayAdapter"]
+        adr:
+          - id: ADR-1
+            title: Use adapter pattern for card gateway
+            status: accepted
+
+  PLAN:
+    lead_role: product-planner
+    inputs_from: [INTAKE, ARCHITECTURE]
+    outputs:
+      ready-story:
+        id: ST-1
+        title: "POST /payments accepts card and returns confirmation"
+        type: API_CONTRACT
+        tier_floor: HIGH
+        acceptance_criteria:
+          - id: ST-1/AC-1
+            given: valid card payload
+            when: POST /payments
+            then: 201 with confirmation_id
+          - id: ST-1/AC-2
+            given: invalid card number
+            when: POST /payments
+            then: 422 with field-level errors
+          - id: ST-1/AC-3
+            given: gateway timeout
+            when: POST /payments
+            then: 502 with retry-after header
+
+  DESIGN:
+    lead_role: qa-derive
+    inputs_from: [PLAN]
+    outputs:
+      test-design:
+        story_ref: ST-1
+        ac_hash: "sha256:abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890"
+        scenarios:
+          - id: ST-1/SC-1
+            ac_ref: ST-1/AC-1
+            mode: A_SURGICAL
+          - id: ST-1/SC-2
+            ac_ref: ST-1/AC-2
+            mode: A_SURGICAL
+          - id: ST-1/SC-3
+            ac_ref: ST-1/AC-3
+            mode: B_MIRROR
+
+  IMPLEMENT:
+    lead_role: developer
+    inputs_from: [PLAN, ARCHITECTURE]
+    outputs:
+      change-set:
+        id: CS-001
+        paths_changed:
+          - src/payments/api.py
+          - src/payments/service.py
+          - src/payments/gateway_adapter.py
+          - api/openapi.yaml
+
+  TEST:
+    lead_role: test-engineer
+    inputs_from: [DESIGN, IMPLEMENT]
+    outputs:
+      test-suite:
+        files:
+          - tests/test_payments_api.py
+          - tests/test_gateway_adapter.py
+        coverage_pct: 92
+
+  REVIEW:
+    lead_role: code-reviewer
+    inputs_from: [IMPLEMENT, TEST]
+    outputs:
+      review-verdict:
+        reviewer: code-reviewer
+        verdict: ACCEPT
+        classifications:
+          - {type: REVIEWED, content: "Code meets AC", lifecycle_state: REVIEWED}
+    security_review:
+      reviewer: security-reviewer
+      verdict: ACCEPT
+      classifications:
+        - {type: REVIEWED, content: "No injection risk", lifecycle_state: REVIEWED}
+
+handoff_chain:
+  - from: product-planner
+    to: architect
+    stage_from: INTAKE
+    stage_to: ARCHITECTURE
+    artifacts: [requirement, nfr-catalog, traceability-matrix]
+
+  - from: architect
+    to: product-planner
+    stage_from: ARCHITECTURE
+    stage_to: PLAN
+    artifacts: [architecture-package]
+
+  - from: product-planner
+    to: qa-derive
+    stage_from: PLAN
+    stage_to: DESIGN
+    artifacts: [ready-story]
+
+  - from: qa-derive
+    to: developer
+    stage_from: DESIGN
+    stage_to: IMPLEMENT
+    artifacts: [test-design]
+
+  - from: developer
+    to: test-engineer
+    stage_from: IMPLEMENT
+    stage_to: TEST
+    artifacts: [change-set]
+
+  - from: test-engineer
+    to: code-reviewer
+    stage_from: TEST
+    stage_to: REVIEW
+    artifacts: [test-suite]
+
+  - from: code-reviewer
+    to: security-reviewer
+    stage_from: REVIEW
+    stage_to: REVIEW
+    artifacts: [review-verdict]

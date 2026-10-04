@@ -1,6 +1,5 @@
 # Flaky Test Patterns
 
-<!-- reconstructed: v2 source not provided; review -->
 
 A flaky test both passes and fails against the same code. Detect with
 [`flaky-detector.py`](../../../test-maintenance/flaky-test-intelligence/scripts/flaky-detector.py);

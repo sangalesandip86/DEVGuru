@@ -1,6 +1,6 @@
 ---
 name: snapshot
-description: Pins commit SHAs, contract versions, and environment state for a Change Set and decides when that snapshot is stale. Use when creating a Change Set, before verification, before resuming a task, and before integration.
+description: Pin commit SHAs and contract versions for a Change Set and detect staleness. Use before verification, resuming, or integration.
 metadata:
   group: change-management
   phase: 2
@@ -24,7 +24,7 @@ analysed, implemented, and verified against, so every ledger entry can name its 
 - When a dependency scan adds a repository.
 
 ## Preflight
-Run [stage-preflight](../../workflow/stage-preflight/SKILL.md) and [workspace-resolver](../../workflow/workspace-resolver/SKILL.md) before the Procedure. Snapshots are created when a Change Set enters IMPLEMENT and re-validated before VERIFYING.
+See [standard-preflight](../../workflow/stage-preflight/reference/standard-preflight.md). Snapshots are created when a Change Set enters IMPLEMENT and re-validated before VERIFYING.
 
 - **Inputs:** the Change Set and the current HEAD of each resolved repo.
 - **BLOCK:** if a repo in the Change Set can't be resolved to a commit SHA, the snapshot can't be pinned — never pin to "latest".
@@ -45,6 +45,8 @@ Run [stage-preflight](../../workflow/stage-preflight/SKILL.md) and [workspace-re
 - `FACT` entry for each currency check result; `RISK` entry when stale.
 
 ## Enforcement
+**Enforced** — see rules below.
+
 The change_management module of the adlc MCP server (plan's Server 2) runs the staleness check
 server-side. In forge-native mode, branch protection "require branches to be up to date" plus
 required checks is the enforcement point.

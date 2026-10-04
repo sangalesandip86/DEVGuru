@@ -17,7 +17,8 @@ RETRY_POLICIES = ("RETRY", "STOP", "ESCALATE", "REPLAN", "RESUME")
 ESCALATION_REASON_CODES = ("UNRESOLVED_DEPENDENCY", "UNKNOWN_BLAST_RADIUS", "SENSITIVE_PATH", "COMPATIBILITY_UNKNOWN")
 HUMAN_APPROVERS = ("human:tech-lead", "human:security-lead", "human:product-owner", "human:release-manager")
 AGENT_ROLES = (
-    "product-owner", "architect", "developer", "qa-derive", "qa-diagnose", "security-reviewer", "code-reviewer",
+    "product-owner", "product-planner", "architect", "developer", "qa-derive", "qa-diagnose",
+    "test-engineer", "security-reviewer", "code-reviewer",
 )
 # `ci` and `server` are used only by SYSTEM actors (CI ingesters, the server itself).
 TOOLS = ("claude-code", "copilot", "ci", "server")

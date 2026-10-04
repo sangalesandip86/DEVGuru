@@ -220,6 +220,8 @@ def run(inputs: list[str], blocklist: Path | None, project_paths: list[Path]) ->
 
 
 def main(argv: list[str] | None = None) -> int:
+    if sys.stdout and hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8")
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("inputs", nargs="+")
     ap.add_argument("--blocklist", type=Path)

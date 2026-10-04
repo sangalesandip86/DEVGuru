@@ -290,6 +290,19 @@ class SnapshotsTasksHandoffs(CMTestCase):
         self.assertTrue(h["escalated"])
         self.assertEqual(self.cm.get_change_set(CI, cs["id"])["status"], "BLOCKED")
 
+    def test_handoff_inference_needs_input_references(self):
+        cs = self.new_cs()
+        with self.assertRaises(ValidationError):
+            self.cm.record_handoff(DEVELOPER, change_set_id=cs["id"], to_role="code-reviewer",
+                                   payload={"claims": [{"classification": "INFERENCE", "text": "perf is good",
+                                                         "source": "bench.py"}]})
+
+    def test_handoff_fact_needs_source(self):
+        cs = self.new_cs()
+        with self.assertRaises(ValidationError):
+            self.cm.record_handoff(DEVELOPER, change_set_id=cs["id"], to_role="code-reviewer",
+                                   payload={"claims": [{"classification": "FACT", "text": "tests pass"}]})
+
     def test_max_three_rejection_cycles(self):
         cs = self.new_cs()
         for i in range(3):

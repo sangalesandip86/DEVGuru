@@ -122,5 +122,65 @@ class Extractability(unittest.TestCase):
                 env.close()
 
 
+class RoleToolFiltering(unittest.TestCase):
+    def test_all_agent_roles_covered(self):
+        from adlc_mcp.kernel.vocab import AGENT_ROLES
+        from adlc_mcp.kernel.role_permissions import ROLE_TOOLS
+
+        missing = set(AGENT_ROLES) - set(ROLE_TOOLS)
+        self.assertFalse(missing, f"AGENT_ROLES not in role_tool_permissions.json: {missing}")
+
+    def test_qa_derive_cannot_see_forge_or_risk_tools(self):
+        from tests._support import TempEnv
+        from adlc_mcp.kernel.identity import Identity
+
+        from adlc_mcp.app import build_server
+
+        qa = Identity("AGENT", "agent:qa-derive", agent_role="qa-derive", tool="claude-code")
+
+        class Rec:
+            def __init__(self):
+                self.names = []
+
+            def tool(self, name=None, description=None):
+                return lambda fn: self.names.append(name) or fn
+
+        env = TempEnv("evidence_ledger,change_management,work_planning")
+        try:
+            _, registry, tools = build_server(env.config, qa, server=Rec())
+            self.assertIn("query_evidence", tools)
+            self.assertIn("record_evidence", tools)
+            self.assertIn("get_change_set", tools)
+            self.assertIn("get_work_item", tools)
+            self.assertNotIn("ingest_forge_event", tools)
+            self.assertNotIn("compute_risk_tier", tools)
+            self.assertNotIn("create_snapshot", tools)
+            self.assertNotIn("ingest_plan_commit", tools)
+            registry.close()
+        finally:
+            env.close()
+
+    def test_system_gets_all_tools(self):
+        from tests._support import TempEnv, CI
+
+        from adlc_mcp.app import build_server
+
+        class Rec:
+            def __init__(self):
+                self.names = []
+
+            def tool(self, name=None, description=None):
+                return lambda fn: self.names.append(name) or fn
+
+        env = TempEnv("evidence_ledger,change_management")
+        try:
+            _, registry, tools = build_server(env.config, CI, server=Rec())
+            self.assertIn("ingest_forge_event", tools)
+            self.assertIn("record_evidence", tools)
+            registry.close()
+        finally:
+            env.close()
+
+
 if __name__ == "__main__":
     unittest.main()

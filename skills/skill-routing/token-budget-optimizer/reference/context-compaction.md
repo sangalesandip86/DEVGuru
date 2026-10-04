@@ -1,6 +1,5 @@
 # Context Compaction
 
-<!-- reconstructed: v2 source not provided; review -->
 
 When context passes `context.decompose_threshold`:
 1. Write a checkpoint: commit WIP on the task branch, record `ledger_cursor` and `snapshot_id`

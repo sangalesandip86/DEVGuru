@@ -1,6 +1,6 @@
 ---
 name: default-permissions
-description: Role-to-tool permission boundaries and the control-file write denial. Use when assigning tools to an agent role, configuring a subagent/custom agent, or checking whether a role may read, modify, deploy, or set a status.
+description: Define role-to-tool permission boundaries and control-file write denials. Use when assigning tools to a role or configuring a subagent.
 metadata:
   group: governance
   phase: 0
@@ -24,7 +24,7 @@ role can ever set `APPROVED`, `INTEGRATED`, or `RELEASED`, or write a control fi
 - Any time an agent is unsure whether an action is inside its role's scope.
 
 ## Preflight
-Run [stage-preflight](../../workflow/stage-preflight/SKILL.md) and [workspace-resolver](../../workflow/workspace-resolver/SKILL.md) before the Procedure. Cross-cutting: this skill has no stage inputs of its own and is loaded alongside whatever stage is running, so it never BACKFILLs or BLOCKs a stage by itself.
+See [standard-preflight](../../workflow/stage-preflight/reference/standard-preflight.md) (cross-cutting).
 
 - **Inputs:** the role about to run and the resolved repo map.
 - **BLOCK:** a role whose session settings fragment isn't loaded doesn't start — permissions are never assumed.
@@ -44,6 +44,8 @@ Run [stage-preflight](../../workflow/stage-preflight/SKILL.md) and [workspace-re
 - No ledger entries of its own. A denied action is recorded by the enforcement hooks as a FACT.
 
 ## Enforcement
+**Enforced** — see rules below.
+
 - No agent sets APPROVED/INTEGRATED/RELEASED → MCP server tool surface (no such tool exists for agent callers).
 - Control files never agent-writable → managed settings `permissions.deny` +
   `skills/enforcement/hooks/control-file-guard/` (PreToolUse).

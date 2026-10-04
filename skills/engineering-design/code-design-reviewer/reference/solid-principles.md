@@ -1,6 +1,5 @@
 # SOLID Principles — Review Checklist
 
-<!-- reconstructed: v2 source not provided; review -->
 
 Use SOLID as a diagnostic for *change cost*, not as a style rulebook. A violation only matters
 if you can name the change it makes harder. Cite `file:line` and the concrete consequence.

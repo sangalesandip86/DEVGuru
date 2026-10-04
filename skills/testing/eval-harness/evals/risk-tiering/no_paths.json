@@ -1,0 +1,16 @@
+{
+  "description": "No paths → HIGH (uncomputable, fail-safe)",
+  "input": {
+    "paths": []
+  },
+  "output": {
+    "tier": "HIGH",
+    "computed": false,
+    "paths": [],
+    "decompose_required": false
+  },
+  "checks": [
+    {"field": "tier", "op": "eq", "value": "HIGH"},
+    {"field": "computed", "op": "eq", "value": false}
+  ]
+}

@@ -16,11 +16,19 @@ import sys
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
+REPO_ROOT = HERE.parents[2]
 sys.path.insert(0, str(HERE.parent / "lib"))
 import adlc_enforcement as ae  # noqa: E402
 
 TEMPLATE = HERE / "templates" / "claude-code-managed-settings.json"
 HOOKS = HERE.parent / "hooks" / "registration" / "claude-code-hooks.json"
+ROLES_DIR = REPO_ROOT / "skills" / "roles"
+
+ALL_CLAUDE_TOOLS = {"Read", "Grep", "Glob", "Edit", "Write", "Bash"}
+TOOL_MAP = {
+    "read": ["Read"], "search": ["Grep", "Glob"], "edit": ["Edit"],
+    "write": ["Write"], "bash": ["Bash"], "test-run": ["Bash"],
+}
 
 
 def deny_rules(globs: list[str]) -> list[str]:
@@ -28,6 +36,40 @@ def deny_rules(globs: list[str]) -> list[str]:
     for g in globs:
         rules += [f"Edit({g})", f"Write({g})"]
     return rules
+
+
+def _role_deny(spec: dict) -> list[str]:
+    deny: list[str] = []
+    for glob in spec.get("denied_paths", {}).get("read", []):
+        deny.append(f"Read({glob})")
+    for glob in spec.get("denied_paths", {}).get("write", []):
+        if glob.startswith("$ref:"):
+            continue
+        deny += [f"Edit({glob})", f"Write({glob})"]
+    allowed = set()
+    for tool in spec.get("allowed_tools", []):
+        if tool.startswith("mcp:"):
+            continue
+        for mapped in TOOL_MAP.get(tool, []):
+            allowed.add(mapped)
+    disallowed = sorted(ALL_CLAUDE_TOOLS - allowed)
+    deny.extend(disallowed)
+    return deny
+
+
+def subagent_permissions(roles_dir: Path | None = None) -> dict:
+    roles_dir = roles_dir or ROLES_DIR
+    perms: dict[str, dict] = {}
+    for spec_path in sorted(roles_dir.glob("*/role.yaml")):
+        try:
+            spec = json.loads(spec_path.read_text(encoding="utf-8"))
+        except (json.JSONDecodeError, OSError):
+            continue
+        name = spec.get("name", spec_path.parent.name)
+        deny = _role_deny(spec)
+        if deny:
+            perms[name] = {"permissions": {"deny": deny}}
+    return perms
 
 
 def build(control_paths: Path | None = None) -> dict:
@@ -45,7 +87,12 @@ def build(control_paths: Path | None = None) -> dict:
         },
         "allowManagedHooksOnly": True,
         "allowManagedPermissionRulesOnly": True,
+        "allowManagedMcpServersOnly": True,
+        "allowedMcpServers": ["adlc"],
+        "strictKnownMarketplaces": True,
+        "disableSkillShellExecution": True,
         "hooks": hooks,
+        "subagentPermissions": subagent_permissions(),
     }
 
 

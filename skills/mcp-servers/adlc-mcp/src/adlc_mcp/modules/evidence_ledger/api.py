@@ -306,8 +306,24 @@ class EvidenceLedger:
 
     # ---------------------------------------------------------------- retention
     def purge_expired_content(self) -> dict[str, Any]:
-        """Delete evidence payloads older than the retention period. Chained rows (and verify) are unaffected."""
-        return {"purged": self._store.purge_expired_content(), "retention_days": self._store.retention_days()}
+        """Delete evidence payloads older than the retention period. Chained rows (and verify) are unaffected.
+
+        A SYSTEM PURGE marker is appended so auditors can see what was deleted and when.
+        """
+        count = self._store.purge_expired_content()
+        retention = self._store.retention_days()
+        if count > 0:
+            self.record_evidence(
+                system_identity("retention-purge"),
+                run_id=f"purge-{now_iso()}",
+                classification="FACT",
+                content=f"Purged {count} evidence payload(s) older than {retention} day(s)",
+                source_type="system_lifecycle",
+                source="evidence_ledger:purge_expired_content",
+                tool="server",
+                metadata={"purge_count": count, "retention_days": retention},
+            )
+        return {"purged": count, "retention_days": retention}
 
     # ---------------------------------------------------------------- derived views
     def blocking_items(self, change_set_id: str) -> list[str]:
@@ -381,7 +397,7 @@ class EvidenceLedger:
             "model_id": domain.resolve_model(identity, model_id),
             "tool": domain.resolve_tool(identity, tool),
             "classification": fields["classification"],
-            "trust_level": domain.derive_trust(source_type, referenced),
+            "trust_level": domain.derive_trust(source_type, referenced, identity),
             "source_type": source_type,
             "source": fields.get("source"),
             "input_references": dumps_or_none(fields.get("input_references")),

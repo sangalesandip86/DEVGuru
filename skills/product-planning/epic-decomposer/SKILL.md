@@ -1,6 +1,6 @@
 ---
 name: epic-decomposer
-description: Breaks a large requirement into an epic (plans/epics/EPIC-n.yaml) and a set of vertically sliced stories, optionally grouped into features, using named slicing patterns (SPIDR and friends). Use when a requirement is too big for one or two stories or spans several outcomes, repos or teams.
+description: Break a large requirement into an epic and vertically sliced stories using SPIDR patterns. Use when a requirement spans multiple outcomes.
 metadata:
   group: product-planning
   phase: 2
@@ -28,7 +28,7 @@ grouping is the [milestone-planner](../milestone-planner/SKILL.md)'s job.
 For a small requirement, go straight to [story-writer](../story-writer/SKILL.md).
 
 ## Preflight
-Run [stage-preflight](../../workflow/stage-preflight/SKILL.md) and [workspace-resolver](../../workflow/workspace-resolver/SKILL.md) before the Procedure. Stage PLAN; slices follow the architecture's service boundaries.
+See [standard-preflight](../../workflow/stage-preflight/reference/standard-preflight.md). Stage PLAN; slices follow the architecture's service boundaries.
 
 - **Inputs:** requirements plus the architecture package.
 - **ADOPT:** existing epics from the tracker are imported as DRAFT and re-sliced only with human agreement.
@@ -54,6 +54,8 @@ Run [stage-preflight](../../workflow/stage-preflight/SKILL.md) and [workspace-re
 - REVIEWED on decomposition quality, recorded by the product-planner role. Ledger QUESTIONs for gaps.
 
 ## Enforcement
+**Guideline only** — no enforcement point yet.
+
 - **Schema and referential integrity** (feature belongs to epic, story → epic → requirement): `plan_lint.py`.
 - **Slice quality** (vertical, independent, valuable) is a **guideline**, reviewed in the plan PR and through refinement. Layer-shaped stories show up as missing value statements and failing DoR items.
 

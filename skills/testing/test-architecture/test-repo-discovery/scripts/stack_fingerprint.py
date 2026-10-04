@@ -203,6 +203,8 @@ def classify_deps(deps: list[str], found: dict[str, set]):
 
 
 def main(argv: list[str] | None = None) -> int:
+    if sys.stdout and hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8")
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("repo_root")
     ap.add_argument("--max-files", type=int, default=200_000)

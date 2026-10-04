@@ -1,0 +1,18 @@
+{
+  "description": "Security story → HIGH tier, security skills bound",
+  "input": {
+    "stack": {},
+    "story_type": "SECURITY_STORY"
+  },
+  "output": {
+    "bindings": ["grounding/evidence-gate", "testing/security-testing/sast-scanner"],
+    "roles": [],
+    "tier_floor": "HIGH",
+    "triggers": ["story_type=SECURITY_STORY"]
+  },
+  "checks": [
+    {"field": "tier_floor", "op": "eq", "value": "HIGH"},
+    {"field": "bindings", "op": "contains", "value": "testing/security-testing/sast-scanner"},
+    {"field": "bindings", "op": "contains", "value": "testing/security-testing/secret-scanning"}
+  ]
+}

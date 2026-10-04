@@ -96,6 +96,7 @@ class ChangeManagement:
             "contracts": list(contracts or []), "environments": list(environments or []),
             "release_environment": release_environment, "status": "DRAFT", "risk_tier": None,
             "parent_id": parent_id, "depends_on": list(depends_on or []), "story_refs": list(story_refs or []),
+            "approval_epoch": 0,
             "created_by": f"{identity.actor_type}:{identity.actor_id}", "created_at": ts, "updated_at": ts,
         })
         self._store.append_history({
@@ -162,7 +163,10 @@ class ChangeManagement:
             if status != "PLANNED":
                 return None, f"recorded; plan approval evaluated only in PLANNED (status={status})"
             accepted = {h["from_role"] for h in self._store.handoffs(cs["id"]) if h["verdict"] == "ACCEPT"}
-            missing = domain.plan_approval_missing(cs["risk_tier"], events, accepted)
+            missing = domain.plan_approval_missing(
+                cs["risk_tier"], events, accepted,
+                approval_epoch=cs.get("approval_epoch", 0),
+            )
             if missing:
                 return None, "plan approval pending: " + "; ".join(missing)
             return ("PLAN_APPROVED", None), f"approval matrix satisfied for {domain.effective_tier(cs['risk_tier'])}"
@@ -206,6 +210,8 @@ class ChangeManagement:
             self._store.set_status(cs["id"], "BLOCKED", cs["status"], block_kind)
         else:
             self._store.set_status(cs["id"], target, None, None)
+        if target == "PLANNED" and cs["status"] in ("EXECUTING", "PLAN_APPROVED"):
+            self._store.increment_approval_epoch(cs["id"])
         self._store.append_history({
             "change_set_id": cs["id"], "from_status": cs["status"], "to_status": target,
             "actor_type": identity.actor_type, "actor_id": identity.actor_id, "via": via, "reason": reason,

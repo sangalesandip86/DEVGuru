@@ -1,6 +1,6 @@
 ---
 name: device-matrix
-description: Selects the minimal set of devices, OS versions, and form factors to test on, driven by real usage analytics and the change's risk tier. Use when planning mobile test coverage or choosing device-farm runs (Firebase Test Lab, BrowserStack, AWS Device Farm).
+description: Select minimal device/OS/form-factor set for testing from usage analytics and risk tier. Use when planning mobile test coverage.
 metadata:
   group: testing
   phase: progressive
@@ -14,7 +14,6 @@ metadata:
 
 # Device Matrix
 
-<!-- reconstructed: v2 source not provided; review -->
 
 ## Purpose
 Cover the devices users actually have, at a cost proportional to risk. Testing on "every device"
@@ -25,7 +24,7 @@ is neither affordable nor necessary.
 - A defect is reported on a specific device/OS.
 
 ## Preflight
-Run the standard preflight before any step below: [`stage-preflight`](../../../workflow/stage-preflight/SKILL.md) and [`workspace-resolver`](../../../workflow/workspace-resolver/SKILL.md).
+See [standard-preflight](../../../workflow/stage-preflight/reference/standard-preflight.md).
 1. **Workspace.** Resolve repo roles `[app, tests]`. If found, record it as FACT `repo@sha`. If ambiguous, raise one QUESTION with ranked candidates. If missing, workspace-resolver offers local creation or a `repo-request.yaml`. If there is no test framework for this tier, that is **Mode C, as its own `TEST_AUTOMATION` story** ([suite-authoring](../../test-implementation/suite-authoring/SKILL.md)). It is never scaffolded inside a feature story.
 2. **Frozen test design** (`plans/test-designs/ST-n.yaml` or `.feature` at the story's current `ac_hash`): SATISFIED. If it's missing, offer **BACKFILL** (DESIGN via qa-derive, [test-case-design](../../test-design/test-case-design/SKILL.md)) or **characterization mode** ([ADR 0004 §3](../../../../docs/adr/0004-workflow-stages-and-workspace.md)): tests tagged `characterization`, an ASSUMPTION "current behaviour is intended" recorded, and they never count as AC verification or VERIFIED. If the `ac_hash` is stale, BLOCK.
 3. **Usage data.** Real device and OS analytics for the app. Without them, the matrix is an ASSUMPTION (top OS versions by market share), recorded with an expiry.
@@ -56,6 +55,8 @@ Never proceed on a missing input silently.
 - Unsupported-but-used devices → `RISK`.
 
 ## Enforcement
+**Guideline only** — no enforcement point yet.
+
 Guideline only — no enforcement point yet.
 
 ## References

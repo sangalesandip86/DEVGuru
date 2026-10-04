@@ -1,6 +1,6 @@
 ---
 name: test-repo-discovery
-description: Deterministically fingerprints a repository's stack, test runners and test layout, and catalogues its fixtures, page objects, step-definition patterns and golden samples before any test is written or changed. Use first in any test-writing or suite-update task, and whenever manifests or runner configs change.
+description: Fingerprint a repo stack, test runners, and test layout before writing tests. Use first in any test task and when runner configs change.
 metadata:
   group: testing
   phase: 1
@@ -29,8 +29,7 @@ skimming a few files is not a substitute: it guesses, and its guesses aren't rep
   Those files are an always-overlap path class (§4.5), so a change to one invalidates the cache.
 
 ## Preflight
-Run the standard preflight first: [`stage-preflight`](../../../workflow/stage-preflight/SKILL.md) and
-[`workspace-resolver`](../../../workflow/workspace-resolver/SKILL.md).
+See [standard-preflight](../../../workflow/stage-preflight/reference/standard-preflight.md).
 1. **Workspace.** Resolve repo roles `app` and `tests`. E2E suites often live in a separate `tests` repo,
    so fingerprint *each* resolved repo.
    - Ambiguous: raise one QUESTION listing the ranked candidates.
@@ -75,6 +74,8 @@ Run the standard preflight first: [`stage-preflight`](../../../workflow/stage-pr
 | Duplicate step definitions | RISK | |
 
 ## Enforcement
+**Enforced** (partial) — some rules are structural, others are guideline only.
+
 - FACT entries are written by the PostToolUse fact-writer hooks, not by the model (§5.6 row "FACT entries are grounded").
 - qa-derive's denied-path list blocks `test-assets.json` and every implementation path.
   `step-patterns.json` is explicitly readable. Enforcement comes from role tool scoping (`skills/roles/qa-derive/role.yaml`).

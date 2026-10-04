@@ -1,0 +1,6 @@
+{
+  "required_fields": ["ok"],
+  "type_fields": {
+    "ok": "bool"
+  }
+}

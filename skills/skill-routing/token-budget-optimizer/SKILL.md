@@ -1,6 +1,6 @@
 ---
 name: token-budget-optimizer
-description: Chooses which model runs and what context loads for each role and task, within budget, without ever reducing grounding. Use when planning a task, when context pressure appears, or when a budget threshold is hit.
+description: Choose model and context loading per role and task within budget. Use when planning a task or when context pressure appears.
 metadata:
   group: skill-routing
   phase: 1
@@ -24,7 +24,7 @@ Minimize cost and context use. **Accuracy wins over cost**: this skill decides *
 - A cost-control threshold is reached.
 
 ## Preflight
-Run [stage-preflight](../../workflow/stage-preflight/SKILL.md) and [workspace-resolver](../../workflow/workspace-resolver/SKILL.md) before the Procedure. Cross-cutting: this skill has no stage inputs of its own and is loaded alongside whatever stage is running, so it never BACKFILLs or BLOCKs a stage by itself.
+See [standard-preflight](../../workflow/stage-preflight/reference/standard-preflight.md) (cross-cutting).
 
 - **Inputs:** the planned stage range, role and risk tier; budget decisions never remove grounding steps.
 - **BACKFILL:** a long range (e.g. INTAKE → PLAN over many documents) is decomposed into per-stage runs with checkpoints rather than one oversized context.
@@ -44,6 +44,8 @@ Run [stage-preflight](../../workflow/stage-preflight/SKILL.md) and [workspace-re
 - `RISK` entry when a budget constraint would force a weaker model on HIGH/CRITICAL work.
 
 ## Enforcement
+**Guideline only** — no enforcement point yet.
+
 Guideline only — no enforcement point yet. Caps in [cost-controls.md](reference/cost-controls.md)
 become enforced once the orchestrator reads them.
 

@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://adlc.local/schemas/ledger-entry.schema.json",
   "title": "Evidence Ledger Entry",
-  "description": "One append-only, hash-chained entry in the Evidence Ledger (plan §4.3). Fields marked server-derived in the description are rejected if supplied by a caller.",
+  "description": "One append-only, hash-chained entry in the Evidence Ledger (plan §4.3). Fields marked server-derived in the description are rejected if supplied by a caller. Canonical source: evidence_ledger/store.py + domain.py.",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -14,13 +14,16 @@
     "classification",
     "trust_level",
     "source_type",
-    "content",
     "platform_release_sha",
     "timestamp",
     "prev_hash",
-    "entry_hash"
+    "row_hash"
   ],
   "properties": {
+    "seq": {
+      "type": "integer",
+      "description": "Auto-increment primary key (server-assigned)."
+    },
     "entry_id": {
       "type": "string",
       "pattern": "^ENTRY-[0-9A-Za-z]+$",
@@ -31,18 +34,11 @@
       "minLength": 1
     },
     "change_set_id": {
-      "type": [
-        "string",
-        "null"
-      ],
+      "type": ["string", "null"],
       "description": "Null for platform-level operations; forge-native form is <owner>/<repo>#<issue>."
     },
     "actor_type": {
-      "enum": [
-        "HUMAN",
-        "AGENT",
-        "SYSTEM"
-      ],
+      "enum": ["HUMAN", "AGENT", "SYSTEM"],
       "description": "Server-derived."
     },
     "actor_id": {
@@ -52,45 +48,26 @@
     },
     "agent_role": {
       "enum": [
-        "product-owner",
-        "architect",
-        "developer",
-        "qa-derive",
-        "qa-diagnose",
-        "security-reviewer",
-        "code-reviewer"
+        "product-owner", "product-planner", "architect", "developer",
+        "qa-derive", "qa-diagnose", "test-engineer",
+        "security-reviewer", "code-reviewer"
       ],
       "description": "Server-derived; present only when actor_type is AGENT."
     },
     "model_id": {
-      "type": "string"
+      "type": ["string", "null"]
     },
     "tool": {
-      "enum": [
-        "claude-code",
-        "copilot"
-      ]
+      "type": "string",
+      "minLength": 1,
+      "description": "Server-derived from credential or SYSTEM writer."
     },
     "classification": {
-      "enum": [
-        "FACT",
-        "INFERENCE",
-        "ASSUMPTION",
-        "PROPOSAL",
-        "QUESTION",
-        "DECISION",
-        "RISK"
-      ]
+      "enum": ["FACT", "INFERENCE", "ASSUMPTION", "PROPOSAL", "QUESTION", "DECISION", "RISK"]
     },
     "trust_level": {
-      "enum": [
-        "SYSTEM",
-        "ORGANIZATIONAL",
-        "REPOSITORY",
-        "EXTERNAL_STRUCTURED",
-        "EXTERNAL_UNSTRUCTURED"
-      ],
-      "description": "Server-derived from source_type; never caller-supplied."
+      "enum": ["SYSTEM", "ORGANIZATIONAL", "REPOSITORY", "EXTERNAL_STRUCTURED", "EXTERNAL_UNSTRUCTURED"],
+      "description": "Server-derived from source_type via SOURCE_TYPE_TRUST map; never caller-supplied."
     },
     "source_type": {
       "type": "string",
@@ -98,275 +75,106 @@
     },
     "content": {
       "type": "string",
-      "minLength": 1
+      "description": "Inline content (pre-migration-0002) or empty string (post-0002, payload in evidence_content)."
+    },
+    "content_hash": {
+      "type": ["string", "null"],
+      "pattern": "^sha256:[0-9a-f]{64}$",
+      "description": "Salted commitment (migration 0002). Null for pre-0002 entries."
     },
     "source": {
-      "type": "string",
-      "minLength": 1
+      "type": ["string", "null"]
     },
     "input_references": {
-      "type": "array",
-      "items": {
-        "type": "string",
-        "pattern": "^ENTRY-[0-9A-Za-z]+$"
-      },
-      "uniqueItems": true
+      "type": ["string", "null"],
+      "description": "JSON array of entry_ids (stored as TEXT in SQLite)."
     },
     "output_references": {
-      "type": "array",
-      "items": {
-        "type": "string"
-      }
+      "type": ["string", "null"],
+      "description": "JSON array (stored as TEXT in SQLite)."
     },
     "decision_ids": {
-      "type": "array",
-      "items": {
-        "type": "string",
-        "pattern": "^ENTRY-[0-9A-Za-z]+$"
-      }
+      "type": ["string", "null"],
+      "description": "JSON array of entry_ids (stored as TEXT in SQLite)."
     },
     "lifecycle_state": {
-      "enum": [
-        "DRAFT",
-        "PROPOSED",
-        "REVIEWED",
-        "VERIFIED",
-        "APPROVED",
-        "REJECTED"
-      ]
+      "enum": ["DRAFT", "PROPOSED", "REVIEWED", "VERIFIED", "APPROVED", "REJECTED"],
+      "description": "Applies only to DECISION and PROPOSAL entries."
     },
     "snapshot_id": {
-      "type": "string"
+      "type": ["string", "null"]
     },
     "parent_entry_id": {
-      "type": "string",
+      "type": ["string", "null"],
       "pattern": "^ENTRY-[0-9A-Za-z]+$"
     },
     "outcome_status": {
-      "enum": [
-        "CHALLENGED"
-      ]
+      "enum": ["CHALLENGED", "ANSWERED"],
+      "description": "CHALLENGED for corrections, ANSWERED for question responses."
     },
     "platform_release_sha": {
       "type": "string",
-      "pattern": "^[0-9a-f]{7,64}$"
+      "description": "Git SHA or 'unversioned'."
     },
     "timestamp": {
       "type": "string",
       "format": "date-time"
     },
     "signal_source": {
-      "enum": [
-        "AGENT",
-        "REVIEWER",
-        "HUMAN",
-        "PRODUCTION"
-      ]
+      "enum": ["AGENT", "REVIEWER", "HUMAN", "PRODUCTION"]
     },
-    "impact": {
-      "enum": [
-        "LOW",
-        "MEDIUM",
-        "HIGH"
-      ]
-    },
-    "expires_at": {
-      "type": "string",
-      "format": "date-time"
-    },
-    "invalidated_by": {
-      "type": "string"
-    },
-    "blocking": {
-      "type": "boolean"
-    },
-    "question_state": {
-      "enum": [
-        "OPEN",
-        "ANSWERED",
-        "EXPIRED"
-      ]
-    },
-    "addressed_to": {
-      "type": "string"
-    },
-    "options": {
-      "type": "array",
-      "items": {
-        "type": "string"
-      },
-      "minItems": 2,
-      "description": "Explicit options for a QUESTION (never ask empty-handed)."
-    },
-    "proposed_default": {
-      "type": [
-        "string",
-        "object",
-        "array"
-      ],
-      "description": "Proposed default or draft payload for a QUESTION (e.g. a short schema-valid draft for data questions)."
-    },
-    "severity": {
-      "enum": [
-        "LOW",
-        "MEDIUM",
-        "HIGH",
-        "CRITICAL"
-      ]
-    },
-    "reason_code": {
-      "enum": [
-        "UNRESOLVED_DEPENDENCY",
-        "UNKNOWN_BLAST_RADIUS",
-        "SENSITIVE_PATH",
-        "COMPATIBILITY_UNKNOWN"
-      ]
+    "metadata": {
+      "type": ["string", "null"],
+      "description": "JSON object stored as TEXT. QUESTION: {blocking: bool}. ASSUMPTION: {impact, expires_at}."
     },
     "prev_hash": {
       "type": "string",
       "pattern": "^[0-9a-f]{64}$"
     },
-    "entry_hash": {
+    "row_hash": {
       "type": "string",
       "pattern": "^[0-9a-f]{64}$"
     }
   },
   "allOf": [
     {
-      "if": {
-        "properties": {
-          "classification": {
-            "const": "FACT"
-          }
-        }
-      },
+      "if": { "properties": { "classification": { "const": "FACT" } } },
       "then": {
-        "required": [
-          "source"
-        ],
+        "required": ["source"],
         "properties": {
-          "actor_type": {
-            "const": "SYSTEM"
-          }
+          "source": { "type": "string", "minLength": 1 },
+          "actor_type": { "not": { "const": "AGENT" } }
         }
       }
     },
     {
-      "if": {
-        "properties": {
-          "classification": {
-            "const": "INFERENCE"
-          }
-        }
-      },
+      "if": { "properties": { "classification": { "const": "INFERENCE" } } },
       "then": {
-        "required": [
-          "input_references"
-        ],
-        "properties": {
-          "input_references": {
-            "minItems": 1
-          }
-        }
+        "required": ["input_references"],
+        "properties": { "input_references": { "type": "string", "minLength": 1 } }
       }
     },
     {
-      "if": {
-        "properties": {
-          "classification": {
-            "const": "ASSUMPTION"
-          }
-        }
-      },
-      "then": {
-        "required": [
-          "impact",
-          "expires_at"
-        ]
-      }
+      "if": { "properties": { "actor_type": { "const": "AGENT" } } },
+      "then": { "required": ["agent_role", "model_id"] }
     },
     {
       "if": {
-        "properties": {
-          "classification": {
-            "const": "QUESTION"
-          }
-        }
+        "required": ["lifecycle_state"],
+        "properties": { "lifecycle_state": { "const": "VERIFIED" } }
       },
-      "then": {
-        "required": [
-          "blocking",
-          "question_state",
-          "addressed_to",
-          "options",
-          "proposed_default"
-        ]
-      }
+      "then": { "properties": { "actor_type": { "const": "SYSTEM" } } }
     },
     {
       "if": {
-        "properties": {
-          "actor_type": {
-            "const": "AGENT"
-          }
-        }
+        "required": ["lifecycle_state"],
+        "properties": { "lifecycle_state": { "const": "APPROVED" } }
       },
-      "then": {
-        "required": [
-          "agent_role",
-          "model_id"
-        ]
-      }
+      "then": { "properties": { "actor_type": { "const": "HUMAN" } } }
     },
     {
-      "if": {
-        "required": [
-          "lifecycle_state"
-        ],
-        "properties": {
-          "lifecycle_state": {
-            "const": "VERIFIED"
-          }
-        }
-      },
-      "then": {
-        "properties": {
-          "actor_type": {
-            "const": "SYSTEM"
-          }
-        }
-      }
-    },
-    {
-      "if": {
-        "required": [
-          "lifecycle_state"
-        ],
-        "properties": {
-          "lifecycle_state": {
-            "const": "APPROVED"
-          }
-        }
-      },
-      "then": {
-        "properties": {
-          "actor_type": {
-            "const": "HUMAN"
-          }
-        }
-      }
-    },
-    {
-      "if": {
-        "required": [
-          "outcome_status"
-        ]
-      },
-      "then": {
-        "required": [
-          "parent_entry_id"
-        ]
-      }
+      "if": { "required": ["outcome_status"] },
+      "then": { "required": ["parent_entry_id"] }
     }
   ]
 }

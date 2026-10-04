@@ -1,6 +1,5 @@
 # Budget Escalation
 
-<!-- reconstructed: v2 source not provided; review -->
 
 When a hard cap is reached:
 1. Stop new work; checkpoint (context-compaction.md).

@@ -231,6 +231,7 @@ The user's goal: *the platform must work for any tech stack and use AI to decide
 | I3 | P2 | Honest enforcement labelling ("guideline only — no enforcement point yet") is consistently present — **keep**; it is the single most trust-building convention in the repo | Make the label machine-checkable (an `## Enforcement` section must contain one of three fixed phrases) | Lets the enforcement-map check (S1) be automated. |
 | I4 | P2 | Several skills still carry `<!-- reconstructed: v2 source not provided; review -->` | Review and remove or keep with a date | A reader cannot tell what is settled. |
 | I5 | P2 | Positive-instruction style, "why" explanations, no ALL-CAPS — good; `prompt-engineer/reference/prompt-patterns.md` is itself a correct 2026 pattern list — **keep** | — | — |
+| I6 | P1 | **83 skills is too many for the skill mechanism itself.** Claude Code puts every `name + description` into context at level 1, capped at ~1% of the window; 83 descriptions of 300–600 chars ≈ 8–10k tokens, so the listing degrades to names only and skills under-trigger. Copilot matches on the same descriptions. Four web-UI and six mobile skills overlap on trigger (the model is asked to choose what `stack.json` already knows). ~20 testing skills duplicate the same Preflight paragraph. `governance/*`, `core/*`, `grounding/*`, `binding-vs-advisory`, `definition-of-ready/done` are always-on rules or explanations of config files, not model-invoked capabilities. | Consolidate **83 → 31** per Appendix B: one skill per capability/surface; stack variants become `reference/` files keyed by `stack.json` with `paths:` scoping; always-on rules move to `.claude/rules/*.md` and roles' `skills:` lists; config-explainer skills become reference docs under `enforcement/`/`docs/`. No content deleted — everything moves one disclosure level down. Update `scope-matrix.md`, `stages.yaml → skills[]`, `role.yaml → required_skills`, generator and `check_skill_contracts.py` atomically. | Vendor guidance (Anthropic Agent Skills, Claude Code `paths:`/`rules/`, "more tools don't lead to better outcomes") and routing research both say selection accuracy falls with catalog size and that the first ~100 chars of a description decide triggering. 31 × ≤160 chars ≈ 1.2k tokens fits the budget with room. The stack-agnostic goal is served *better*: "which framework" becomes a deterministic lookup inside one skill instead of a routing choice among ten. Counter-argument — roles preload skills via `skills:` so count doesn't matter — holds for role work only, not user-invoked skills, and does not fix boilerplate drift. Do it **before** the P0 enforcement wiring, because the wiring references skill paths. |
 
 ### J. Self-improvement (`skills/self-improvement/**`, ADR 0006)
 
@@ -315,6 +316,7 @@ Effort: S ≤ 1 day, M ≤ 1 week, L ≤ 3 weeks (one engineer).
 | 20 | Commit trailer policy + CI check | K2 | S |
 | 21 | `metrics_export.py` (DORA + planning + test health) and `verification_strength.py` | K3, K4 | M |
 | 22 | Description rewrite (≤160 chars, triggers first); shared preflight reference; size budget check | I1, I2, E4 | M |
+| 22a | **Skill catalog consolidation 83 → 31** (Appendix B manifest), done as one reviewed PR *before* items 10–18 so enforcement wiring targets the final paths | I6 | M |
 | 23 | Schema unification: ledger entry, incident, lesson; sanitize tests | C1, J1, J2 | S |
 | 24 | AI inventory / impact assessment page | K5 | S |
 
@@ -323,8 +325,199 @@ Items A7, A8, C2, C3, D5, D6, F3–F5, G4, G5, I4, L4.
 
 ---
 
-## 9. Appendix — finding index
+## 9. Appendix A — finding index
 
-S1–S6 systemic · A1–A8 enforcement · B1–B9 MCP · C1–C5 ledger/grounding · D1–D7 planning · E1–E7 testing · F1–F6 workflow · G1–G5 stack-agnostic · H1–H5 roles/compat · I1–I5 prompts · J1–J3 self-improvement · K1–K5 governance · L1–L4 docs.
+S1–S6 systemic · A1–A8 enforcement · B1–B9 MCP · C1–C5 ledger/grounding · D1–D7 planning · E1–E7 testing · F1–F6 workflow · G1–G5 stack-agnostic · H1–H5 roles/compat · I1–I6 prompts/catalog · J1–J3 self-improvement · K1–K5 governance · L1–L4 docs.
 
 Confirmed by reading: all except B7 (lifecycle edge cases) and F3 (Windows encoding), which are audit-reported and marked PLAUSIBLE pending a test.
+
+---
+
+## 10. Appendix B — skill catalog consolidation (83 → 31)
+
+### B.1 Rules applied
+1. **One skill = one capability with one trigger.** If two skills are only ever chosen by the same signal (the repo's stack), they are one skill with a reference per variant.
+2. **Always-on rules are not skills.** They go to `.claude/rules/adlc-*.md` (Claude Code, `paths:`-scoped where useful) and to each role's `skills:`/system prompt via the generator; Copilot gets them through `.github/instructions/*.instructions.md` with `applyTo`.
+3. **Config explainers are not skills.** A skill whose body explains a JSON/YAML file (DoR, DoD, control-file policy) becomes a `reference/` file of the skill that *uses* the config.
+4. **Human/CI-run procedures are not agent skills.** They become `docs/` + scripts.
+5. **Nothing is deleted.** Every `reference/`, `scripts/`, `tests/`, `templates/`, `schemas/` directory moves intact. `SKILL.md` bodies that stop being skills are renamed `reference/<old-name>.md` under their new owner.
+6. `description` ≤160 chars, *what + when*, triggers first; `when_to_use` carries the rest; body ≤120 lines soft / 500 hard; one shared `preflight` reference replaces the copied paragraphs.
+
+### B.2 Target catalog (31 skills)
+
+| # | New skill | Scope | `paths:` |
+|---|---|---|---|
+| 1 | `grounding/adlc-grounding` | evidence rules, ask-vs-assume, trust boundaries, failure modes, review format, ledger & fact classes (all as references); always-on via rules files | — |
+| 2 | `self-improvement/self-improvement` | failure capture + improvement review | — |
+| 3 | `routing/routing` | `route.py`, scope matrix, precedence, token budget (refs) | — |
+| 4 | `change-management/change-set` | lifecycle, snapshot/staleness, tasks, parallel execution, resumability (refs) | — |
+| 5 | `change-management/risk-tiering` | script-backed | — |
+| 6 | `change-management/dependency-discovery` | script-backed | — |
+| 7 | `contracts/contracts` | registry, can-i-deploy, drift (procedures) | `**/openapi*`, `**/*.proto`, `**/*.avsc`, `**/asyncapi*`, `**/*.pact.json` |
+| 8 | `product-planning/requirement-intake` | | `plans/requirements/**`, `plans/intake/**` |
+| 9 | `product-planning/story-writer` | AC standard, story schema, story types (refs) | `plans/stories/**` |
+| 10 | `product-planning/story-refinement` | three amigos + DoR self-check (readiness-gate ref) | `plans/stories/**` |
+| 11 | `product-planning/plan-decomposition` | epics, milestones, dependency mapping | `plans/epics/**`, `plans/milestones/**` |
+| 12 | `workflow/adlc` | the conductor (`/adlc`) | — |
+| 13 | `workflow/requirements-ingestion` | | — |
+| 14 | `workflow/preflight` | workspace resolution + stage preflight + brownfield adoption; the single shared Preflight reference | — |
+| 15 | `engineering-design/architecture` | package, system design, data-store & messaging matrices, scale readiness, templates (refs) | `architecture/**`, `docs/adr/**` |
+| 16 | `engineering-design/project-conventions` | script-backed | — |
+| 17 | `engineering-design/code-design-review` | SOLID, anti-patterns, perf (refs); DoD completion-gate ref lives here (read at REVIEW) | — |
+| 18 | `ai-integration/llm-integration` | LLM architecture + RAG (refs) | — |
+| 19 | `ai-integration/prompt-engineer` | | `**/prompts/**`, `**/*.prompt.*`, `skills/**/SKILL.md` |
+| 20 | `testing/test-strategy` | strategy + pyramid | — |
+| 21 | `testing/test-repo-discovery` | script-backed | — |
+| 22 | `testing/test-design` | YAML design + Gherkin authoring (format chosen from `stack.json.bdd`) | `plans/test-designs/**`, `**/*.feature` |
+| 23 | `testing/test-data` | synthesis + environment data lifecycle | `**/fixtures/**`, `**/factories/**`, `**/testdata/**` |
+| 24 | `testing/suite-authoring` | modes A/B/C, impact plan, determinism, BDD step binding (ref) | test globs |
+| 25 | `testing/web-ui-testing` | refs: `playwright.md`, `selenium.md`, `visual-regression.md`, `headless-vs-headed.md`, `selectors.md`, `flaky-patterns.md` | `**/e2e/**`, `**/*.spec.*`, `**/*.cy.*`, `**/playwright.config.*` |
+| 26 | `testing/mobile-testing` | refs: `flutter.md`, `detox.md`, `appium.md`, `xcuitest.md`, `espresso.md`, `device-matrix.md` | `**/*.dart`, `**/*.swift`, `**/*.kt`, `**/android/**`, `**/ios/**`, `**/.detoxrc*` |
+| 27 | `testing/api-contract-testing` | refs: `pact.md`, `newman.md`, `schema-validation.md` | contract globs |
+| 28 | `testing/performance-testing` | refs: `load-testing.md` (k6/JMeter), `baseline-tracker.md`, `bottleneck-analysis.md` | `**/perf/**`, `**/load/**`, `**/*.jmx` |
+| 29 | `testing/test-maintenance` | refs: `flaky-intelligence.md` (+script), `self-healing-locators.md` | test globs |
+| 30 | `testing/security-scanning` | refs: `sast.md`, `sca.md`, `secrets.md`, `deployment-verification.md` | — |
+| 31 | `testing/agent-security-tests` | refs: four ASI catalogs + `asi-mapping.md` | — |
+
+Not skills any more: `governance/*` (→ `enforcement/governance/` + `docs/governance/`), `workflow/repo-bootstrap` (→ `docs/repo-bootstrap.md` + script), `product-planning/definition-of-ready|done` (→ refs), `skill-routing/binding-vs-advisory` (→ rules file), `core/*` (→ grounding refs).
+
+### B.3 Move manifest (old → new)
+
+```
+# grounding + core → one skill + rules files
+skills/grounding/evidence-gate/SKILL.md                 → skills/grounding/adlc-grounding/reference/evidence-gate.md      (+ .claude/rules/adlc-evidence.md)
+skills/grounding/ambiguity-escalation/SKILL.md          → skills/grounding/adlc-grounding/reference/ambiguity-escalation.md (+ rules)
+skills/grounding/trust-boundaries/SKILL.md              → skills/grounding/adlc-grounding/reference/trust-boundaries.md     (+ rules)
+skills/grounding/agent-failure-modes/SKILL.md           → skills/grounding/adlc-grounding/reference/agent-failure-modes.md
+skills/grounding/human-review-format/SKILL.md           → skills/grounding/adlc-grounding/reference/human-review-format.md
+skills/grounding/*/reference/*                          → skills/grounding/adlc-grounding/reference/   (flatten, keep names)
+skills/core/evidence-ledger/SKILL.md                    → skills/grounding/adlc-grounding/reference/evidence-ledger.md
+skills/core/evidence-ledger/reference/*                 → skills/grounding/adlc-grounding/reference/
+skills/core/fact-classification/SKILL.md                → skills/grounding/adlc-grounding/reference/fact-classification.md
+skills/core/fact-classification/reference/*             → skills/grounding/adlc-grounding/reference/
+skills/core/schemas/ledger-entry.schema.json            → skills/grounding/adlc-grounding/schemas/   (generated from store in a test)
+NEW skills/grounding/adlc-grounding/SKILL.md            (≤120 lines; "which reference when" table)
+
+# self-improvement → one skill
+skills/self-improvement/failure-capture/SKILL.md        → skills/self-improvement/self-improvement/SKILL.md §Capture
+skills/self-improvement/improvement-review/SKILL.md     → skills/self-improvement/self-improvement/SKILL.md §Review
+skills/self-improvement/*/reference/*                   → skills/self-improvement/self-improvement/reference/ (scripts, schemas, taxonomy unchanged)
+
+# governance → not skills
+skills/governance/default-permissions/reference/*       → skills/enforcement/governance/   (control-file-paths.json stays the single source; generator paths updated)
+skills/governance/default-permissions/SKILL.md          → docs/governance/default-permissions.md
+skills/governance/autonomy-gating/**                    → docs/governance/autonomy-gating.md + verification-strength.md
+skills/governance/permission-scoping/SKILL.md           → docs/governance/permission-scoping.md (+ ai-inventory.md)
+skills/governance/policy-drift-check/SKILL.md           → docs/governance/policy-drift-check.md (+ verify_deployed.py under enforcement/)
+
+# skill-routing → one skill
+skills/skill-routing/skill-router/SKILL.md              → skills/routing/routing/SKILL.md
+skills/skill-routing/skill-router/reference/*           → skills/routing/routing/reference/
+skills/skill-routing/binding-vs-advisory/SKILL.md       → .claude/rules/adlc-precedence.md  (+ reference copy)
+skills/skill-routing/binding-vs-advisory/reference/*    → skills/routing/routing/reference/
+skills/skill-routing/token-budget-optimizer/**          → skills/routing/routing/reference/token-budget/
+NEW skills/routing/routing/scripts/route.py
+
+# change-management 5 → 3
+skills/change-management/snapshot/SKILL.md              → skills/change-management/change-set/reference/snapshot.md
+skills/change-management/snapshot/reference/*           → skills/change-management/change-set/reference/
+skills/change-management/parallel-execution/SKILL.md    → skills/change-management/change-set/reference/parallel-execution.md
+skills/change-management/parallel-execution/reference/* → skills/change-management/change-set/reference/
+skills/change-management/{change-set,risk-tiering,dependency-discovery}/**   unchanged
+
+# contracts 3 → 1
+skills/contracts/contract-registry/SKILL.md             → skills/contracts/contracts/SKILL.md §Register
+skills/contracts/compatibility-check/SKILL.md           → skills/contracts/contracts/SKILL.md §Can-I-Deploy
+skills/contracts/drift-detection/SKILL.md               → skills/contracts/contracts/SKILL.md §Drift
+skills/contracts/*/reference/*, scripts/*, tests/*      → skills/contracts/contracts/{reference,scripts,tests}/
+
+# product-planning 8 → 4
+skills/product-planning/definition-of-ready/**          → skills/product-planning/story-refinement/reference/definition-of-ready.md (+ readiness-gate.md)
+skills/product-planning/definition-of-done/**           → skills/engineering-design/code-design-review/reference/definition-of-done.md (+ completion-gate.md)
+skills/product-planning/epic-decomposer/**              → skills/product-planning/plan-decomposition/ (SKILL §Epics; refs kept)
+skills/product-planning/milestone-planner/**            → skills/product-planning/plan-decomposition/ (SKILL §Milestones; refs kept)
+skills/product-planning/dependency-mapper/SKILL.md      → skills/product-planning/plan-decomposition/reference/dependency-mapping.md
+skills/product-planning/{requirement-intake,story-writer,story-refinement}/**  unchanged
+skills/product-planning/{policies,schemas}/             unchanged (control files)
+
+# workflow 6 → 3
+skills/workflow/adlc-conductor/**                       → skills/workflow/adlc/
+skills/workflow/workspace-resolver/**                   → skills/workflow/preflight/ (SKILL §Workspace; script kept)
+skills/workflow/stage-preflight/**                      → skills/workflow/preflight/ (SKILL §Inputs; script kept)
+skills/workflow/brownfield-adoption/**                  → skills/workflow/preflight/reference/brownfield-adoption.md (+ import_tracker.py)
+skills/workflow/repo-bootstrap/SKILL.md                 → docs/repo-bootstrap.md
+skills/workflow/repo-bootstrap/scripts/*                → skills/workflow/preflight/scripts/
+skills/workflow/{stages.yaml,lib,schemas,requirements-ingestion}  unchanged
+NEW skills/workflow/preflight/reference/standard-preflight.md   (the one copy every skill links)
+
+# engineering-design 7 → 3
+skills/engineering-design/architecture-package/**       → skills/engineering-design/architecture/ (SKILL body)
+skills/engineering-design/system-architect/**           → skills/engineering-design/architecture/reference/system-design.md + reference/{decomposition,scaling}.md + templates/
+skills/engineering-design/data-store-selector/**        → skills/engineering-design/architecture/reference/data-store-selection.md + decision-matrix
+skills/engineering-design/messaging-selector/**         → skills/engineering-design/architecture/reference/messaging-selection.md + decision-matrix
+skills/engineering-design/scale-readiness-reviewer/**   → skills/engineering-design/architecture/reference/scale-readiness.md
+skills/engineering-design/code-design-reviewer/**       → skills/engineering-design/code-design-review/
+skills/engineering-design/project-conventions/**        unchanged
+
+# ai-integration 3 → 2
+skills/ai-integration/rag-pipeline-expert/SKILL.md      → skills/ai-integration/llm-integration/reference/rag-pipeline.md
+skills/ai-integration/llm-integration-architect/**      → skills/ai-integration/llm-integration/
+skills/ai-integration/prompt-engineer/**                unchanged
+
+# testing 35 → 12
+skills/testing/test-architecture/test-strategy/**       → skills/testing/test-strategy/
+skills/testing/test-architecture/test-pyramid-advisor/SKILL.md → skills/testing/test-strategy/reference/test-pyramid.md
+skills/testing/test-architecture/test-repo-discovery/** → skills/testing/test-repo-discovery/
+skills/testing/test-design/test-case-design/**          → skills/testing/test-design/
+skills/testing/test-design/bdd-feature-authoring/SKILL.md → skills/testing/test-design/reference/gherkin-authoring.md (+ style guide)
+skills/testing/test-data/test-data-synthesis/**         → skills/testing/test-data/
+skills/testing/test-maintenance/test-data-management/SKILL.md → skills/testing/test-data/reference/environment-data-lifecycle.md
+skills/testing/test-implementation/suite-authoring/**   → skills/testing/suite-authoring/
+skills/testing/test-implementation/bdd-step-binding/SKILL.md → skills/testing/suite-authoring/reference/bdd-step-binding.md
+skills/testing/web-ui-automation/playwright-expert/SKILL.md   → skills/testing/web-ui-testing/reference/playwright.md
+skills/testing/web-ui-automation/playwright-expert/reference/* → skills/testing/web-ui-testing/reference/
+skills/testing/web-ui-automation/selenium-expert/SKILL.md     → skills/testing/web-ui-testing/reference/selenium.md
+skills/testing/web-ui-automation/visual-regression/SKILL.md   → skills/testing/web-ui-testing/reference/visual-regression.md
+skills/testing/web-ui-automation/headless-vs-headed/SKILL.md  → skills/testing/web-ui-testing/reference/headless-vs-headed.md
+NEW skills/testing/web-ui-testing/SKILL.md              (lookup table on stack.json.e2e_driver / ui_paradigm)
+skills/testing/mobile-automation/flutter-testing/SKILL.md     → skills/testing/mobile-testing/reference/flutter.md
+skills/testing/mobile-automation/detox-react-native/SKILL.md  → skills/testing/mobile-testing/reference/detox.md
+skills/testing/mobile-automation/appium-expert/SKILL.md       → skills/testing/mobile-testing/reference/appium.md
+skills/testing/mobile-automation/ios-xcuitest/SKILL.md        → skills/testing/mobile-testing/reference/xcuitest.md
+skills/testing/mobile-automation/android-espresso/SKILL.md    → skills/testing/mobile-testing/reference/espresso.md
+skills/testing/mobile-automation/device-matrix/SKILL.md       → skills/testing/mobile-testing/reference/device-matrix.md
+NEW skills/testing/mobile-testing/SKILL.md
+skills/testing/api-contract-testing/pact-consumer-driven/SKILL.md → skills/testing/api-contract-testing/reference/pact.md
+skills/testing/api-contract-testing/postman-newman/SKILL.md       → skills/testing/api-contract-testing/reference/newman.md
+skills/testing/api-contract-testing/schema-validation/SKILL.md    → skills/testing/api-contract-testing/reference/schema-validation.md
+NEW skills/testing/api-contract-testing/SKILL.md
+skills/testing/performance-testing/load-testing-expert/**     → skills/testing/performance-testing/reference/load-testing.md + k6/jmeter refs
+skills/testing/performance-testing/perf-baseline-tracker/SKILL.md → skills/testing/performance-testing/reference/baseline-tracker.md
+skills/testing/performance-testing/bottleneck-analysis/SKILL.md   → skills/testing/performance-testing/reference/bottleneck-analysis.md
+NEW skills/testing/performance-testing/SKILL.md
+skills/testing/test-maintenance/flaky-test-intelligence/**    → skills/testing/test-maintenance/ (SKILL body + scripts)
+skills/testing/test-maintenance/self-healing-locators/SKILL.md → skills/testing/test-maintenance/reference/self-healing-locators.md
+skills/testing/security-testing/sast-scanner/SKILL.md         → skills/testing/security-scanning/reference/sast.md
+skills/testing/security-testing/sca-dependency-audit/SKILL.md → skills/testing/security-scanning/reference/sca.md
+skills/testing/security-testing/secret-scanning/SKILL.md      → skills/testing/security-scanning/reference/secrets.md
+skills/testing/security-testing/deployment-verification/SKILL.md → skills/testing/security-scanning/reference/deployment-verification.md
+NEW skills/testing/security-scanning/SKILL.md
+skills/testing/ai-agent-testing/*/SKILL.md              → skills/testing/agent-security-tests/reference/{prompt-injection,tool-misuse,agent-authorization,policy-bypass}.md
+skills/testing/ai-agent-testing/reference/asi-mapping.md → skills/testing/agent-security-tests/reference/
+NEW skills/testing/agent-security-tests/SKILL.md
+```
+
+### B.4 Dependent updates (same PR)
+- `skills/routing/routing/reference/scope-matrix.md`: skill paths → new names; stack rows become `web-ui-testing#playwright` style anchors.
+- `skills/workflow/stages.yaml → stages.*.skills[]`: new paths.
+- `skills/roles/*/role.yaml → required_skills`: new paths (lists shrink to 5–7 per role).
+- `skills/roles/scripts/generate_agents.py`: emit `skills:` frontmatter from `required_skills`; emit `.claude/rules/adlc-*.md` and `.github/instructions/adlc-*.instructions.md` from the rules sources.
+- `docs/tools/check_skill_contracts.py`: add description-length (≤160) and body-size checks; vocabulary unchanged.
+- `docs/authoring-conventions.md`: add the three catalog rules (B.1 #1–#4) and the shared-preflight link requirement.
+- `docs/enforcement-map.md`, `README.md` layout block, `control-file-paths.json` (`skills/**` still covers everything; `governance` reference path changes).
+- Every intra-skill relative link: run a link checker in CI (new, small).
+
+### B.5 What changes for the user
+- `/adlc`, `/requirements-ingestion`, `/story-writer`, `/test-design`, `/suite-authoring` etc. still exist as slash-invocable skills; stack choice is automatic.
+- Fewer, sharper descriptions → skills trigger when they should.
+- Nothing a reviewer could read before is gone; it is one click further down.

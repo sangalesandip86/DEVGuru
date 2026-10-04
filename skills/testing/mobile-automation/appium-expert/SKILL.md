@@ -1,6 +1,6 @@
 ---
 name: appium-expert
-description: Writes and stabilizes cross-platform mobile UI tests with Appium 2 (UiAutomator2 and XCUITest drivers) for native, hybrid, and mobile-web apps. Use when one test suite must cover both iOS and Android, or the repo already uses Appium/WebdriverIO.
+description: Write cross-platform mobile UI tests with Appium 2 (UiAutomator2/XCUITest). Use when one suite must cover iOS and Android.
 metadata:
   group: testing
   phase: progressive
@@ -14,7 +14,6 @@ metadata:
 
 # Appium Expert
 
-<!-- reconstructed: v2 source not provided; review -->
 
 ## Purpose
 Cross-platform mobile E2E that is stable enough to gate on. Platform-native frameworks are faster
@@ -26,7 +25,7 @@ black-box testing a binary it doesn't build.
 - The test strategy calls for E2E on both mobile platforms.
 
 ## Preflight
-Run the standard preflight before any step below: [`stage-preflight`](../../../workflow/stage-preflight/SKILL.md) and [`workspace-resolver`](../../../workflow/workspace-resolver/SKILL.md).
+See [standard-preflight](../../../workflow/stage-preflight/reference/standard-preflight.md).
 1. **Workspace.** Resolve repo roles `[app, tests]`. If found, record it as FACT `repo@sha`. If ambiguous, raise one QUESTION with ranked candidates. If missing, workspace-resolver offers local creation or a `repo-request.yaml`. If there is no test framework for this tier, that is **Mode C, as its own `TEST_AUTOMATION` story** ([suite-authoring](../../test-implementation/suite-authoring/SKILL.md)). It is never scaffolded inside a feature story.
 2. **Frozen test design** (`plans/test-designs/ST-n.yaml` or `.feature` at the story's current `ac_hash`): SATISFIED. If it's missing, offer **BACKFILL** (DESIGN via qa-derive, [test-case-design](../../test-design/test-case-design/SKILL.md)) or **characterization mode** ([ADR 0004 §3](../../../../docs/adr/0004-workflow-stages-and-workspace.md)): tests tagged `characterization`, an ASSUMPTION "current behaviour is intended" recorded, and they never count as AC verification or VERIFIED. If the `ac_hash` is stale, BLOCK.
 3. **Driver and devices.** Appium config and capabilities are present. Devices are selected through [device-matrix](../device-matrix/SKILL.md). For Flutter or RN, prefer [flutter-testing](../flutter-testing/SKILL.md) or [detox-react-native](../detox-react-native/SKILL.md), unless black-box cross-app testing is required.
@@ -66,6 +65,8 @@ Never proceed on a missing input silently.
 - Tests (`REPO_WRITE`). Device-run pass/fail from CI → `VERIFIED`. Diagnoses → `REVIEWED`.
 
 ## Enforcement
+**Guideline only** — no enforcement point yet.
+
 Pass/fail is machine evidence from CI. Practices are guideline only.
 
 ## References

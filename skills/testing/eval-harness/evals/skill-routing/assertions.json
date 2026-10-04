@@ -1,0 +1,12 @@
+{
+  "required_fields": ["bindings", "roles", "tier_floor", "triggers"],
+  "enum_fields": {
+    "tier_floor": ["LOW", "MEDIUM", "HIGH", "CRITICAL"]
+  },
+  "type_fields": {
+    "bindings": "list",
+    "roles": "list",
+    "tier_floor": "string",
+    "triggers": "list"
+  }
+}

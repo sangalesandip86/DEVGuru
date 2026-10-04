@@ -1,6 +1,5 @@
 # Scope Matrix
 
-<!-- reconstructed: v2 source not provided; review -->
 
 Two kinds of binding: **mandatory** (policy-loaded, cannot be skipped or removed) and
 **contextual** (added when analysis shows they are relevant). Paths are relative to `skills/`.

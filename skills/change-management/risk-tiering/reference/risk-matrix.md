@@ -1,6 +1,5 @@
 # Risk Matrix
 
-<!-- reconstructed: v2 source not provided; review -->
 
 Four tiers with fail-safe defaults. Multi-dimensional weighted scoring is deferred (§2) until
 observability data shows which dimensions matter.
