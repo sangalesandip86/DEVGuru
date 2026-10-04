@@ -35,11 +35,14 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import re
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "lib"))
+_skills_root_env = os.environ.get("ADLC_SKILLS_ROOT")
+_workflow = Path(_skills_root_env, "skills", "workflow").resolve() if _skills_root_env else Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(_workflow / "lib"))
 import workflow_lib as wl  # noqa: E402
 
 MANIFEST = "adlc.workspace.yaml"

@@ -170,10 +170,23 @@ def _frontmatter(fields: list[tuple[str, object]]) -> str:
     return "\n".join(lines)
 
 
+def standalone_section(spec: dict) -> str:
+    return "\n".join([
+        "## Standalone Mode",
+        "",
+        "When invoked outside the DEVGuru platform repo (the `skills/` tree is not present):",
+        "- All role knowledge is embedded above — no external SKILL.md files need to be read.",
+        "- MCP tools (`mcp__adlc__*`) work from any project when the server is installed globally.",
+        "- If a referenced skill path is unavailable, apply the principles from the role instructions directly.",
+        f"- This agent can be invoked directly via `@{spec['name']}` without the `/adlc` conductor.",
+        "",
+    ])
+
+
 def _document(spec: dict, frontmatter: str) -> str:
     note = GENERATED_NOTE.format(role=spec["name"])
     body = rewrite_links(spec["_body"], spec["name"]).rstrip()
-    return f"{frontmatter}\n\n<!-- {note} -->\n\n{body}\n\n{scope_section(spec)}"
+    return f"{frontmatter}\n\n<!-- {note} -->\n\n{body}\n\n{scope_section(spec)}\n{standalone_section(spec)}"
 
 
 ALL_CLAUDE_TOOLS = {"Read", "Grep", "Glob", "Edit", "Write", "Bash"}
@@ -229,10 +242,24 @@ def _split_frontmatter(text: str) -> tuple[dict, str]:
     return meta, m.group(2)
 
 
+CONDUCTOR_STANDALONE = "\n".join([
+    "",
+    "## Standalone Mode (outside DEVGuru repo)",
+    "",
+    "When the ADLC skills infrastructure (`skills/` tree) is not present in the current project:",
+    "- **Do not run** `resolve_workspace.py` or `stage_preflight.py` — these require the skills tree.",
+    "- **Use the embedded stage graph** above to orchestrate work through stages.",
+    "- **Delegate to agent roles directly** using `@developer`, `@architect`, `@code-reviewer`, etc.",
+    "- **Skip CI gate scripts** that depend on the skills tree. Record evidence through MCP tools when available.",
+    "- The MCP server tools (`mcp__adlc__*`) work from any project when installed globally.",
+    "",
+])
+
+
 def render_entry_points(conductor: Path) -> dict[str, str]:
     """`/adlc` for Claude Code (custom command) and Copilot Chat (prompt file)."""
     meta, body = _split_frontmatter(conductor.read_text(encoding="utf-8"))
-    body = rewrite_links(body, "", base=ENTRY_BASE).strip()
+    body = rewrite_links(body, "", base=ENTRY_BASE).strip() + CONDUCTOR_STANDALONE
     description = "Run ADLC work from any stage to any stage (INTAKE → … → RELEASE) with every gate, then checkpoint."
     claude = "\n".join([
         _frontmatter([("description", description), ("argument-hint", ARGUMENT_HINT)]),

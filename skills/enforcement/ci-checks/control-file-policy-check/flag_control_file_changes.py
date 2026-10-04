@@ -15,7 +15,9 @@ import sys
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
-sys.path.insert(0, str(HERE.parents[1] / "lib"))
+_skills_root_env = os.environ.get("ADLC_SKILLS_ROOT")
+_enforcement = Path(_skills_root_env, "skills", "enforcement").resolve() if _skills_root_env else HERE.parents[1]
+sys.path.insert(0, str(_enforcement / "lib"))
 import adlc_enforcement as ae  # noqa: E402
 
 

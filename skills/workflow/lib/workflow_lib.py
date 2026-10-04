@@ -2,11 +2,16 @@
 
 Stdlib only. Reuses the planning gates' YAML-subset loader and JSON-Schema subset validator
 (skills/enforcement/ci-checks/planning-gates/) instead of duplicating them.
+
+Path resolution: all paths are resolved from ADLC_SKILLS_ROOT (env var) when set,
+falling back to the directory structure relative to this file's location. This allows
+the platform scripts to run from any project directory, not just the DEVGuru repo.
 """
 from __future__ import annotations
 
 import fnmatch
 import json
+import os
 import re
 import shutil
 import subprocess
@@ -15,9 +20,22 @@ from pathlib import Path
 from typing import Any
 
 HERE = Path(__file__).resolve().parent
-WORKFLOW = HERE.parent
-SKILLS = WORKFLOW.parent
+
+def _resolve_skills_root() -> Path:
+    """Resolve the skills tree root from ADLC_SKILLS_ROOT or by walking up from this file."""
+    env = os.environ.get("ADLC_SKILLS_ROOT")
+    if env:
+        root = Path(env).resolve()
+        skills = root / "skills"
+        if skills.is_dir():
+            return skills
+        if (root / "workflow").is_dir():
+            return root
+    return HERE.parent.parent
+
+SKILLS = _resolve_skills_root()
 REPO_ROOT = SKILLS.parent
+WORKFLOW = SKILLS / "workflow"
 PLANNING_GATES = SKILLS / "enforcement" / "ci-checks" / "planning-gates"
 SCHEMAS = WORKFLOW / "schemas"
 STAGES_FILE = WORKFLOW / "stages.yaml"

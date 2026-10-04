@@ -34,7 +34,9 @@ import sys
 from pathlib import Path
 
 HERE = Path(__file__).resolve()
-sys.path.insert(0, str(HERE.parents[2] / "lib"))
+_skills_root_env = os.environ.get("ADLC_SKILLS_ROOT")
+_workflow = Path(_skills_root_env, "skills", "workflow").resolve() if _skills_root_env else HERE.parents[2]
+sys.path.insert(0, str(_workflow / "lib"))
 import workflow_lib as wl  # noqa: E402
 
 TEMPLATE = wl.REPO_ROOT / "templates" / "repo-bootstrap"

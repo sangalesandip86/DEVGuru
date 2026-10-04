@@ -130,3 +130,12 @@ It does three things:
 - [../stages.yaml](skills/workflow/stages.yaml) · [stage-preflight](skills/workflow/stage-preflight/SKILL.md) · [workspace-resolver](skills/workflow/workspace-resolver/SKILL.md)
 - [requirements-ingestion](skills/workflow/requirements-ingestion/SKILL.md) · [brownfield-adoption](skills/workflow/brownfield-adoption/SKILL.md) · [repo-bootstrap](skills/workflow/repo-bootstrap/SKILL.md)
 - [grounding/evidence-gate](skills/grounding/evidence-gate/SKILL.md) · [grounding/ambiguity-escalation](skills/grounding/ambiguity-escalation/SKILL.md)
+## Standalone Mode (outside DEVGuru repo)
+
+When the ADLC skills infrastructure (`skills/` tree) is not present in the current project:
+- **Do not run** `resolve_workspace.py` or `stage_preflight.py` — these require the skills tree.
+- **Use the embedded stage graph** above to orchestrate work through stages.
+- **Delegate to agent roles directly** using `@developer`, `@architect`, `@code-reviewer`, etc.
+- **Skip CI gate scripts** that depend on the skills tree. Record evidence through MCP tools when available.
+- The MCP server tools (`mcp__adlc__*`) work from any project when installed globally.
+

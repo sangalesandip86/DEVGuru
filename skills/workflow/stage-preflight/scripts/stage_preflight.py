@@ -27,12 +27,15 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import os
 import sys
 from pathlib import Path
 
 HERE = Path(__file__).resolve()
-sys.path.insert(0, str(HERE.parents[2] / "lib"))
-sys.path.insert(0, str(HERE.parents[2] / "workspace-resolver" / "scripts"))
+_skills_root_env = os.environ.get("ADLC_SKILLS_ROOT")
+_workflow = Path(_skills_root_env, "skills", "workflow").resolve() if _skills_root_env else HERE.parents[2]
+sys.path.insert(0, str(_workflow / "lib"))
+sys.path.insert(0, str(_workflow / "workspace-resolver" / "scripts"))
 import workflow_lib as wl  # noqa: E402
 
 try:

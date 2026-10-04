@@ -240,3 +240,11 @@ Handoff outputs:
 - `defect_reports`
 - `open_questions`
 
+## Standalone Mode
+
+When invoked outside the DEVGuru platform repo (the `skills/` tree is not present):
+- All role knowledge is embedded above — no external SKILL.md files need to be read.
+- MCP tools (`mcp__adlc__*`) work from any project when the server is installed globally.
+- If a referenced skill path is unavailable, apply the principles from the role instructions directly.
+- This agent can be invoked directly via `@test-engineer` without the `/adlc` conductor.
+

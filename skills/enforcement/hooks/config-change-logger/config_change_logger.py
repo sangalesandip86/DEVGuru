@@ -19,10 +19,12 @@ import os
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "lib"))
+_skills_root_env = os.environ.get("ADLC_SKILLS_ROOT")
+_enforcement = Path(_skills_root_env, "skills", "enforcement").resolve() if _skills_root_env else Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(_enforcement / "lib"))
 import adlc_enforcement as ae  # noqa: E402
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "control-file-guard"))
+sys.path.insert(0, str(_enforcement / "hooks" / "control-file-guard"))
 from control_file_guard import shell_write_targets  # noqa: E402
 
 HOOK_NAME = "config-change-logger"

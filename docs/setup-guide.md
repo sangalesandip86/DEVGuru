@@ -94,6 +94,9 @@ Store the tokens as environment variables so the MCP server can resolve them.
 ### Windows (permanent, user-level)
 
 ```powershell
+# Point to the DEVGuru repo so skills/scripts resolve from any project
+[Environment]::SetEnvironmentVariable("ADLC_SKILLS_ROOT", "C:\path\to\DEVGuru", "User")
+
 [Environment]::SetEnvironmentVariable("ADLC_DEVELOPER_TOKEN", "<token>", "User")
 # Repeat for other roles as needed:
 # ADLC_ARCHITECT_TOKEN, ADLC_CODE_REVIEWER_TOKEN, etc.
@@ -102,12 +105,19 @@ Store the tokens as environment variables so the MCP server can resolve them.
 ### macOS / Linux (add to ~/.bashrc or ~/.zshrc)
 
 ```bash
+# Point to the DEVGuru repo so skills/scripts resolve from any project
+export ADLC_SKILLS_ROOT="/path/to/DEVGuru"
+
 export ADLC_DEVELOPER_TOKEN="<token>"
 export ADLC_ARCHITECT_TOKEN="<token>"
 # etc.
 ```
 
 A reference `.env` file is saved at `~/.adlc/tokens-reference.env` after credential issuance.
+
+> **`ADLC_SKILLS_ROOT`** is the key variable that makes the platform work outside the DEVGuru
+> repo. All workflow scripts and enforcement hooks use it to locate `skills/` — without it
+> they fall back to relative paths that only work inside the DEVGuru tree.
 
 ---
 
@@ -163,14 +173,15 @@ Create `~/.claude/.mcp.json`:
         "PYTHONPATH": "/absolute/path/to/DEVGuru/skills/mcp-servers/adlc-mcp/src",
         "ADLC_MODULES": "evidence_ledger,change_management,work_planning,contract_registry",
         "ADLC_TOKEN": "${ADLC_DEVELOPER_TOKEN}",
-        "ADLC_DATA_DIR": ".adlc"
+        "ADLC_DATA_DIR": ".adlc",
+        "ADLC_SKILLS_ROOT": "/absolute/path/to/DEVGuru"
       }
     }
   }
 }
 ```
 
-Replace the `PYTHONPATH` with your actual absolute path to the repo.
+Replace the paths with your actual absolute path to the DEVGuru repo.
 
 ### Project-level (`.mcp.json` in repo root)
 
@@ -323,6 +334,7 @@ python skills/enforcement/managed-settings/generate_deny_list.py --check
 
 | Variable | Default | Required | Purpose |
 |---|---|---|---|
+| `ADLC_SKILLS_ROOT` | — | For cross-project | Absolute path to the DEVGuru repo root — enables scripts outside the repo |
 | `ADLC_TOKEN` | — | Yes | Bearer token for the current role session |
 | `ADLC_DEVELOPER_TOKEN` | — | For `.mcp.json` | Developer role token (referenced via `${...}`) |
 | `ADLC_CREDENTIALS` | `~/.adlc/credentials.json` | No | Token-hash → identity map path |
