@@ -101,8 +101,10 @@ class WorkspaceResolverSmokeTest(unittest.TestCase):
 
     def test_resolve_finds_app_role(self):
         r = run_script(RESOLVE, "--roles", "app", cwd=self.tmpdir)
+        self.assertIn(r.returncode, [0, 1, 2],
+                      f"resolve_workspace unexpected exit {r.returncode}: {r.stderr}")
         if r.returncode == 2:
-            self.skipTest(f"resolve_workspace needs more setup: {r.stderr}")
+            self.fail(f"resolve_workspace exited 2 (setup error) in a bootstrapped repo: {r.stderr}")
         data = json.loads(r.stdout)
         roles = data.get("roles", {})
         if "app" in roles:
@@ -110,8 +112,10 @@ class WorkspaceResolverSmokeTest(unittest.TestCase):
 
     def test_resolve_finds_planning_role(self):
         r = run_script(RESOLVE, "--roles", "planning", cwd=self.tmpdir)
+        self.assertIn(r.returncode, [0, 1, 2],
+                      f"resolve_workspace unexpected exit {r.returncode}: {r.stderr}")
         if r.returncode == 2:
-            self.skipTest(f"resolve_workspace needs more setup: {r.stderr}")
+            self.fail(f"resolve_workspace exited 2 (setup error) in a bootstrapped repo: {r.stderr}")
         data = json.loads(r.stdout)
         roles = data.get("roles", {})
         if "planning" in roles:
@@ -133,7 +137,7 @@ class StagePreflightSmokeTest(unittest.TestCase):
     def test_intake_preflight(self):
         r = run_script(PREFLIGHT, "--start", "INTAKE", cwd=self.tmpdir)
         if r.returncode == 2:
-            self.skipTest(f"stage_preflight needs more setup: {r.stderr}")
+            self.fail(f"stage_preflight exited 2 (setup error) in a bootstrapped repo: {r.stderr}")
         self.assertIn(r.returncode, [0, 1], f"Unexpected exit: {r.stderr}")
         data = json.loads(r.stdout)
         self.assertIn("start", data)
@@ -142,7 +146,7 @@ class StagePreflightSmokeTest(unittest.TestCase):
     def test_design_preflight_needs_backfill(self):
         r = run_script(PREFLIGHT, "--start", "DESIGN", cwd=self.tmpdir)
         if r.returncode == 2:
-            self.skipTest(f"stage_preflight needs more setup: {r.stderr}")
+            self.fail(f"stage_preflight exited 2 (setup error) in a bootstrapped repo: {r.stderr}")
         self.assertIn(r.returncode, [0, 1])
         data = json.loads(r.stdout)
         statuses = [item.get("status") for item in data.get("items", [])]

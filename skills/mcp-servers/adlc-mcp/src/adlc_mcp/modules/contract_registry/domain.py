@@ -18,7 +18,7 @@ from typing import Any
 
 from adlc_mcp.kernel.errors import ValidationError
 
-CONTRACT_TYPES = ("http", "grpc", "event", "schema")
+CONTRACT_TYPES = ("http", "grpc", "event", "schema", "graphql", "module", "websocket")
 POLICIES = ("BACKWARD", "FORWARD", "FULL", "NONE")
 DIRECTIONS = ("provider_to_consumer", "consumer_to_provider")
 
@@ -30,8 +30,22 @@ def normalize(spec: dict[str, Any]) -> dict[str, dict[str, Any]]:
         payloads = spec["payloads"]
     elif "fields" in spec:
         payloads = {"default": {"direction": "provider_to_consumer", "fields": spec["fields"]}}
+    elif "request" in spec or "response" in spec:
+        payloads = {}
+        if "request" in spec:
+            req = spec["request"]
+            payloads["request"] = {"direction": "consumer_to_provider",
+                                   "fields": req if isinstance(req, dict) and all(isinstance(v, dict) for v in req.values()) else {"body": {"type": "object"}}}
+        if "response" in spec:
+            resp = spec["response"]
+            payloads["response"] = {"direction": "provider_to_consumer",
+                                    "fields": resp if isinstance(resp, dict) and all(isinstance(v, dict) for v in resp.values()) else {"body": {"type": "object"}}}
     else:
-        raise ValidationError("spec needs 'payloads' or 'fields'")
+        raise ValidationError(
+            "spec needs 'payloads', 'fields', or 'request'/'response'. "
+            "Shorthand: {\"fields\": {\"name\": {\"type\": \"string\", \"required\": true}}}. "
+            "Full: {\"payloads\": {\"req\": {\"direction\": \"consumer_to_provider\", \"fields\": {...}}}}"
+        )
     out = {}
     for name, p in payloads.items():
         direction = p.get("direction", "provider_to_consumer")

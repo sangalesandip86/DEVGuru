@@ -1,15 +1,13 @@
-"""Layer G: LLM Skill Evals — scenario-based evaluation of ADLC skill instructions.
+"""Layer G: Skill Contract Evals — validates ADLC skill rules via MCP API scenarios.
 
-Tests the 3 critical skills (evidence-gate, story-writer, project-conventions) by
-simulating realistic scenarios through the real MCP APIs, validating that:
-  - Outputs conform to schema and authority constraints
-  - Evidence classifications are correct
-  - Handoff chains preserve traceability
-  - Cold-start / brownfield paths produce expected artifacts
+Tests the 3 critical skills (evidence-gate, story-writer, project-conventions) by:
+  - Exercising the MCP API with realistic scenarios (authority, classification, handoffs)
+  - Validating story/requirement fixture structure against skill schema rules
+  - Verifying edge cases (empty input, invalid classification, correction chains)
 
-No LLM API calls — scenarios use deterministic fixtures that represent what a
-correctly-following LLM would produce. The MCP tool layer (evidence ledger,
-change management) is exercised for real.
+These are deterministic integration tests — they exercise the real MCP tool layer
+(evidence ledger, change management) with hardcoded fixtures, NOT LLM output.
+To test actual LLM behavior, see skills/testing/pipeline-tests/test_e2e_scenarios.py.
 
 Run:  python -m unittest skills/testing/eval-harness/llm_skill_evals.py -v
 """
@@ -741,11 +739,16 @@ class EdgeCaseEvals(unittest.TestCase):
 
     def test_empty_content_rejected(self):
         """Evidence with empty content should be rejected."""
+        fact = self.ledger.append_fact("test-hook", {
+            "run_id": RUN_ID, "tool": "claude-code",
+            "source_type": "command_output", "content": "test output",
+            "source": "cmd:test", "change_set_id": self.cs_id,
+        })
         with self.assertRaises(ValidationError):
             self.ledger.record_evidence(
                 DEVELOPER, run_id=RUN_ID, classification="INFERENCE",
                 content="", source_type="TOOL", change_set_id=self.cs_id,
-                input_references=[],
+                input_references=[fact["entry_id"]],
             )
 
     def test_empty_run_id_rejected(self):

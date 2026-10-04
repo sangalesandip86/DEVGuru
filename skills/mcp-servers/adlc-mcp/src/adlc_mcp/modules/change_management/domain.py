@@ -344,7 +344,10 @@ def validate_handoff_payload(payload: dict[str, Any]) -> None:
     for i, inp in enumerate(payload.get("inputs", []) or []):
         ref = inp.get("artifact_ref", "")
         if not ARTIFACT_REF.match(ref):
-            raise ValidationError(f"inputs[{i}].artifact_ref must be repo@sha:path (got {ref!r}) — never a bare filename")
+            raise ValidationError(
+                f"inputs[{i}].artifact_ref must be repo@sha:path where sha is 7-40 hex chars "
+                f"(got {ref!r}). Example: my-repo@abc1234def:src/main.ts"
+            )
         if not CONTENT_HASH.match(inp.get("content_hash", "")):
             raise ValidationError(f"inputs[{i}].content_hash must be sha256:<64 hex>")
     for i, claim in enumerate(payload.get("claims", []) or []):
