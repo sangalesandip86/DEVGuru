@@ -44,7 +44,8 @@ class RealRolesTest(unittest.TestCase):
         files = ga.build(ROLES_DIR)
         for spec in ga.load_roles(ROLES_DIR):
             fm = files[f"claude/.claude/agents/{spec['name']}.md"].split("---")[1]
-            self.assertIn('maxTurns: 3', fm, f"{spec['name']} missing maxTurns")
+            expected = ga.MAX_TURNS.get(spec["name"], ga.DEFAULT_MAX_TURNS)
+            self.assertIn(f'maxTurns: {expected}', fm, f"{spec['name']} wrong maxTurns")
             self.assertIn('isolation: "worktree"', fm, f"{spec['name']} missing isolation")
 
     def test_all_mcp_tools_use_single_adlc_server(self):
@@ -161,8 +162,8 @@ class EntryPointTest(unittest.TestCase):
         self.assertIn('agent: "agent"', copilot.split("---")[1])
         for text in (claude, copilot):
             self.assertIn("ADLC Conductor", text)
-            # relative links rewritten to repo-relative paths
-            self.assertIn("](skills/workflow/stage-preflight/SKILL.md)", text)
+            # skills/ links are stripped to plain text in generated output
+            self.assertNotIn("](skills/", text)
             self.assertNotIn("](../", text)
 
     def test_entry_points_follow_conductor_and_are_checked(self):

@@ -14,7 +14,7 @@ Follow `skills/workflow/adlc-conductor/SKILL.md` exactly (reproduced below). Sta
 ## Purpose
 Users start work from wherever they are: a folder of requirement documents, a Jira backlog,
 existing code, or a half-finished plan. The conductor turns that request into a **ranged run**
-over the stage graph ([`stages.yaml`](skills/workflow/stages.yaml)):
+over the stage graph (`stages.yaml`):
 
 ```
 INTAKE → ARCHITECTURE → PLAN → DESIGN → IMPLEMENT → TEST → REVIEW → INTEGRATE* → RELEASE* → LEARN
@@ -40,29 +40,29 @@ It does three things:
 
 ## Preflight
 1. Resolve the workspace for **every** stage in the range. Run
-   [`resolve_workspace.py`](skills/workflow/workspace-resolver/scripts/resolve_workspace.py) with the union of the
+   `resolve_workspace.py` with the union of the
    stages' `repo_roles`.
-2. Run [`stage_preflight.py`](skills/workflow/stage-preflight/scripts/stage_preflight.py) `--start <X> --end <Y>`
+2. Run `stage_preflight.py` `--start <X> --end <Y>`
    for the start stage. Pass `--story`, `--tier`, `--mode` and `--adopt` as parsed from the request.
 
 ## Procedure
 1. **Parse the request** into `start`, `end`, `story`, `mode` and `adopt[]`, using
-   [reference/request-grammar.md](skills/workflow/adlc-conductor/reference/request-grammar.md).
+   reference/request-grammar.md.
    - If the request names no start stage, infer it from what the user hands over. Documents mean
      INTAKE, a READY story means DESIGN or IMPLEMENT, code with no stories means TEST in
      characterization mode.
    - If you can't infer it, raise **one** QUESTION with a proposed default
-     ([never ask empty-handed](skills/grounding/ambiguity-escalation/SKILL.md)).
+     (never ask empty-handed).
 2. **Resolve the workspace.** For each repo role, act on the resolver's result:
    - `FOUND`: record the role and its `repo@sha`.
    - `AMBIGUOUS`: ask, listing the ranked candidates.
    - `MISSING`: offer three options: point to an existing path, `--init-local` (an agent may do
      this), or `--request-remote`, which a human or CI executes through
-     [repo-bootstrap](skills/workflow/repo-bootstrap/SKILL.md).
+     repo-bootstrap.
 3. **Preflight the start stage** and act on each input's outcome
-   ([stage-preflight](skills/workflow/stage-preflight/SKILL.md)):
+   (stage-preflight):
    - `SATISFIED`: nothing to do.
-   - `ADOPT`: run [brownfield-adoption](skills/workflow/brownfield-adoption/SKILL.md). The imported items are
+   - `ADOPT`: run brownfield-adoption. The imported items are
      DRAFT, and the stage gate then runs on them.
    - `BACKFILL`:
      - Propose extending the run backwards to the named stage. Use the smallest run that works,
@@ -73,11 +73,11 @@ It does three things:
    - `ASK`: raise one batched QUESTION for the whole run, with every open choice and its proposed default.
    - `BLOCK`: stop. Report the exact missing items and write a checkpoint with `stop_reason: BLOCKED`.
 4. **Run each stage in order.** For each stage:
-   - Load the stage's `skills` through [skill-routing](skills/skill-routing/skill-router/SKILL.md).
+   - Load the stage's `skills` through skill-routing.
      Routing may add mandatory bindings. It never removes them.
    - Act as, or hand off to, the stage's `lead_roles`. On existing code, ARCHITECTURE, DESIGN and
      IMPLEMENT follow the project's own standards
-     ([project-conventions](skills/engineering-design/project-conventions/SKILL.md), §4.15).
+     (project-conventions, §4.15).
    - Produce the stage's documents (the `documents` list in `stages.yaml`) through PRs in the
      resolved repos.
    - Run or await the stage's `exit_gate`.
@@ -90,7 +90,7 @@ It does three things:
 6. **Observed stages.** INTEGRATE and RELEASE are facts the server observes, such as a merge or a
    deployment plus its approval. The run ends with `OBSERVED_STAGE` and names the event it is waiting for.
 7. **Write the checkpoint** to `.adlc/runs/<run_id>/checkpoint.json`, following the
-   [checkpoint schema](skills/workflow/schemas/checkpoint.schema.json):
+   checkpoint schema:
    - completed stages;
    - artifacts as `repo@sha:path` plus content hash;
    - the ledger cursor;
@@ -125,11 +125,11 @@ It does three things:
   cannot bypass a gate. It can only waste work.
 
 ## References
-- [reference/run-examples.md](skills/workflow/adlc-conductor/reference/run-examples.md): worked scenarios.
-- [reference/request-grammar.md](skills/workflow/adlc-conductor/reference/request-grammar.md) · [reference/checkpoint-format.md](skills/workflow/adlc-conductor/reference/checkpoint-format.md)
-- [../stages.yaml](skills/workflow/stages.yaml) · [stage-preflight](skills/workflow/stage-preflight/SKILL.md) · [workspace-resolver](skills/workflow/workspace-resolver/SKILL.md)
-- [requirements-ingestion](skills/workflow/requirements-ingestion/SKILL.md) · [brownfield-adoption](skills/workflow/brownfield-adoption/SKILL.md) · [repo-bootstrap](skills/workflow/repo-bootstrap/SKILL.md)
-- [grounding/evidence-gate](skills/grounding/evidence-gate/SKILL.md) · [grounding/ambiguity-escalation](skills/grounding/ambiguity-escalation/SKILL.md)
+- reference/run-examples.md: worked scenarios.
+- reference/request-grammar.md · reference/checkpoint-format.md
+- ../stages.yaml · stage-preflight · workspace-resolver
+- requirements-ingestion · brownfield-adoption · repo-bootstrap
+- grounding/evidence-gate · grounding/ambiguity-escalation
 ## Standalone Mode (outside DEVGuru repo)
 
 When the ADLC skills infrastructure (`skills/` tree) is not present in the current project:

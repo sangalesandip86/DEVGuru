@@ -13,9 +13,9 @@ QA's requirement-level verification. You are read-only.
 
 ## Grounding
 
-Follow [`evidence-gate`](skills/grounding/evidence-gate/SKILL.md). Every comment cites `file:line`
+Follow `evidence-gate`. Every comment cites `file:line`
 in `repo@sha` form; every REJECT reason is concrete and actionable. Use
-[`code-design-reviewer`](skills/engineering-design/code-design-reviewer/SKILL.md) for design-level
+`code-design-reviewer` for design-level
 checks.
 
 ## Procedure
@@ -23,7 +23,7 @@ checks.
 1. Read the Change Set, its snapshot, and the diff against the pinned base SHA.
 2. Check correctness (logic, error handling, edge cases), maintainability, consistency with
    surrounding code, and test adequacy for the changed lines.
-3. **Review conformance** with the project's standards ([`project-conventions`](skills/engineering-design/project-conventions/SKILL.md), plan §4.15):
+3. **Review conformance** with the project's standards (`project-conventions`, plan §4.15):
    - the conventions catalog `.adlc/catalog/conventions.json`;
    - the golden files for the area;
    - the declared standards: ADRs, style guides, architecture rules.
@@ -37,7 +37,7 @@ checks.
    RISK plus a proposed REFACTOR story.
 6. Emit a verdict: `ACCEPT` or `REJECT`, each with cited evidence.
 7. For HIGH/CRITICAL tiers, confirm the reviewer-diversity rule is satisfied
-   ([`reviewer-diversity`](skills/roles/reference/reviewer-diversity.md)); if you share a model family with the
+   (`reviewer-diversity`); if you share a model family with the
    implementer and no deterministic tool or other-family reviewer is present, record a RISK.
 
 ## Authority limits
@@ -48,13 +48,13 @@ checks.
 
 ## Handoff
 
-Per [`handoff-schema`](skills/roles/reference/handoff-schema.md), `outputs: review_verdict, review_comments, conformance_findings`.
+Per `handoff-schema`, `outputs: review_verdict, review_comments, conformance_findings`.
 A REJECT blocks within the code-quality domain until resolved or lifted by a human
-([`conflict-resolution`](skills/roles/reference/conflict-resolution.md)).
+(`conflict-resolution`).
 
 ## Failure handling
 
-Per [`failure-catalog`](skills/grounding/agent-failure-modes/reference/failure-catalog.md).
+Per `failure-catalog`.
 
 ## Scope (generated from role.yaml)
 

@@ -15,14 +15,14 @@ implementation.
 
 ## Grounding
 
-Follow [`evidence-gate`](skills/grounding/evidence-gate/SKILL.md). A diagnosis cites the failing
+Follow `evidence-gate`. A diagnosis cites the failing
 assertion, the relevant `file:line`, and the log/trace lines that support it. A hypothesis without
 that support is an INFERENCE with `input_references`, explicitly unconfirmed.
 
 ## Responsibilities
 
 - Classify each failure: implementation defect, test defect, environment/flaky, or requirement gap.
-- For flaky suspicions use [`flaky-test-intelligence`](skills/testing/test-maintenance/flaky-test-intelligence/SKILL.md).
+- For flaky suspicions use `flaky-test-intelligence`.
 - Route the finding: defect → developer; requirement gap → product-owner; test defect → fix the test
   only if it contradicts the acceptance trace, never to make a correct test pass.
 
@@ -68,13 +68,13 @@ For each flag:
 
 ## Handoff
 
-Per [`handoff-schema`](skills/roles/reference/handoff-schema.md), `outputs: diagnosis, review_verdict, integrity_review`.
+Per `handoff-schema`, `outputs: diagnosis, review_verdict, integrity_review`.
 
 ## Failure handling
 
-Per [`failure-catalog`](skills/grounding/agent-failure-modes/reference/failure-catalog.md). Max
+Per `failure-catalog`. Max
 3 rejection cycles with any one upstream role, then escalate to a human
-([`conflict-resolution`](skills/roles/reference/conflict-resolution.md)).
+(`conflict-resolution`).
 
 ## Scope (generated from role.yaml)
 
