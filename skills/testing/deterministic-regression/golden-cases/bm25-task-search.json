@@ -1,0 +1,21 @@
+{
+  "case_id": "bm25-task-search",
+  "description": "BM25 search ranks exact matches higher than partial",
+  "fixture": {
+    "query": "postgres database migration",
+    "corpus": [
+      {"content": "database migration script for postgres", "id": "task-1"},
+      {"content": "postgres connection pool optimization database", "id": "task-2"},
+      {"content": "update readme documentation", "id": "task-3"}
+    ]
+  },
+  "steps": [
+    {
+      "action": "bm25_ranking",
+      "expected": {
+        "top_id": "task-1",
+        "min_results": 2
+      }
+    }
+  ]
+}

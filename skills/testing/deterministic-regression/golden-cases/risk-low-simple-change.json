@@ -1,0 +1,24 @@
+{
+  "case_id": "risk-low-simple-change",
+  "description": "Small change to non-sensitive path routes to LOW tier",
+  "fixture": {
+    "lines_changed": 10,
+    "files_changed": 2,
+    "file_paths": ["src/utils.py", "tests/test_utils.py"]
+  },
+  "steps": [
+    {
+      "action": "risk_routing",
+      "expected": {
+        "tier": "LOW",
+        "score_max": 0.25
+      }
+    },
+    {
+      "action": "sensitive_path_detection",
+      "expected": {
+        "count": 0
+      }
+    }
+  ]
+}

@@ -49,6 +49,11 @@ tools appear as `mcp__adlc__<tool>` in Claude Code).
 | Prompt injection in content/metadata does not override classification (ASI01) | `core/evidence-ledger`, `grounding/trust-boundaries` | `modules/evidence_ledger/domain.py` (server-derived fields), `modules/change_management/domain.py` | `tests/aat/test_asi01_prompt_injection.py` (classification, handoff, SQL, unicode — 10 tests) |
 | Iteration cap and non-retryable escalation (ASI06) | `grounding/agent-failure-modes` | `modules/change_management/domain.py` (`FAILURE_POLICY`, `ITERATION_CAP`), `api.py` (`record_task_failure`) | `tests/aat/test_asi06_excessive_agency.py` (cap, escalation, role boundaries — 12 tests) |
 | Oversized payloads and rapid writes preserve hash chain (ASI08) | `core/evidence-ledger` | `modules/evidence_ledger/store.py` (hash chain), `modules/change_management/domain.py` | `tests/aat/test_asi08_resource_abuse.py` (payloads, integrity, handoff abuse — 10 tests) |
+| Dangerous paths blocked on read AND write (path traversal, credentials, SSH keys) | `grounding/trust-boundaries` | `skills/enforcement/lib/adlc_enforcement.py` (`DANGEROUS_PATH_PATTERNS`, `match_dangerous_path`), `skills/enforcement/hooks/control-file-guard/control_file_guard.py` (read + write blocking) | `skills/enforcement/tests/test_enforcement.py` (`PathTraversalGuardTests` — 5 tests) |
+| Event journal append-only with hash-chained tamper detection | `core/evidence-ledger` | `modules/event_journal/store.py` (SHA-256 hash chain, per-run GENESIS_HASH), `modules/event_journal/api.py` (actor identity server-derived) | `tests/test_event_journal.py` (chain tamper, deletion detection, fold, tools — 12 tests) |
+| Stage transitions validated against declarative graph | `workflow/stage-preflight` | `modules/stage_engine/store.py` (allowed_next, required_roles, required_outputs, gate checks), `modules/stage_engine/domain.py` (TRANSITION_GRAPH) | `tests/test_stage_engine.py` (18 tests: graph, validation, recording, current stage, tools) |
+| Task claims enforce mutual exclusion (UNIQUE constraint) | `change-management/parallel-execution` | `modules/concurrency/store.py` (claim_task: SQLite UNIQUE constraint mutex, stale claim cleanup) | `tests/test_concurrency.py` (6 claim tests: acquire, release, conflict, stale) |
+| Parallel coordinator max workers capped at MAX_WORKERS | `change-management/parallel-execution` | `modules/parallel_coordinator/store.py` (always caps `max_workers` to `MAX_WORKERS=8`) | `tests/test_parallel_coordinator.py` (max workers capped test, enforcement test) |
 
 ---
 
@@ -70,6 +75,14 @@ tools appear as `mcp__adlc__<tool>` in Claude Code).
 | Verification strength (coverage × mutation × stability) | `governance/autonomy-gating` | `skills/governance/autonomy-gating/verification_strength.py` | Weighted harmonic mean; tiers HIGH/MEDIUM/LOW. |
 | Enforcement label machine-checkable | `docs/authoring-conventions.md` | `docs/tools/check_skill_contracts.py` | Warns if `## Enforcement` lacks Enforced/Detects/Guideline keyword. |
 | AI-authorship commit trailer policy | `governance/` | `skills/enforcement/ci-checks/commit-trailer-check/check_commit_trailers.py` | Flags AI commits missing ADLC-Run trailer; wire to PR CI. |
+| Quantitative risk score maps to 4-tier model | `change-management/risk-tiering` | `skills/change-management/risk-tiering/scripts/risk_scorer.py` (sigmoid model, tier boundaries) | Reports tier + score; complements path-based lookup. Tested: `skills/change-management/risk-tiering/tests/test_risk_scorer.py` (23 tests). |
+| Deterministic regression suite (golden-case replay) | `testing/deterministic-regression` | `skills/testing/deterministic-regression/scripts/replay_runner.py` (5 check functions, fixture replay) | Model-free golden-case validation. Tested: `skills/testing/deterministic-regression/tests/test_replay_runner.py` (7 tests) + 4 golden cases. |
+| BM25 similar-task search | `core/evidence-ledger` | `skills/mcp-servers/adlc-mcp/src/adlc_mcp/modules/evidence_ledger/bm25.py` | Ranks historical tasks by relevance. Tested: `skills/mcp-servers/adlc-mcp/tests/test_bm25.py` (14 tests). |
+| Lesson relevance ranking (file + text overlap) | `self-improvement` | `skills/self-improvement/scripts/lesson_ranker.py` (Jaccard + BM25, max 8) | Ranks lessons for context assembly. Tested: `skills/self-improvement/tests/test_lesson_ranker.py` (10 tests). |
+| File intent conflict detection (file + directory overlap) | `change-management/parallel-execution` | `modules/concurrency/store.py` (check_conflicts: file overlap + directory containment) | Reports conflicts; does not block. Tested: `tests/test_concurrency.py` (5 intent tests). |
+| Parallel worker state tracking | `change-management/parallel-execution` | `modules/parallel_coordinator/store.py` (get_worker_status: pending/running/completed/stopped/failed) | Reports per-plan worker states. Tested: `tests/test_parallel_coordinator.py` (12 tests). |
+| Coordination messages between workers | `change-management/parallel-execution` | `modules/concurrency/store.py` (send_message, get_messages) | Advisory inter-worker communication. Tested: `tests/test_concurrency.py` (2 message tests). |
+| Intent router auto-classifies user requests | `skill-routing/intent-router` | `skills/skill-routing/intent-router/SKILL.md` (9 intent categories, confidence scoring) | Advisory classification; explicit `/skill-name` overrides. |
 
 ---
 
@@ -94,6 +107,21 @@ tools appear as `mcp__adlc__<tool>` in Claude Code).
 | Autonomy gated by verification strength | `governance/autonomy-gating` | Target: branch ruleset requiring review in ASSIST repos |
 | Reviewer model-family diversity for HIGH/CRITICAL | `roles/reference/reviewer-diversity.md` | Target: server check on `record_handoff` |
 | Brownfield conventions (Copilot) | `engineering-design/project-conventions` | Enforced by the project's own CI, not by the platform on Copilot |
+| Circuit breaker (emergency stop via `.adlc/STOP`) | `grounding/circuit-breaker` | Target: PreToolUse hook checks for `.adlc/STOP`; halt event written to journal |
+| Discovery bounds (question/round limits) | `grounding/agent-failure-modes` | Orchestrator-tracked counter; documented in `reference/discovery-bounds.md` |
+| Tool safety bounds (read/bash/grep limits) | `grounding/trust-boundaries` | Host tools enforce natively; documented in `reference/tool-safety-bounds.md` |
+| Context assembly order (5-layer deterministic) | `skill-routing/context-assembly` | Documented protocol; no runtime enforcer yet |
+| Content fence protocol (escape-resistant delimiters) | `grounding/content-fence` | Documented protocol; applied by context-assembly mechanism |
+| Host parity invariant (same capabilities regardless of host) | `docs/cross-cutting-design-rules.md` | Architectural principle; CI target: verify parity across host outputs |
+| Role quality rubrics (self-scoring before handoff) | `roles/*` | Self-assessment checklist in each ROLE.md; threshold triggers self-revision |
+| Structured reasoning trail (4-channel notes) | `core/evidence-ledger` | Documented in `reference/structured-reasoning.md`; extends evidence ledger |
+| Document visibility classification (INTERNAL/DELIVERABLE) | `docs/cross-cutting-design-rules.md` | Target: PostToolUse hook checks INTERNAL content not in output |
+| ADLC workspace manager (`.adlc/` structured storage) | `docs/workspace-layout.md` | Documented layout; `.adlc/` auto-added to `.gitignore` |
+| Workspace isolation (worktree per worker) | `workflow/workspace-isolation` | Documented protocol; isolation rules, handback, branch conventions |
+| Worker sandbox policy (env allowlist, command restrictions) | `change-management/parallel-execution` | Documented in `reference/worker-sandbox-policy.md`; target: managed-settings enforcement |
+| Stage transition engine (advisory, not blocking) | `workflow/stage-preflight` | Validates transitions; does not prevent MCP tool calls. Target: gate hooks |
+| ADLC Insight Hub (observability dashboard) | `docs/cross-cutting-design-rules.md` | Web UI served from MCP server; read-only views of all module data |
+| ADLC CLI toolkit (8 command wrappers) | `docs/workspace-layout.md` | CLI scripts under `cli/`; wrappers for MCP module operations |
 
 ---
 

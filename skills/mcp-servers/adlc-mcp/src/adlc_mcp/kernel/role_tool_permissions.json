@@ -4,18 +4,28 @@
     "product-owner": [
       "record_evidence", "query_evidence", "record_correction",
       "get_change_set", "record_handoff",
-      "get_work_item", "query_work_graph", "evaluate_readiness"
+      "get_work_item", "query_work_graph", "evaluate_readiness",
+      "append_journal", "fold_state", "query_journal", "heartbeat",
+      "get_transition_graph", "validate_transition", "record_transition", "get_current_stage",
+      "claim_task", "release_task", "declare_file_intent", "check_conflicts", "send_coordination_message",
+      "get_worker_status", "stop_all_workers"
     ],
     "product-planner": [
       "record_evidence", "query_evidence", "record_correction",
       "get_change_set", "record_handoff",
-      "get_work_item", "query_work_graph", "evaluate_readiness"
+      "get_work_item", "query_work_graph", "evaluate_readiness",
+      "append_journal", "fold_state", "query_journal", "heartbeat",
+      "get_transition_graph", "validate_transition", "record_transition", "get_current_stage",
+      "claim_task", "release_task", "declare_file_intent", "check_conflicts", "send_coordination_message"
     ],
     "architect": [
       "record_evidence", "query_evidence", "record_correction",
       "get_change_set", "record_handoff", "record_dependency",
       "check_compatibility", "detect_drift",
-      "get_work_item", "query_work_graph", "evaluate_readiness"
+      "get_work_item", "query_work_graph", "evaluate_readiness",
+      "append_journal", "fold_state", "query_journal", "heartbeat",
+      "get_transition_graph", "validate_transition", "record_transition", "get_current_stage",
+      "claim_task", "release_task", "declare_file_intent", "check_conflicts", "send_coordination_message"
     ],
     "developer": [
       "record_evidence", "query_evidence", "record_correction",
@@ -24,36 +34,55 @@
       "validate_snapshot_currency", "record_dependency", "compute_risk_tier",
       "record_task", "checkpoint_task", "record_task_failure",
       "get_work_item", "query_work_graph", "evaluate_readiness", "evaluate_done",
-      "link_change_set"
+      "link_change_set",
+      "append_journal", "fold_state", "query_journal", "heartbeat",
+      "get_transition_graph", "validate_transition", "record_transition", "get_current_stage",
+      "claim_task", "release_task", "declare_file_intent", "check_conflicts", "send_coordination_message",
+      "create_parallel_plan", "start_worker", "get_worker_status", "integrate_results", "stop_all_workers"
     ],
     "qa-derive": [
       "record_evidence", "query_evidence", "record_correction",
       "get_change_set", "record_handoff",
-      "get_work_item", "query_work_graph", "evaluate_readiness"
+      "get_work_item", "query_work_graph", "evaluate_readiness",
+      "append_journal", "fold_state", "query_journal", "heartbeat",
+      "get_transition_graph", "validate_transition", "record_transition", "get_current_stage",
+      "claim_task", "release_task", "declare_file_intent", "check_conflicts", "send_coordination_message"
     ],
     "qa-diagnose": [
       "record_evidence", "query_evidence", "record_correction",
       "get_change_set", "record_handoff",
       "record_incident", "query_incidents",
-      "get_work_item", "query_work_graph"
+      "get_work_item", "query_work_graph",
+      "append_journal", "fold_state", "query_journal", "heartbeat",
+      "get_transition_graph", "validate_transition", "record_transition", "get_current_stage",
+      "claim_task", "release_task", "declare_file_intent", "check_conflicts", "send_coordination_message"
     ],
     "test-engineer": [
       "record_evidence", "query_evidence", "record_correction",
       "get_change_set", "record_handoff",
       "record_task", "checkpoint_task", "record_task_failure",
       "get_work_item", "query_work_graph", "evaluate_done",
-      "link_change_set"
+      "link_change_set",
+      "append_journal", "fold_state", "query_journal", "heartbeat",
+      "get_transition_graph", "validate_transition", "record_transition", "get_current_stage",
+      "claim_task", "release_task", "declare_file_intent", "check_conflicts", "send_coordination_message"
     ],
     "code-reviewer": [
       "record_evidence", "query_evidence", "record_correction",
       "get_change_set", "record_handoff",
-      "get_work_item", "query_work_graph"
+      "get_work_item", "query_work_graph",
+      "append_journal", "fold_state", "query_journal", "heartbeat",
+      "get_transition_graph", "validate_transition", "record_transition", "get_current_stage",
+      "claim_task", "release_task", "declare_file_intent", "check_conflicts", "send_coordination_message"
     ],
     "security-reviewer": [
       "record_evidence", "query_evidence", "record_correction",
       "get_change_set", "record_handoff",
       "query_incidents",
-      "get_work_item", "query_work_graph"
+      "get_work_item", "query_work_graph",
+      "append_journal", "fold_state", "query_journal", "heartbeat",
+      "get_transition_graph", "validate_transition", "record_transition", "get_current_stage",
+      "claim_task", "release_task", "declare_file_intent", "check_conflicts", "send_coordination_message"
     ]
   }
 }

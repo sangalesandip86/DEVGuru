@@ -192,6 +192,36 @@ class ShimCheckTests(unittest.TestCase):
             self.assertEqual(len(check_agents_md_shim.check(root, strict=True)), 1)
 
 
+class PathTraversalGuardTests(unittest.TestCase):
+    def test_dangerous_path_patterns(self):
+        for p in ["../../etc/passwd", "src/../../../etc/shadow", "~/.ssh/id_rsa", "~/.ssh/config",
+                  ".env", ".env.local", "config/.env.production", "credentials.json",
+                  "config/credentials.yaml", "server.pem", "private.key", ".git/config"]:
+            self.assertIsNotNone(ae.match_dangerous_path(p), p)
+
+    def test_safe_paths_allowed(self):
+        for p in ["src/main.py", "docs/environment.md", "tests/test_key_manager.py",
+                  ".github/workflows/ci.yml", "src/ssh_client.py", "src/api_key_manager.py"]:
+            self.assertIsNone(ae.match_dangerous_path(p), p)
+
+    def test_read_of_dangerous_path_blocked(self):
+        ev = ae.parse_event(claude("Read", {"file_path": ".env"}))
+        self.assertIsNotNone(control_file_guard.evaluate(ev, GLOBS, ev.cwd))
+
+    def test_read_of_normal_file_allowed(self):
+        ev = ae.parse_event(claude("Read", {"file_path": "src/main.py"}))
+        self.assertIsNone(control_file_guard.evaluate(ev, GLOBS, ev.cwd))
+
+    def test_shell_and_copilot_reads(self):
+        ev = ae.parse_event(claude("Bash", {"command": "cat ~/.ssh/id_rsa"}))
+        hit = control_file_guard.evaluate(ev, GLOBS, ev.cwd)
+        self.assertTrue(hit and hit[1].startswith("DANGEROUS:"))
+        ev = ae.parse_event(claude("Bash", {"command": "cat src/main.py"}))
+        self.assertIsNone(control_file_guard.evaluate(ev, GLOBS, ev.cwd))
+        ev = ae.parse_event(copilot("view", {"path": "server.pem"}))
+        self.assertIsNotNone(control_file_guard.evaluate(ev, GLOBS, ev.cwd))
+
+
 REPO_ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ENF / "ci-checks" / "planning-gates"))
 import minyaml  # noqa: E402

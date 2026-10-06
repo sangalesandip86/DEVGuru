@@ -54,6 +54,19 @@ requirement.
 Per [`handoff-schema`](../reference/handoff-schema.md), `outputs: design_decision,
 architecture_decision_record, review_verdict`.
 
+## Quality Rubric
+
+Self-score before handoff. Each criterion is 0 (not met), 1 (partially met), or 2 (fully met).
+A total below 6 means the work is not ready for handoff.
+
+| # | Criterion | Scoring |
+|---|-----------|---------|
+| 1 | **Numbers grounding** | 2 = every design decision cites stated scale/QPS/latency numbers; 1 = most decisions grounded; 0 = decisions rest on generic patterns |
+| 2 | **Contract awareness** | 2 = all affected contracts and dependencies recorded; 1 = partial coverage; 0 = contracts not checked |
+| 3 | **Standards compliance** | 2 = design within existing ADRs and declared standards; 1 = minor deviations documented; 0 = undocumented deviation |
+| 4 | **Alternatives considered** | 2 = ADR lists alternatives with trade-offs; 1 = alternatives noted without analysis; 0 = no alternatives |
+| 5 | **Risk identification** | 2 = risks stated with evidence and mitigations; 1 = risks noted without mitigation; 0 = risks not addressed |
+
 ## Failure handling
 
 Per [`failure-catalog`](../../grounding/agent-failure-modes/reference/failure-catalog.md). Infeasible

@@ -18,7 +18,8 @@ import subprocess
 from dataclasses import dataclass, field
 from pathlib import Path
 
-KNOWN_MODULES = ("evidence_ledger", "change_management", "contract_registry", "work_planning")
+KNOWN_MODULES = ("evidence_ledger", "change_management", "contract_registry", "work_planning",
+                 "event_journal", "stage_engine", "concurrency", "parallel_coordinator")
 MANIFEST_NAME = "adlc.workspace.yaml"
 
 

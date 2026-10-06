@@ -62,6 +62,19 @@ For each flag:
 
 Per [`handoff-schema`](../reference/handoff-schema.md), `outputs: diagnosis, review_verdict, integrity_review`.
 
+## Quality Rubric
+
+Self-score before handoff. Each criterion is 0 (not met), 1 (partially met), or 2 (fully met).
+A total below 6 means the work is not ready for handoff.
+
+| # | Criterion | Scoring |
+|---|-----------|---------|
+| 1 | **Diagnosis evidence** | 2 = every diagnosis cites failing assertion, file:line and log/trace lines; 1 = partial citations; 0 = unsupported diagnoses |
+| 2 | **Classification accuracy** | 2 = each failure classified as impl defect/test defect/flaky/req gap; 1 = some unclassified; 0 = no classification |
+| 3 | **Routing correctness** | 2 = findings routed to correct upstream role with evidence; 1 = correct role but weak evidence; 0 = misrouted or unrouted |
+| 4 | **Expected-behavior integrity** | 2 = frozen test design treated as fixed throughout; 1 = minor deviations noted; 0 = expected behavior altered |
+| 5 | **Integrity-guard review** | 2 = all flagged weakening changes reviewed against AC hash; 1 = partial review; 0 = flags not addressed |
+
 ## Failure handling
 
 Per [`failure-catalog`](../../grounding/agent-failure-modes/reference/failure-catalog.md). Max

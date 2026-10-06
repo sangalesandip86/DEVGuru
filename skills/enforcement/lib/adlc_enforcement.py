@@ -112,6 +112,40 @@ FILE_WRITE_TOOLS = {
     # GitHub Copilot (agent/CLI tool names)
     "create", "str_replace", "str_replace_editor", "insert", "apply_patch", "write_file", "edit_file",
 }
+
+# Dangerous paths blocked on ALL operations (read AND write)
+DANGEROUS_PATH_PATTERNS = [
+    r"(?:^|/)\.\.(?:/|$)",           # Parent directory traversal
+    r"(?:^|/)~/.ssh(?:/|$)",         # SSH keys
+    r"(?:^|/)\.env(?:\.|$)",         # .env files (.env, .env.local, etc.)
+    r"(?:^|/)credentials\.(json|yaml|yml|toml)(?:$)",  # Credential files
+    r"(?:^|/).*\.pem$",              # Certificate files
+    r"(?:^|/).*\.key$",              # Private key files
+    r"(?:^|/)\.git/config$",         # Git config (may contain credentials)
+    r"(?:^|/)\.git/hooks/",          # Git hooks
+    r"(?:^|/)\.netrc$",              # Netrc credentials
+    r"(?:^|/)\.pgpass$",             # Postgres password file
+]
+
+FILE_READ_TOOLS = {
+    "read", "cat", "head", "tail", "less", "more", "view",
+    "get_content", "get-content",  # PowerShell
+}
+
+_DANGEROUS_RX = [re.compile(p, re.IGNORECASE) for p in DANGEROUS_PATH_PATTERNS]
+
+
+def match_dangerous_path(path: str) -> str | None:
+    """Return the first dangerous pattern a path matches, or None."""
+    normalized = _normalize(path)
+    if not normalized:
+        return None
+    for rx, pattern in zip(_DANGEROUS_RX, DANGEROUS_PATH_PATTERNS):
+        if rx.search(normalized):
+            return pattern
+    return None
+
+
 SHELL_TOOLS = {"bash", "shell", "powershell", "run_in_terminal", "terminal"}
 PATH_KEYS = ("file_path", "notebook_path", "path", "filePath", "filepath", "target_file")
 

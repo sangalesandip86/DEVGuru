@@ -1,0 +1,4741 @@
+Alfred v1.2.0
+
+Consolidated Enterprise Architecture, Requirements & Structural Specification
+
+Repository: "ai-workflow/alfred"
+Version: "1.2.0"
+Status: Consolidated architecture and requirements specification
+
+---
+
+1. Purpose and System Definition
+
+1.1 What Alfred is
+
+Alfred is an agentic software-delivery control plane and execution layer that governs AI coding assistants such as Claude Code and GitHub Copilot.
+
+Alfred does not attempt to make an LLM intrinsically reliable.
+
+Instead:
+
+«LLMs are treated as fallible, untrusted actors. Alfred provides the deterministic control system around them.»
+
+Alfred is responsible for controlling:
+
+- workflow selection
+- workflow sequencing
+- persona identity
+- persona capabilities
+- tool access
+- requirements/specification lifecycle
+- acceptance criteria
+- planning
+- implementation
+- test strategy
+- verification
+- independent review
+- risk assessment
+- concurrency
+- file ownership
+- task claims
+- inter-agent coordination
+- evidence
+- release sequencing
+- human approval
+- auditability
+- lessons/standards governance
+- worktree isolation
+- execution limits
+- host integration
+
+The LLM supplies reasoning and generated work.
+
+Alfred controls what the LLM is allowed to do, when it is allowed to do it, what evidence it must produce, and whether the result can progress.
+
+---
+
+2. Core Design Principles
+
+2.1 Deterministic control around probabilistic actors
+
+The central architectural principle is:
+
+LLM = untrusted reasoning actor
+Alfred = deterministic governance + execution boundary
+
+LLMs must never be the final authority for:
+
+- workflow transitions
+- tool permissions
+- risk classification
+- acceptance of their own work
+- independent review
+- security approval
+- concurrency ownership
+- release approval
+- specification mutability
+- human approval state
+
+---
+
+2.2 Static capability identity
+
+Tool access is determined by persona identity, not by an LLM choosing its own tools at runtime.
+
+Every graph node is bound to a persona.
+
+Every persona has:
+
+- immutable tool grant
+- refusal list
+- weighted self-scoring rubric
+- model-cost tier
+- charter
+- duties
+- calibration
+- overruling rules
+
+This prevents an agent from dynamically escalating its own capabilities.
+
+---
+
+3. Strict Architectural Hierarchy
+
+Alfred uses the following hierarchy:
+
+Request
+   ↓
+Workflow
+   ↓
+Persona Graph
+   ↓
+Persona
+   ↓
+Skill
+   ↓
+Tool
+
+Each level has a distinct responsibility.
+
+3.1 Request
+
+The user's business or engineering intent.
+
+Examples:
+
+- fix a bug
+- add a feature
+- investigate an architecture
+- deliver a ticket
+- review a change
+- onboard to a repository
+
+---
+
+3.2 Workflow
+
+Defines the delivery behavior.
+
+Examples:
+
+- triage
+- spike
+- groom
+- plan
+- develop
+- test
+- review
+- verify
+- deliver
+- ship
+
+---
+
+3.3 Persona Graph
+
+A compiled state-machine representation of the workflow.
+
+The graph determines:
+
+- allowed transitions
+- persona at each node
+- required outputs
+- schemas
+- gates
+- loops
+- bounded retry behavior
+- escalation/arbitration
+- terminal conditions
+
+---
+
+3.4 Persona
+
+Represents the role performing a graph node.
+
+Examples:
+
+- product manager
+- architect
+- developer
+- QA
+- reviewer
+- security
+- delivery
+- release
+- writer
+
+---
+
+3.5 Skill
+
+Reusable behavioral guidance attached to workflow/persona nodes.
+
+Examples:
+
+- TDD
+- security
+- Git guardrails
+- PRD creation
+- architecture design
+- triage
+- refactoring
+- interface design
+
+---
+
+3.6 Tool
+
+The lowest-level capability boundary.
+
+Examples:
+
+- read
+- edit
+- write
+- bash
+- glob
+- grep
+- walk
+- Alfred MCP operations
+
+---
+
+4. System Topology
+
+4.1 High-level topology
+
+                         USER / OPERATOR
+                                │
+              ┌─────────────────┴──────────────────┐
+              │                                    │
+          AI HOSTS                            MISSION CONTROL
+              │                                    │
+     stdio JSON-RPC                           HTTP/SSE
+              │                             127.0.0.1 only
+              ▼                                    ▼
+       ALFRED MCP SERVER                    LOCAL SERVE LAYER
+              │                                    │
+              └────────────────┬───────────────────┘
+                               ▼
+                        ALFRED ENGINE
+                               │
+             ┌─────────────────┼──────────────────┐
+             │                 │                  │
+          PERSONAS           KERNEL             LEDGER
+             │                 │                  │
+             └─────────────────┼──────────────────┘
+                               │
+                               ▼
+                       `.alfred/` STORE
+
+---
+
+5. Supported Execution Surfaces
+
+Alfred supports four principal user surfaces.
+
+5.1 AI host slash-command surface
+
+Supported hosts include:
+
+- Claude Code
+- GitHub Copilot in VS Code
+- GitHub Copilot CLI
+
+The host starts:
+
+alfred serve --mcp
+
+over local stdio.
+
+Generated host slash commands are deliberately thin.
+
+For example:
+
+.claude/commands/alfred-deliver.md
+
+must contain only procedural invocation behavior.
+
+It must not duplicate:
+
+- charters
+- standards
+- acceptance criteria
+- verification plans
+- workflow logic
+
+Those are dynamically served through MCP.
+
+---
+
+6. Direct CLI Surface
+
+Users can invoke workflows directly:
+
+alfred <workflow>
+
+CLI workflows operate against the same ledger and deterministic engine.
+
+The CLI does not become a second implementation of workflow logic.
+
+---
+
+7. Mission Control
+
+Mission Control is the local operator interface.
+
+It is backed by the local Alfred serve layer.
+
+It allows humans to:
+
+- monitor runs
+- inspect tasks
+- observe agents
+- inspect reasoning timelines
+- resolve gates
+- inspect Epics
+- inspect conflicts
+- monitor worktrees
+- approve blocked execution
+
+---
+
+8. Monorepo Architecture
+
+The repository is an npm workspace.
+
+packages/*
+apps/*
+
+8.1 Dependency law
+
+"packages/*" contains reusable pure/core logic.
+
+"apps/*" contains user-facing applications.
+
+Dependency boundaries are enforced by:
+
+scripts/check-deps.mjs
+
+The checker scans raw source using regex and validates the architectural dependency rules at build time.
+
+---
+
+9. Core Packages
+
+9.1 "packages/contracts"
+
+Purpose:
+
+- shared types
+- schemas
+- protocol contracts
+
+Uses:
+
+- Zod
+
+Constraint:
+
+«No failing business logic belongs here.»
+
+---
+
+9.2 "packages/brand"
+
+Contains:
+
+- vector logo geometry
+- branding primitives
+
+No external dependencies.
+
+---
+
+9.3 "packages/kernel"
+
+Contains approximately 24 pure, I/O-free decision modules.
+
+Responsibilities include:
+
+- judgement
+- CI planning
+- secret redaction
+- provenance trailers
+- deterministic decisions
+
+Critical constraint:
+
+«Kernel code must never see the runtime configuration object.»
+
+---
+
+9.4 "packages/engine"
+
+Compiles workflow charters into executable persona graphs.
+
+Contains:
+
+engine/src/graph/graphs.ts
+
+Responsibilities:
+
+- workflow graph compilation
+- graph transitions
+- persona-bound steps
+- schemas derived from graph definitions
+
+There are 13 workflow charters.
+
+---
+
+9.5 "packages/personas"
+
+Contains the shared nine-persona roster.
+
+Each persona defines:
+
+- static tool grant
+- refusal list
+- weighted rubric
+- cost tier
+- charter metadata
+
+Primary specification:
+
+packages/personas/src/specs.ts
+
+---
+
+9.6 "packages/ledger"
+
+Provides Alfred's folder-backed persistent coordination model.
+
+Responsibilities:
+
+- append-only journals
+- task state machines
+- task claims
+- notes
+- handoffs
+- decisions
+- file intents
+- playbook
+- state folding
+
+---
+
+9.7 "packages/knowledge"
+
+Contains deterministic knowledge functions.
+
+Includes:
+
+- logistic regression risk scoring
+- delivery estimates
+- directory conflict heuristics
+- dependency-free BM25 search
+
+---
+
+9.8 "packages/evals"
+
+Replays recorded golden runs through the real engine.
+
+No model is involved.
+
+Purpose:
+
+- catch routing regressions
+- detect gate regressions
+- validate deterministic behavior
+
+---
+
+9.9 "packages/host-kit"
+
+Provides shared host integration.
+
+Contains:
+
+- brief assembly
+- MCP server
+- batch planner
+- 14-rule surface conformance checker
+
+---
+
+9.10 "packages/host-claude"
+
+Thin Claude adapter.
+
+Must not contain workflow/content authoring.
+
+---
+
+9.11 "packages/host-copilot"
+
+Thin Copilot adapter.
+
+Must not contain workflow/content authoring.
+
+Host adapters are limited to:
+
+- translating capability names
+- parsing connector outputs
+- adapting host protocols
+
+---
+
+10. Applications
+
+10.1 "apps/cli"
+
+Terminal interface.
+
+---
+
+10.2 "apps/web"
+
+React Mission Control application.
+
+---
+
+10.3 "apps/nodeapp"
+
+Native Node application packaging.
+
+---
+
+10.4 "apps/electron"
+
+Electron desktop packaging.
+
+---
+
+10.5 Shared app infrastructure
+
+Applications share:
+
+packages/appkit
+
+---
+
+11. Workflow Ladder
+
+Alfred's primary delivery ladder is:
+
+Request
+  ↓
+Triage
+  ↓
+Spike
+  ↓
+Groom
+  ↓
+Plan
+  ↓
+Develop
+  ↓
+Deliver
+  ↓
+Ship
+
+Early exit is allowed whenever the user's question is resolved.
+
+---
+
+12. The 13 Workflows
+
+12.1 "triage"
+
+Purpose:
+
+Determine whether a request is:
+
+- bug
+- feature
+- chore
+- question
+
+Determines:
+
+- owning codebase
+- readiness
+- blockers
+- recommended next workflow
+
+Reads ticket:
+
+- yes
+
+Writes spec:
+
+- no
+
+Board:
+
+- no
+
+Ships:
+
+- no
+
+Mode:
+
+- plan
+
+---
+
+12.2 "spike"
+
+Purpose:
+
+Investigate genuine implementation options.
+
+Must:
+
+- compare 2–4 real options
+- recommend one
+- identify what would falsify the recommendation
+- identify risks
+
+Must not implement.
+
+Mode:
+
+- plan
+
+---
+
+12.3 "groom"
+
+Purpose:
+
+Turn requirements into point-sized, testable stories.
+
+Produces:
+
+- acceptance criteria
+- scope
+- out-of-scope
+- stories
+- estimates
+
+Authors specification.
+
+Can touch board.
+
+Mode:
+
+- plan
+
+---
+
+12.4 "plan"
+
+Purpose:
+
+Turn the specification into an executable implementation plan.
+
+Must include:
+
+- ordered steps
+- files to change
+- proving tests
+- real verification commands
+
+Refines the specification.
+
+Mode:
+
+- plan
+
+---
+
+12.5 "develop"
+
+Purpose:
+
+Implement and verify locally.
+
+Must:
+
+- work in isolated worktree
+- use test-first development
+- run real verification
+
+Must never:
+
+- commit
+- push
+- open PR
+- mutate tracker/board
+- ship
+
+Mode:
+
+- auto
+
+This is an extremely strong invariant:
+
+«Committing or pushing from "develop" is an unforgivable failure.»
+
+The develop prompt must not contain shipping procedures.
+
+---
+
+12.6 "deliver"
+
+Purpose:
+
+Full implementation-to-PR delivery.
+
+Includes:
+
+- implementation
+- verification
+- fresh independent review
+- fixes
+- PR creation
+- ticket movement
+
+It is the sole end-to-end implementation and PR shipping workflow.
+
+Mode:
+
+- auto
+
+---
+
+12.7 "test"
+
+Purpose:
+
+Design, write, and execute tests.
+
+Focus:
+
+- realistic failures
+- boundary cases
+- empty sets
+- failure paths
+- regression coverage
+
+Mode:
+
+- auto
+
+---
+
+12.8 "review"
+
+Purpose:
+
+Independent adversarial review.
+
+Reviewer:
+
+- reads diff/range
+- does not read ticket
+- does not edit
+- does not use shell
+
+Review is based on engineering merit and standards, not the author's explanation.
+
+Mode:
+
+- plan
+
+---
+
+12.9 "verify"
+
+Purpose:
+
+Judge every acceptance criterion against evidence.
+
+Unlike review, verification:
+
+- reads ticket
+- reads acceptance criteria
+- can interact with board
+- maps each criterion to evidence
+
+Failures are classified as:
+
+1. real bug
+2. incorrectly stated criterion
+3. broken test environment
+
+Mode:
+
+- auto
+
+---
+
+12.10 "ship"
+
+Purpose:
+
+Advise and sequence release across repositories.
+
+Must include:
+
+- deployment order
+- reasons
+- pre-deploy snapshot
+- verification commands
+- rollback plan
+
+Must never deploy itself.
+
+Mode:
+
+- plan
+
+---
+
+12.11 "explain"
+
+Purpose:
+
+Onboard a human to an unfamiliar subsystem.
+
+Must explain:
+
+- plain-language architecture
+- exact data path
+- named files/functions
+- file responsibilities
+- unsafe-looking-but-safe/unsafe areas
+
+---
+
+12.12 "retro"
+
+Purpose:
+
+Look back at delivery evidence.
+
+Produces:
+
+- evidence-backed findings
+- proposed lessons
+
+Cannot directly mutate active standards.
+
+---
+
+12.13 "onboard"
+
+Purpose:
+
+Learn a repository and establish repository-specific knowledge.
+
+Writes:
+
+.alfred/PLAYBOOK.md
+.alfred/playbook.json
+
+Must cover:
+
+- stack
+- architecture
+- patterns
+- standards
+- testing
+- branch conventions
+- commit conventions
+- open questions
+
+---
+
+13. Workflow Safety Invariants
+
+13.1 Develop vs Deliver
+
+"develop":
+
+implement + test
+
+"deliver":
+
+implement + test + review + verify + PR
+
+Develop has no shipping authority.
+
+---
+
+13.2 Ship vs Deliver
+
+"ship" is advisory release sequencing.
+
+"deliver" owns implementation and PR shipping.
+
+---
+
+13.3 Specification immutability
+
+Only:
+
+- "groom" authors
+- "plan" refines
+
+After entering:
+
+- develop
+- deliver
+- review
+- verify
+
+the specification is frozen.
+
+---
+
+13.4 Blind review
+
+Reviewer must not read the ticket.
+
+This prevents confirmation bias.
+
+---
+
+13.5 Verification
+
+Verification explicitly uses:
+
+- ticket
+- acceptance criteria
+- evidence
+
+---
+
+13.6 Retro governance
+
+Retro can propose lessons.
+
+Only explicit human promotion makes lessons active.
+
+---
+
+13.7 Automatic prerequisites
+
+Normal delivery may automatically execute:
+
+onboard
+→ triage
+→ groom
+→ plan
+→ develop/deliver
+
+A prerequisite is skipped only where acceptable evidence already exists, such as:
+
+- fresh playbook
+- approved specification
+
+The system must explain why a prerequisite was skipped.
+
+---
+
+14. Persona Model
+
+There are nine personas.
+
+14.1 PM — mid cost
+
+Responsibilities:
+
+- intent
+- scope
+- acceptance criteria
+
+Can:
+
+- read
+- search
+- use Alfred
+
+Refuses:
+
+- design
+- solution implementation
+- code
+
+---
+
+14.2 Architect — top cost
+
+Responsibilities:
+
+- design
+- interfaces
+- risk
+- decisions
+- arbitration
+
+Can:
+
+- read
+- search
+- Alfred
+
+Refuses:
+
+- direct implementation
+
+---
+
+14.3 Developer — top cost
+
+Responsibilities:
+
+- vertical implementation
+- test-first coding
+- working software
+
+Can:
+
+- read
+- search
+- edit
+- shell
+- Alfred
+
+Refuses:
+
+- skipping failing gates
+- changing scope
+
+---
+
+14.4 QA — mid cost
+
+Responsibilities:
+
+- test plan
+- acceptance-criterion evidence
+
+Can:
+
+- read
+- search
+- Alfred
+
+Refuses:
+
+- passing work without evidence
+
+---
+
+14.5 Reviewer — top cost
+
+Responsibilities:
+
+- adversarial review
+- rubric-based diff evaluation
+
+Can:
+
+- read
+- search
+- Alfred
+
+Cannot:
+
+- edit
+- shell
+
+Refuses:
+
+- rewriting implementation
+- patching the code
+
+---
+
+14.6 Security — top cost
+
+Responsibilities:
+
+- threat analysis
+- secrets
+- security-controlled lane
+
+Can:
+
+- read
+- search
+- Alfred
+
+Refuses:
+
+- approving uncontrolled threats
+
+---
+
+14.7 Delivery — fast cost
+
+Responsibilities:
+
+- facilitation
+- escalation
+- retrospectives
+
+Can:
+
+- read
+- Alfred
+
+Refuses:
+
+- product decisions
+- design decisions
+
+---
+
+14.8 Release — fast cost
+
+Responsibilities:
+
+- branch
+- commit
+- PR
+- host connector release operations
+
+Can:
+
+- read
+- shell
+- Alfred
+
+Refuses:
+
+- push without green gates/approval
+
+---
+
+14.9 Writer — fast cost
+
+Responsibilities:
+
+- release notes
+- glossary
+- documentation
+
+Can:
+
+- read
+- search
+- edit
+- Alfred
+
+Refuses:
+
+- inventing behavior unsupported by code
+
+---
+
+15. Concrete Tool Architecture
+
+There are seven concrete tool implementations.
+
+They share:
+
+PathGuard
+
+All schemas use:
+
+additionalProperties: false
+
+---
+
+15.1 Read
+
+Properties:
+
+- line-numbered
+- 1-based pagination
+- maximum 256 KiB
+- binary detection from first 8192 bytes
+- maximum 2000 characters per line
+- maximum 2000 lines
+
+Every read is recorded through:
+
+context.ts:markRead
+
+---
+
+15.2 Write
+
+Rules:
+
+- read-before-write
+- existing file must have been read during current session
+- returns unified diff
+
+---
+
+15.3 Edit
+
+Rules:
+
+- read-before-write
+- CRLF normalized to LF
+- exact match required
+- rejects absent target
+- rejects ambiguous target
+- rejects no-op edits
+
+---
+
+15.4 Bash
+
+Execution root:
+
+project root
+
+Timeout:
+
+default: 120 seconds
+hard maximum: 600 seconds
+
+Uses cooperative "AbortSignal".
+
+Output maximum:
+
+30,000 characters
+
+---
+
+15.5 Glob
+
+Excludes dotfiles by default.
+
+---
+
+15.6 Grep
+
+Rules:
+
+- lines clipped to 400 characters
+- maximum 200 results
+- excludes:
+  - "node_modules"
+  - ".git"
+  - "dist"
+
+---
+
+15.7 Walk
+
+Maximum:
+
+20,000 entries
+
+Also excludes standard generated/internal directories.
+
+---
+
+16. PathGuard
+
+All file tools are confined to the resolved project root.
+
+PathGuard must:
+
+- block path traversal
+- block prefix collisions
+- protect ".env*"
+- protect "**/*secret*"
+- protect "~/.ssh/**"
+- protect Git internals
+
+These protections apply regardless of persona identity.
+
+---
+
+17. Skills Architecture
+
+Alfred contains two major skill classes:
+
+1. compiled house rules
+2. Markdown practices
+
+---
+
+18. Six House Rules
+
+House rules are compiled TypeScript in:
+
+packages/kernel/src/standards.ts
+
+They are included in every brief and must be byte-identical.
+
+18.1 Quality
+
+Require:
+
+- boundary-checked inputs
+- deliberate errors
+- smallest whole fix
+- existing precedent
+- idiomatic implementation
+- no dead code
+- no stubs
+- no TODO placeholders
+
+---
+
+18.2 Security
+
+Never:
+
+- hardcode secrets
+- use unvalidated SQL
+- concatenate shell commands unsafely
+- concatenate paths unsafely
+- log credentials
+
+Require validation at boundaries.
+
+---
+
+18.3 Tests
+
+No change without tests.
+
+Tests must cover:
+
+- happy path
+- failure path
+- edge cases
+
+Commands must actually be executed before claiming success.
+
+---
+
+18.4 Comments
+
+No explanatory comments unless:
+
+- required by toolchain
+- necessary to explain a genuine surprise
+
+Validated by:
+
+check-comments.mjs
+
+---
+
+18.5 Authorship
+
+Commits and PRs must be attributed to the human user.
+
+Must not add:
+
+- AI co-author trailers
+- generated-by footers
+
+---
+
+18.6 Interface
+
+Every UI must support:
+
+- empty
+- loading
+- partial
+- error
+- success
+
+Use design tokens.
+
+Animations require:
+
+- normal animation
+- reduced-motion fallback
+
+---
+
+19. Markdown Practice Skills
+
+Practices are stored under:
+
+packages/skills/practices/*
+
+Validated through:
+
+packages/skills/src/practices.ts
+
+Every practice must contain:
+
+1. numbered procedure
+2. explicit stop-when condition
+3. output section
+
+---
+
+19.1 "write-a-prd"
+
+Used by:
+
+- groom PM intake/stories
+- deliver PM criteria
+
+Produces:
+
+- problem
+- goal
+- testable criteria
+- out of scope
+
+---
+
+19.2 "ubiquitous-language"
+
+Used by:
+
+- groom
+- deliver
+- explain
+- onboard
+
+Detects disagreement between:
+
+- business terminology
+- code terminology
+
+---
+
+19.3 "prd-to-issues"
+
+Splits scope into sequenced tickets.
+
+Must not create tracker items without approval.
+
+---
+
+19.4 "grill-me"
+
+Used during:
+
+- groom
+- plan
+- spike
+
+Asks questions that code cannot answer.
+
+---
+
+19.5 "design-an-interface"
+
+Architectural interface design.
+
+Requires:
+
+- at least two genuinely different interfaces
+- losing design recorded
+- reason for rejection recorded
+
+---
+
+19.6 "prd-to-plan"
+
+Produces:
+
+- ordered vertical slices
+- proving tests
+
+---
+
+19.7 "request-refactor-plan"
+
+Produces:
+
+- small
+- verifiable
+- always-green commits
+
+---
+
+19.8 "tdd"
+
+Requires:
+
+failing test
+→ implementation
+→ green test
+
+Must never delete or weaken tests merely to achieve green.
+
+---
+
+19.9 "triage-issue"
+
+Requires:
+
+- minimal reproduction
+- root-cause isolation
+- fix slice
+
+---
+
+19.10 "improve-codebase-architecture"
+
+Identifies:
+
+- shallow modules
+- dependency cycles
+- architecture weaknesses
+
+Can propose.
+
+Must not automatically execute the architectural change.
+
+Used with:
+
+- spike
+- deliver
+- review
+- arbitration
+
+---
+
+19.11 "setup-pre-commit"
+
+Every commit must pass discovered repository gates.
+
+Rules:
+
+- discover actual gate commands
+- cheapest-first
+- no "--no-verify"
+
+---
+
+19.12 "git-guardrails"
+
+Applies to every shell-capable workflow.
+
+Intercepts:
+
+- force push
+- "git reset --hard"
+- "git clean -f"
+- "--no-verify"
+
+Human approval is required.
+
+---
+
+19.13 "unattended"
+
+Applies to autonomous workflows.
+
+Enforces:
+
+- task-count limits
+- wall-clock limits
+- ".alfred/STOP"
+
+Emergency stop must halt execution.
+
+---
+
+20. Brief Assembly
+
+Brief construction is deterministic.
+
+Order:
+
+1. Static bytes
+
+<charter>
+## Judgement
+## House rules
+
+"Judgement" is assembled from:
+
+- BAR
+- DUTIES
+- CALIBRATION
+- OVERRULED
+
+---
+
+2. Stable workflow metadata
+
+## Deliver exactly these sections
+
+---
+
+3. Task/environment data
+
+Includes:
+
+- ranked standards
+- repository facts
+- worktree location
+- branch conventions
+
+Branch information is omitted when the workflow does not ship.
+
+---
+
+4. Untrusted input
+
+Ticket bodies and external PR comments are fenced using:
+
+fenceUntrusted()
+
+Fence handling is escape-resistant even where the input contains long backtick sequences.
+
+---
+
+5. Dynamic proofs
+
+Includes:
+
+- frozen specification
+- accepted lessons
+- detected CI commands
+- verification information
+
+---
+
+21. Bounded Agentic Loops
+
+Alfred uses explicit bounded loops.
+
+21.1 Developer loop
+
+test
+→ implement
+→ test
+
+Red-green budget:
+
+6
+
+---
+
+21.2 Verification gates
+
+Typical gates:
+
+- type checking
+- lint
+- unit tests
+- integration/build checks as discovered
+
+---
+
+21.3 Review loop
+
+Reviewer critique budget:
+
+3
+
+---
+
+21.4 QA verification loop
+
+Verification loop budget:
+
+3
+
+---
+
+21.5 Arbitration
+
+If a checkpoint exhausts its budget:
+
+architect-arbitrate
+
+Arbitration may:
+
+- choose a trade-off
+- pause for human input
+
+It prevents:
+
+- infinite token consumption
+- endless retries
+- uncontrolled scope drift
+
+---
+
+22. Independent Review
+
+A fresh reviewer context is mandatory.
+
+Reviewer identity:
+
+alfred-reviewer
+
+Reviewer receives only:
+
+- diff
+- acceptance criteria
+- specification
+
+Reviewer must not receive:
+
+- author's report
+- author's justification
+
+Reviewer is:
+
+- read-only
+- shell-free
+- edit-free
+
+---
+
+22.1 Review/fix cycle
+
+High-severity findings block progress.
+
+Process:
+
+review
+→ finding
+→ developer fix
+→ verification
+→ fresh review
+
+Default quality fix-loop:
+
+2
+
+---
+
+23. Deterministic Risk Model
+
+LLM self-assessment is not trusted as a risk mechanism.
+
+Risk is calculated from actual repository changes.
+
+Implementation:
+
+packages/knowledge/src/risk.ts
+
+Model:
+
+riskScore = sigmoid(
+    bias
+    + Σ(weight × feature)
+)
+
+Where:
+
+sigmoid(z) = 1 / (1 + e^-z)
+
+---
+
+24. Risk Constants
+
+Bias:
+
+-3.0
+
+Lines:
+
+2.5
+
+Uses log-scaled diminishing returns.
+
+Files:
+
+1.5
+
+Uses log-scaled diminishing returns.
+
+Churn:
+
+1.5
+
+Coverage:
+
+2.0
+
+Sensitive files:
+
+3.0
+
+Sensitive contribution saturates after two matched sensitive globs.
+
+---
+
+25. Sensitive Paths
+
+Sensitive globs:
+
+**/auth/**
+**/security/**
+**/*secret*
+**/migrations/**
+**/.github/workflows/**
+**/Dockerfile
+**/pom.xml
+**/package.json
+
+---
+
+26. Risk Lanes
+
+risk < 0.34
+    → fast
+
+risk < 0.67
+    → full
+
+risk >= 0.67
+    → guarded
+
+Guarded execution injects:
+
+security-review
+
+and requires:
+
+blocking human approve-ship
+
+Therefore risk changes physical workflow topology, not merely a warning label.
+
+---
+
+27. Daemonless Coordination
+
+Alfred deliberately avoids:
+
+- background daemons
+- database servers
+- network coordination services
+
+Coordination is filesystem-based.
+
+---
+
+28. Ledger Journal Sources
+
+28.1 MCP journals
+
+Pattern:
+
+mcp-<pid>-<rand>.jsonl
+
+Records:
+
+- every tool invocation
+- 15-second heartbeat
+
+---
+
+28.2 Claude hook journals
+
+Pattern:
+
+hook-<session>.jsonl
+
+Records:
+
+- session start
+- prompt
+- pre-edit
+- session end
+
+No heartbeat.
+
+Errors fail open with exit code "0".
+
+---
+
+28.3 CLI journals
+
+Pattern:
+
+cli-<pid>.jsonl
+
+Records:
+
+- state refresh
+- watcher updates
+
+---
+
+29. Ledger State Model
+
+Each writer owns an append-only journal.
+
+State is generated through:
+
+foldEvents()
+
+which is:
+
+- pure
+- O(n)
+
+Produces:
+
+STATE.md
+state.json
+
+Task state machines live under:
+
+.alfred/tasks/
+
+State includes:
+
+- presence
+- claims
+- intents
+- messages
+- task notes
+- decisions
+- handoffs
+- timeline
+
+---
+
+30. Ledger Event Contract
+
+The ledger has a 20-variant discriminated union schema.
+
+Location:
+
+packages/contracts/src/ledger.ts
+
+Writes are atomic.
+
+---
+
+31. Incremental Journal Reading
+
+"readJournal" tracks byte offsets.
+
+It reads only through the final complete newline.
+
+This avoids consuming partially written events.
+
+---
+
+32. State Folding
+
+"foldEvents":
+
+- rebuilds state from scratch
+- sorts by timestamp + event ID
+- drops duplicate event IDs
+
+Bounded views:
+
+100 messages
+50 activity entries
+
+---
+
+33. Liveness Model
+
+Agent is:
+
+active      < 2 minutes
+heartbeat   every 90 seconds
+quiet       after 30 minutes
+dropped     after 24 hours
+
+---
+
+34. Hard Task Claims
+
+Task claims use an operating-system-level mutex.
+
+Implementation:
+
+claimTask()
+
+uses:
+
+open(file, 'wx')
+
+Retry backoff:
+
+5ms → 640ms
+
+Stale claim:
+
+10 seconds
+
+Constant:
+
+LOCK_STALE_MS = 10000
+
+This guarantees two agents cannot simultaneously acquire the same task claim.
+
+---
+
+35. Soft File Intents
+
+File ownership uses soft intents.
+
+Synchronization tool:
+
+alfred_sync
+
+Intent TTL:
+
+30 minutes
+
+Representation:
+
+IntentAcc
+
+Overlaps are advisory rather than hard locks.
+
+Agents can negotiate through:
+
+alfred_sync send
+
+---
+
+36. Directory Conflict Detection
+
+Alfred uses:
+
+predictConflicts()
+
+for directory-level conflict prediction.
+
+Claude's pre-edit hook can intercept conflicting files and ask the operator for approval.
+
+---
+
+37. Four-Destination Reasoning Ledger
+
+All persona commentary and handoffs flow through:
+
+alfred_note
+
+implemented through:
+
+packages/host-kit/src/ledger-tools.ts
+
+which calls:
+
+packages/ledger/src/tasks.ts:addNote()
+
+Every note can produce four Markdown destinations.
+
+1. Persona notes
+
+notes/<persona>.md
+
+2. Decisions
+
+decisions.md
+
+3. Handoffs
+
+handoffs/NNN-<from>-to-<to>.md
+
+Self-handoffs are rejected.
+
+4. PM narrative
+
+notes/pm.md
+
+---
+
+38. Timeline Index
+
+Every note operation additionally creates one compact JSONL line:
+
+timeline.jsonl
+
+Shape:
+
+{
+  "at": "...",
+  "handle": "...",
+  "persona": "...",
+  "kind": "...",
+  "to": "...",
+  "line": "..."
+}
+
+"line" is length-capped to the first line of the note.
+
+---
+
+39. Redaction
+
+Persona text is stored as-is after the brief instructs the model to self-redact.
+
+Secret redaction occurs on outbound boundaries.
+
+Applied in:
+
+ledger-tools.ts
+run-summary.ts
+
+It is therefore:
+
+store internally
+→ redact on external output
+
+rather than silently altering the audit record.
+
+---
+
+40. Runtime Consumers of the Ledger
+
+40.1 Chat run summaries
+
+"run-summary.ts" builds:
+
+Summary for the user
+
+directly from current structured output.
+
+It does not replay the timeline merely to generate the current summary.
+
+---
+
+40.2 Already-answered questions
+
+During groom/plan checkpoint handling:
+
+- questions from the exact prior gate round are paired with answers
+- future prompts receive:
+
+Answered already — do not ask these again
+
+---
+
+40.3 Lessons
+
+Retro reads:
+
+- notes
+- decisions
+- metrics
+
+to propose lessons.
+
+Lessons must:
+
+- be under 240 characters
+- contain a backtick-anchored file/command
+- be explicitly accepted before entering active standards
+
+Accepted lessons:
+
+- maximum 8 per brief
+- ranked by current changed-file and word relevance
+- never exposed to retro or verify as input
+
+---
+
+41. ".alfred/" Lifecycle
+
+Nothing writes to ".alfred/" speculatively.
+
+Every file has:
+
+- creator
+- initial creation condition
+- mutability rules
+- lifecycle
+
+---
+
+42. ".alfred/config.yaml"
+
+Created by:
+
+alfred setup
+
+or:
+
+scripts/setup.sh
+
+Documentation specifies updates through:
+
+alfred config set
+
+or manual editing using the comment-preserving writer.
+
+Known documentation-vs-code discrepancy
+
+The reverse-engineered implementation indicated that:
+
+setup.sh
+
+writes ".alfred/config.yaml" directly because an "alfred config set" CLI command was not present in the observed code.
+
+This must remain an explicit reconciliation item.
+
+The architecture must not silently claim a command exists until implementation and specification agree.
+
+---
+
+43. PLAYBOOK
+
+Files:
+
+.alfred/PLAYBOOK.md
+.alfred/playbook.json
+
+Created first through:
+
+alfred_playbook save
+
+normally during onboarding.
+
+Subsequent onboarding runs must be scoped to manifest files that actually changed.
+
+---
+
+44. STATE
+
+Files:
+
+STATE.md
+state.json
+
+First generated by the first mutating ledger operation.
+
+Examples:
+
+- join
+- task start
+- note
+- transition
+
+State is regenerated after every mutating ledger operation.
+
+Users may edit only the narrative region between fixed markers.
+
+---
+
+45. MEMORY
+
+MEMORY.md
+
+Created during:
+
+- setup
+- host install
+
+Alfred merges content only inside its own markers.
+
+Everything outside those markers remains user-owned.
+
+---
+
+46. Specifications
+
+Location:
+
+.alfred/specs/<ref>.md
+
+Created by:
+
+groom
+
+through:
+
+alfred_save
+
+Plan can add/refine:
+
+Plan
+
+Later workflows read it.
+
+Only:
+
+- groom
+- plan
+
+may ever write it.
+
+After implementation begins it is frozen.
+
+---
+
+47. Lessons
+
+Location:
+
+.alfred/lessons/<id>.md
+
+Created by:
+
+- retro proposal
+- "alfred lessons add"
+
+Acceptance/rejection changes only the status line.
+
+---
+
+48. Artifacts
+
+Location:
+
+.alfred/artifacts/<kind>/<slug>.md
+
+Every "alfred_save" creates a new artifact/run file.
+
+Artifacts are never overwritten.
+
+---
+
+49. Metrics
+
+.alfred/metrics.jsonl
+
+Created by first workflow run.
+
+Append-only.
+
+Every run gets a line, including:
+
+- failed runs
+- interrupted runs
+
+---
+
+50. Active Tasks
+
+Location:
+
+.alfred/tasks/active/<id>/**
+
+Created by:
+
+alfred_task start
+
+Updated while active by:
+
+- notes
+- graph transitions
+
+---
+
+51. Delivered Tasks
+
+Location:
+
+.alfred/tasks/<date>-<id>/**
+
+"alfred_task deliver" moves the active directory atomically.
+
+It does not copy it.
+
+Delivered tasks are immutable.
+
+---
+
+52. Abandoned Tasks
+
+Location:
+
+.alfred/tasks/abandoned/<id>/**
+
+Created by atomic move during abandonment.
+
+Abandoned tasks are immutable.
+
+---
+
+53. Runtime Storage
+
+For Git repositories, ephemeral coordination files are kept outside the repository.
+
+Location:
+
+<git common dir>/alfred/<folder-key>/
+
+This prevents:
+
+- accidental commits
+- repository clutter
+
+For non-Git repositories:
+
+.alfred/.runtime/
+
+is used.
+
+---
+
+54. Repository Hygiene
+
+Alfred never modifies:
+
+.gitignore
+
+The user decides whether ".alfred/" is committed.
+
+Human-readable data such as:
+
+- specs
+- tasks
+- lessons
+- playbook
+
+may therefore appear in PRs if the user chooses to commit them.
+
+Alfred does not delete task folders or playbooks when pruning other generated files.
+
+---
+
+55. Worktree Isolation
+
+The following workflows use separate Git worktrees:
+
+- develop
+- deliver
+- test
+- verify
+
+The main checkout must remain clean during work.
+
+---
+
+56. Standard Worktree Location
+
+Pattern:
+
+../.wt/<folder>/<work-key>
+
+Where:
+
+<folder>
+
+is the checkout directory name.
+
+"<work-key>" is normally:
+
+- ticket ID
+- kebab-case task key
+
+Example:
+
+import-a-csv-ai9234h-task1
+
+---
+
+57. Standard Chat Worktree Creation
+
+Alfred does not itself create the standard worktree.
+
+The brief gives the user/agent an exact command such as:
+
+git worktree add --no-track ../.wt/alfred/import-a-csv-ai9234h-task1 \
+  -b wt/import-a-csv-ai9234h-task1
+
+---
+
+58. "--no-track"
+
+The deliberate use of:
+
+--no-track
+
+prevents accidental upstream tracking.
+
+Therefore a stray:
+
+git push
+
+without explicit arguments has nowhere useful to push.
+
+This is an additional defense against accidental publishing.
+
+---
+
+59. Branch Rules
+
+Develop/test/verify use local-only branches:
+
+wt/<work-key>
+
+Deliver follows the learned repository branch convention.
+
+Example:
+
+feature/MMP-12927-import-a-csv
+
+Deliver branches are created from freshly fetched base.
+
+---
+
+60. Monorepo Dependencies in Worktrees
+
+Where applicable, the brief may link external dependencies such as "node_modules" from the main checkout.
+
+Internal workspace packages must resolve against the worktree source, not stale compiled output.
+
+If linking fails:
+
+- perform a complete install inside the worktree.
+
+Tests must therefore execute against modified source.
+
+---
+
+61. Worktree Handback
+
+Deliver success
+
+Sequence:
+
+push
+→ open PR
+→ remove worktree
+
+If push or PR creation fails:
+
+«preserve the worktree and report its exact path.»
+
+---
+
+Develop/test/verify success
+
+Must:
+
+1. list every modified file
+2. apply changes to main checkout through three-way merge
+3. leave changes unstaged
+4. remove worktree
+
+---
+
+Dirty main checkout
+
+Local workflows refuse to proceed if:
+
+- target files are already dirty in main
+- another live agent owns the relevant files
+
+---
+
+Real merge conflict
+
+Must:
+
+- halt
+- list conflicting files
+- preserve worktree
+- require manual resolution
+
+---
+
+62. Worktree Discovery
+
+Alfred does not maintain a custom worktree registry.
+
+It does not shell out to:
+
+git worktree list
+
+Instead:
+
+packages/ledger/src/git.ts:listWorktrees()
+
+reads Git administrative files directly under:
+
+<git common dir>/worktrees/<name>/
+
+and inspects:
+
+- "gitdir"
+- "HEAD"
+- "locked"
+
+---
+
+63. Epic Architecture
+
+Epics support:
+
+- multiple components
+- multiple tickets
+- multiple repositories
+
+Epic decomposition creates:
+
+- numbered acceptance criteria
+- file ownership
+- dependency relationships
+
+Criteria use:
+
+E_1
+E_2
+...
+
+---
+
+64. Epic Execution Model
+
+Coordinator:
+
+Epic coordinator
+
+can create up to:
+
+8 child workers
+
+Each child gets an isolated worktree.
+
+Execution:
+
+Epic
+ ↓
+Child workers
+ ↓
+Local integration candidate
+ ↓
+Combined review
+ ↓
+Combined verification
+ ↓
+Release approval
+
+Candidate branch:
+
+feature/<KEY>/<slug>
+
+---
+
+65. Epic Replanning
+
+If combined verification identifies defects:
+
+defect
+→ replan
+→ add targeted fix children
+→ integrate
+→ review
+→ verify
+
+Final operator approval is required before release.
+
+---
+
+66. Epic Automatic Start Conditions
+
+Automatic Epic start occurs only if all six conditions hold:
+
+1. historical calibration exists for every child workflow
+2. standalone task bar exists in project memory
+3. calibrated hours <= actual task bar
+4. risk is outside guarded lane
+5. exactly one repository
+6. zero sensitive globs
+
+Otherwise:
+
+human signoff required
+
+---
+
+67. Background Worker Limits
+
+Implementation:
+
+packages/providers/src/claude-worker.ts
+
+Parallel cap:
+
+PARALLEL_CAP = 8
+
+Workers have:
+
+- strict 12-key environment allowlist
+- "ALFRED_HOME"
+- no coordinator token access
+
+---
+
+68. Worker Tool Restrictions
+
+Read tools are available by default.
+
+Write/edit only to:
+
+- developer
+- QA
+
+Server revalidates capabilities.
+
+Bash is limited to:
+
+- detected build/test commands
+- exactly four read-only Git commands
+
+Allowed Git operations:
+
+git status
+git diff
+git diff --staged
+git log --oneline -20
+
+No trailing arguments are allowed.
+
+Workers cannot:
+
+- commit
+- approve gates
+- open PRs
+
+Coordinator performs final inspection and commit.
+
+---
+
+69. Emergency Epic Stop
+
+Workers poll:
+
+.alfred/STOP
+
+every:
+
+100ms
+
+Detection immediately kills the process tree.
+
+---
+
+70. Epic Branch Safety
+
+Children merge into local candidate branches.
+
+They must never develop directly against:
+
+- main
+- develop
+- production branches
+
+Final release requires operator approval.
+
+---
+
+71. MCP Tool Surface
+
+Alfred exposes 19 MCP tools.
+
+---
+
+71.1 Brief and Record
+
+"alfred_route"
+
+Proposes/classifies workflow chains.
+
+Does not write ledger state.
+
+"alfred_workflow"
+
+Returns the complete prompt brief for start/resume.
+
+"alfred_batch"
+
+Preplans multi-ticket dependency waves and worktree commands.
+
+"alfred_preview"
+
+Previews environments once PRs are opened.
+
+"alfred_verify"
+
+Runs changed-file-tailored verification.
+
+"alfred_ci"
+
+Discovers exact gate commands from project CI configuration.
+
+"alfred_save"
+
+Writes schema-validated artifacts and updates permitted specs/lessons.
+
+"alfred_standards"
+
+Indexes/ranks project standard practices.
+
+"alfred_status"
+
+Returns health/connection state.
+
+---
+
+72. Drive Graph Tools
+
+"alfred_next"
+
+Advances the workflow graph and returns the next node brief/schema.
+
+"alfred_submit"
+
+Validates persona output schema and records handoffs.
+
+"alfred_gate"
+
+Records human checkpoint decisions and resolves questions.
+
+---
+
+73. Ledger Tools
+
+"alfred_join"
+
+Mints/rebinds session handles and returns active windows.
+
+"alfred_task"
+
+Supports:
+
+- start
+- claim
+- deliver
+- abandon
+
+"alfred_note"
+
+Writes:
+
+- notes
+- decisions
+- handoffs
+- narrative
+
+"alfred_sync"
+
+Manages:
+
+- file intents
+- conflicts
+- inter-agent messages
+
+"alfred_playbook"
+
+Reads/updates repository playbook.
+
+"alfred_state"
+
+Rebuilds:
+
+STATE.md
+state.json
+
+---
+
+74. Coordination Tool
+
+"alfred_epic"
+
+Manages:
+
+- Epic manifests
+- worker integration
+- release coordination
+
+---
+
+75. MCP Protocol Gate
+
+Every JSON-RPC request passes through:
+
+workerRefusal()
+
+before dispatch.
+
+Unauthorized background worker operations such as:
+
+- broadcasting messages
+- claiming foreign tasks
+
+are rejected at the protocol level.
+
+Successful responses pass through:
+
+decorate()
+
+which adds required journal side effects.
+
+---
+
+76. "/alfred" Dispatcher
+
+Primary chat syntax:
+
+/alfred <plain-language request, ticket, path, error>
+
+The dispatcher performs four stages.
+
+Stage 1 — Read-only discovery
+
+Reads bounded context across:
+
+- registered projects
+- tasks
+
+No editing occurs.
+
+---
+
+Stage 2 — Explain intent
+
+Displays:
+
+- target project
+- proposed task
+- workflow chain
+- reasoning
+
+---
+
+Stage 3 — Resolve ambiguity
+
+If genuinely ambiguous regarding:
+
+- project
+- workflow
+- depth
+
+ask one focused question.
+
+Nothing starts until resolved.
+
+---
+
+Stage 4 — Execute
+
+Once clear:
+
+- start/resume workflow
+- automatically execute missing prerequisites
+- explain skipped prerequisites using evidence
+
+---
+
+77. Natural Language Depth
+
+Examples:
+
+just plan this
+
+stops at:
+
+plan
+
+---
+
+develop only, don't ship
+
+stops at:
+
+develop
+
+---
+
+deliver this
+
+runs full delivery.
+
+---
+
+78. User-Facing Slash Commands
+
+"/alfred-triage"
+
+Outputs:
+
+- classification
+- owning codebase
+- readiness yes/no
+- blockers
+
+---
+
+"/alfred-spike"
+
+Outputs:
+
+- 2–4 real options
+- recommendation
+- falsification condition
+- risks
+
+Nothing implemented.
+
+---
+
+"/alfred-groom"
+
+Outputs:
+
+- 1–12 point-sized stories
+- acceptance criteria
+
+May ask up to five clarifying questions if repository evidence cannot answer them.
+
+---
+
+"/alfred-plan"
+
+Outputs:
+
+- ordered steps
+- every file touched
+- real verification commands
+- expected results
+
+---
+
+"/alfred-develop"
+
+AUTO workflow.
+
+Performs:
+
+- uncommitted test-first edits
+- private worktree
+
+Never:
+
+- commit
+- push
+- open PR
+- touch tracker
+
+---
+
+"/alfred-deliver"
+
+AUTO workflow.
+
+Performs:
+
+- implementation
+- real CI/toolchain verification
+- independent review
+- one PR per repository
+- ticket movement
+
+---
+
+"/alfred-test"
+
+AUTO.
+
+Targets:
+
+- boundaries
+- empty sets
+- errors
+- realistic regressions
+
+Actually executes tests.
+
+---
+
+"/alfred-review"
+
+PLAN.
+
+Accepts:
+
+[range|ticket]
+
+Findings must include:
+
+- trigger
+- consequence
+- severity
+- fix
+
+Review should prioritize:
+
+«three real defects over twelve vague observations.»
+
+Returns ship/no-ship verdict.
+
+---
+
+"/alfred-ship"
+
+PLAN.
+
+Outputs:
+
+- deployment order
+- rationale
+- pre-deploy snapshot
+- verification commands
+- rollback plan
+
+Never deploys.
+
+---
+
+"/alfred-explain"
+
+Outputs:
+
+- plain-language overview
+- exact data flow
+- named files/functions
+- responsibilities
+- dangerous-looking areas that require special attention
+
+---
+
+"/alfred-verify"
+
+AUTO.
+
+For each acceptance criterion:
+
+- verdict
+- evidence
+
+Failures are classified into the three verification categories.
+
+---
+
+"/alfred-retro"
+
+PLAN.
+
+Produces:
+
+- evidence-backed findings
+- 1–8 proposed lessons
+
+Each lesson:
+
+- <240 characters
+- anchored to a real file or command
+- must be explicitly accepted/rejected
+
+Human governance:
+
+alfred lessons accept <id>
+alfred lessons reject <id>
+
+---
+
+"/alfred-onboard"
+
+PLAN.
+
+Creates/updates:
+
+.alfred/PLAYBOOK.md
+
+covering:
+
+- stack
+- architecture
+- patterns
+- standards
+- tests
+- branches
+- commits
+- open questions
+
+---
+
+79. Workflow Command Modes
+
+Every workflow supports:
+
+--model <provider:model>
+
+and:
+
+--mode plan|auto|manual
+
+---
+
+80. Multi-Ticket Handling
+
+Multiple tickets automatically trigger:
+
+1. dependency analysis
+2. dependency plan
+3. parallel-vs-sequential decision
+
+Example:
+
+/alfred-deliver MMP-1 MMP-2 MMP-3
+
+The system determines whether tickets should run:
+
+- sequentially
+- in parallel
+
+---
+
+81. CLI
+
+Headless execution:
+
+alfred <workflow> [task ...] --ticket <ref>
+
+or:
+
+alfred run <workflow>
+
+Flat execution completes without interactive mid-run checkpoints.
+
+---
+
+81.1 Brief-only mode
+
+alfred brief <workflow> [task ...] --ticket <ref>
+
+Returns the exact assembled brief without executing it.
+
+---
+
+82. Setup
+
+alfred setup
+
+Performs:
+
+- first-time setup
+- upgrades
+- host configuration
+- quality configuration
+- host surface generation
+- skill linking
+- MCP startup verification
+
+---
+
+83. Doctor
+
+alfred doctor
+
+Runs the 14-rule conformance/health checker.
+
+Checks:
+
+- connector coverage
+- retired configuration keys
+- quarantined servers
+- host conformance
+
+It performs no disk writes.
+
+---
+
+84. Host Management
+
+Commands:
+
+alfred host install
+alfred host status
+alfred host sync
+alfred host remove
+
+"sync":
+
+- updates generated Alfred files
+- preserves unrelated user edits
+
+"remove":
+
+- deletes only Alfred-generated files
+
+---
+
+85. Connector Management
+
+alfred mcp
+
+Manages:
+
+- Jira
+- Confluence
+- GitHub
+- Bitbucket
+
+Literal credentials are refused.
+
+---
+
+86. Skills CLI
+
+alfred skills
+
+Shows:
+
+- standards library
+- linked
+- copied
+- edited-since-copied state
+
+---
+
+87. Workspace CLI
+
+alfred workspace
+
+Supports:
+
+- multi-repository workspace pinning
+- cloning
+- lockfile drift checks
+
+---
+
+88. Observability Commands
+
+alfred app
+alfred serve --ui
+alfred watch
+alfred state
+alfred metrics
+alfred usage
+
+---
+
+"alfred app"
+
+Launches Mission Control inside a chromeless Edge/Chrome window.
+
+Closing the application automatically stops the local server.
+
+---
+
+"alfred watch"
+
+Live terminal dashboard.
+
+Supports:
+
+r
+
+to force refolding.
+
+---
+
+"alfred metrics"
+
+Reads:
+
+.alfred/metrics.jsonl
+
+Reports:
+
+- review-round trends
+- estimation error
+- run/token usage
+
+---
+
+89. Engineering Utilities
+
+alfred ci
+alfred risk
+alfred related
+alfred scan
+
+"alfred ci"
+
+Shows exact CI commands discovered from real repository configuration.
+
+"alfred risk"
+
+Calculates risk score, reasons and lane.
+
+"alfred related"
+
+Uses BM25 to rank similar historical tasks.
+
+"alfred scan"
+
+Runs secret scanning over changed lines.
+
+---
+
+90. Pre-Commit
+
+alfred pre-commit run
+alfred pre-commit install
+alfred pre-commit remove
+
+Alfred can install/merge/remove only its own pre-commit block.
+
+---
+
+91. Evaluation
+
+alfred evals
+
+Runs the golden suite and identifies the exact mismatching node.
+
+---
+
+92. Specification and Lessons
+
+alfred spec <ref>
+
+Returns current saved specification and plan.
+
+Lessons:
+
+alfred lessons accept <id>
+alfred lessons reject <id>
+alfred lessons add <id>
+
+---
+
+93. Direct Model Interaction
+
+alfred chat
+alfred models
+
+"alfred chat":
+
+- quick terminal question
+- house standards included
+- no workflow
+- no artifact
+
+"alfred models" lists configured providers/models.
+
+---
+
+94. Mission Control Overview
+
+Mission Control has four major screens.
+
+---
+
+95. Overview Screen
+
+Shows:
+
+- cross-project headline figures
+- waiting gates
+- file conflicts
+- stale claims
+- project constellation
+- live agents
+- delivery pipeline
+- recent activity
+
+---
+
+96. Project Screen
+
+Shows:
+
+- project stage board
+- active agents
+- claims
+- conflicts
+- inter-agent messages
+- live brief
+
+---
+
+97. Task Screen
+
+Shows:
+
+- live persona graph
+- interactive gate panel
+- reasoning timeline
+- task details
+
+Gate decisions are asynchronous.
+
+They take effect on the next:
+
+alfred_next
+
+---
+
+98. Epic Screen
+
+Shows:
+
+- Epic assessment
+- approval state
+- child dependency graph
+- progress
+- criterion trace
+- child links
+
+---
+
+99. Mission Control Task API
+
+Endpoint:
+
+GET /api/projects/:key/tasks/:id
+
+performs three fresh uncached reads in parallel:
+
+Promise.all([
+  readNotes,
+  readCheckpoint,
+  readTimeline
+])
+
+---
+
+100. Notes Reader
+
+Reads:
+
+- Markdown directly in task folder
+- "notes/"
+- "handoffs/"
+
+Limits:
+
+256 KB/file
+100 files
+
+If a file exceeds the limit:
+
+- head is returned
+- truncation is flagged
+
+---
+
+101. Timeline Reader
+
+Reads:
+
+timeline.jsonl
+
+Rules:
+
+- one JSON object per line
+- malformed lines skipped
+- maximum read window: 2 MB
+- tail truncation when necessary
+- last 500 lines retained
+
+---
+
+102. Checkpoint Reader
+
+Reads current graph checkpoint.
+
+Maximum:
+
+1 MB
+
+Discard checkpoint if:
+
+- truncated
+- task ID mismatch
+
+---
+
+103. Notes Panel
+
+Implementation:
+
+apps/web/src/screens/task/task-notes.tsx
+
+Accessibility:
+
+- ARIA tabs
+- keyboard navigation
+
+Keys:
+
+Left
+Right
+Home
+End
+
+Truncation message:
+
+This note is long, so only its first 256 KB is shown.
+
+Empty state is mandatory.
+
+---
+
+104. Timeline Panel
+
+Implementation:
+
+task-timeline.tsx
+
+Entries appear:
+
+- newest first
+- persona avatar
+- live relative timestamp
+
+Kinds have distinct visual treatments:
+
+- note
+- decision
+- handoff
+- narrative
+
+Mapping comes from:
+
+task-model.ts
+
+---
+
+105. Live Reactivity
+
+Alfred intentionally uses a two-layer live model.
+
+Layer 1 — signal
+
+Ledger Journal
+→ LiveFeed
+→ 500ms digest poll
+→ SSE only when digest changes
+→ browser EventSource
+
+Digest:
+
+event count + last event ID
+
+Full state refold happens only when digest changes.
+
+---
+
+Layer 2 — payload
+
+"useTask" uses the live state timestamp/version as a revision dependency.
+
+Conceptually:
+
+revision = version + attempt
+
+Any:
+
+- ledger mutation
+- manual refresh
+
+causes a fresh REST task read.
+
+---
+
+106. SSE Constraints
+
+There are:
+
+- no WebSockets
+- no server-side task cache
+- no heavy task-data SSE stream
+
+SSE is only a lightweight invalidation signal.
+
+---
+
+107. LiveFeed Heartbeat
+
+Heartbeat:
+
+15 seconds
+
+Digest polling:
+
+500ms
+
+---
+
+108. Gate Approval Exception
+
+Web gate approvals intentionally bypass MCP.
+
+Endpoint:
+
+POST /api/projects/:key/tasks/:id/gates/:node
+
+Before writing, handler re-reads checkpoint.
+
+It returns:
+
+409
+
+unless the checkpoint is exactly:
+
+status = waiting
+node = requested node
+
+Decision is atomically written as:
+
+{
+  "approve": true,
+  "note": "...",
+  "by": "app",
+  "at": "..."
+}
+
+Engine consumes it during the next:
+
+alfred_next
+
+---
+
+109. Component Inputs/Outputs
+
+Triage
+
+Input:
+
+- request
+- ticket
+- repository
+
+Output:
+
+.alfred/artifacts/triage/<slug>.md
+
+---
+
+Groom
+
+Input:
+
+- request
+- code
+- existing spec
+
+Output:
+
+.alfred/specs/<ticket|work-key>.md
+
+Contains:
+
+- Intent
+- acceptance criteria
+- Out of scope
+- Notes
+- Fibonacci stories
+
+---
+
+Plan
+
+Input:
+
+- specification
+- repository facts
+
+Output:
+
+- Plan
+- Steps
+- Files
+- Verification
+
+Plan refines the spec.
+
+---
+
+Developer
+
+Input:
+
+- plan
+- worktree
+- latest gate
+- review failure
+
+Output:
+
+- worktree edits
+- "notes/developer.md"
+
+---
+
+Reviewer
+
+Input:
+
+- diff
+- acceptance criteria
+
+Output:
+
+- findings
+- trigger
+- consequence
+- severity
+- fix
+- verdict
+
+Reviewer never receives author report.
+
+---
+
+QA
+
+Input:
+
+- acceptance criteria
+- test output
+
+Output:
+
+- evidence
+- pass/fail
+
+---
+
+Release
+
+Input:
+
+- repository playbook
+- green gates
+
+Output:
+
+- branch
+- commit
+- PR
+- delivery artifact
+
+Artifact:
+
+.alfred/artifacts/delivery/<slug>.md
+
+---
+
+Retro
+
+Input:
+
+- artifacts
+- notes
+- metrics
+
+Output:
+
+.alfred/lessons/<id>.md
+
+with proposed status.
+
+---
+
+Onboard
+
+Input:
+
+- manifests
+- README
+- CI
+- Git history
+- user answers
+
+Output:
+
+.alfred/PLAYBOOK.md
+playbook.json
+
+---
+
+110. Universal User-Facing Guarantees
+
+After every step Alfred must provide:
+
+Summary for the user
+
+This must say:
+
+- who ran it
+- what verdict was reached
+- what was decided
+
+At completion Alfred provides:
+
+Run summary
+
+covering:
+
+- executed steps
+- skipped steps
+- reasons
+
+---
+
+111. Question Limits
+
+Discovery questioning is bounded.
+
+Per round:
+
+maximum 5 file-citing questions
+
+Maximum:
+
+5 discovery rounds
+
+This prevents unbounded conversational exploration.
+
+---
+
+112. Serve Layer
+
+"packages/serve" is the only component responsible for network sockets.
+
+Uses native:
+
+node:http
+node:crypto
+
+No external HTTP framework.
+
+---
+
+113. Local Network Security
+
+Server binds only to:
+
+127.0.0.1
+
+Host header is verified through:
+
+hostAllowed
+
+This protects against DNS rebinding.
+
+---
+
+114. Launch Token
+
+Every request uses a fresh 32-byte random base64url launch token.
+
+Verification:
+
+SHA-256
++
+timingSafeEqual
+
+This prevents timing side-channel comparison.
+
+---
+
+115. Electron Security
+
+Electron is packaged as a frameless/native-chrome application.
+
+Immutable security fuses:
+
+RunAsNode = off
+EnableCookieEncryption = on
+EnableNodeOptionsEnvironmentVariable = off
+EnableNodeCliInspectArguments = off
+GrantFileProtocolExtraPrivileges = off
+
+---
+
+116. Desktop Network Restrictions
+
+Outbound browser requests are rewritten only to loopback.
+
+Browser shortcuts are suppressed.
+
+---
+
+117. Update Security
+
+Updates use:
+
+- atomic swap
+- SHA-256 verification
+- interrupted-write recovery
+
+---
+
+118. Native Packaging
+
+Node SEA is used for macOS/Linux.
+
+Windows uses:
+
+postject
+
+macOS uses Mach-O segment injection.
+
+---
+
+119. Application Icons
+
+Icons are generated from procedural vector geometry.
+
+Rendering uses:
+
+4x4 supersampling
+
+No external image codecs.
+
+---
+
+120. Build Validation
+
+Primary check:
+
+npm run check
+
+Runs sequentially and stops at the first failure.
+
+---
+
+121. Build Checks
+
+Order includes:
+
+check-deps.mjs
+check-comments.mjs
+Vitest coverage
+
+---
+
+122. Coverage Requirements
+
+Minimum:
+
+95% lines
+88% branches
+94% functions
+94% statements
+
+---
+
+123. Golden Evaluation Suite
+
+Golden evaluation is:
+
+- model-free
+- deterministic
+- graph-engine based
+
+Runner:
+
+runner.ts:replayCase
+
+Limits:
+
+256 KB fixture
+80 steps
+500 cases
+
+---
+
+124. Golden Checks
+
+Recorded JSON is fed into:
+
+engine.submit
+engine.decide
+
+There are 11 deterministic checks against production kernel behavior.
+
+They cover areas such as:
+
+- routing
+- citation rules
+- branch naming
+- acceptance criteria mapping
+
+---
+
+125. Safety Invariants
+
+Alfred has ten explicit safety invariants.
+
+1. Zero external network
+
+Core Alfred communicates through:
+
+- MCP stdio
+- loopback web server
+
+No external network service is required.
+
+---
+
+2. Secret isolation
+
+Alfred:
+
+- never stores credentials
+- blocks protected paths
+- refuses credential inspection
+
+---
+
+3. Destructive-command interception
+
+The following require human approval:
+
+force push
+git reset --hard
+git clean -f
+--no-verify
+
+---
+
+4. Reviewer independence
+
+Reviewer:
+
+- cannot edit
+- cannot use terminal
+- cannot receive author report
+
+---
+
+5. Background-worker containment
+
+Workers use:
+
+- isolated worktrees
+- strict tool/environment allowlists
+
+---
+
+6. File modification provenance
+
+Only files carrying valid Alfred ownership markers or cryptographic signatures may be overwritten/deleted by corresponding cleanup operations.
+
+---
+
+7. Injection resistance
+
+Git identifiers and shell arguments are pattern validated.
+
+---
+
+8. Untrusted-content fencing
+
+Ticket/PR content is treated as untrusted input and fenced with escape-resistant boundaries.
+
+---
+
+9. Constant-time authentication
+
+Authentication comparisons use:
+
+timingSafeEqual
+
+---
+
+10. Structural capability containment
+
+Host-specific projections cannot expose capabilities beyond the shared core persona/tool roster.
+
+---
+
+126. Host Projection Principle
+
+Claude and Copilot integrations are adapters, not alternate Alfred implementations.
+
+The host layer must never gain capabilities unavailable in the shared Alfred architecture.
+
+This preserves:
+
+same policy
+same graph
+same personas
+same tool identity
+
+across hosts.
+
+---
+
+127. Traceability Model
+
+The system is intended to maintain traceability across:
+
+User Request
+    ↓
+Triage
+    ↓
+Requirement / Intent
+    ↓
+Acceptance Criteria
+    ↓
+Stories
+    ↓
+Plan
+    ↓
+Files / Implementation
+    ↓
+Tests
+    ↓
+Review
+    ↓
+Verification Evidence
+    ↓
+PR / Delivery
+    ↓
+Release sequencing
+    ↓
+Production evidence
+
+Every transition should have deterministic or auditable evidence.
+
+---
+
+128. Separation of Evidence and Reasoning
+
+Alfred deliberately distinguishes:
+
+Model reasoning
+
+Potentially unreliable.
+
+Deterministic evidence
+
+Examples:
+
+- Git diff
+- executed test output
+- CI configuration
+- acceptance criteria
+- file state
+- risk calculation
+- worktree state
+- ledger events
+
+The latter must be preferred for progression decisions.
+
+---
+
+129. Acceptance Criteria as Contract
+
+Acceptance criteria are not merely prompts.
+
+They are the contract between:
+
+- product intent
+- implementation
+- QA
+- reviewer
+- verification
+- delivery
+
+Every acceptance criterion must eventually map to evidence.
+
+---
+
+130. Definition of Ready
+
+A story is considered ready for implementation only when the required information needed by the workflow exists, including as applicable:
+
+- clear intent
+- scope
+- acceptance criteria
+- out-of-scope boundaries
+- ownership
+- executable plan
+- proving verification strategy
+
+If repository evidence cannot answer an important requirement question, grooming must ask the user rather than inventing an answer.
+
+---
+
+131. Definition of Done
+
+A deliverable is not considered done merely because code compiles.
+
+For delivery, the effective completion contract includes:
+
+- implementation complete
+- tests added
+- tests executed
+- CI/toolchain gates green
+- acceptance criteria verified
+- independent review completed
+- high-severity findings resolved
+- required security checks passed
+- required human gates approved
+- correct branch/commit behavior
+- PR created where applicable
+- ticket updated where applicable
+- artifacts/audit state recorded
+
+For "develop", the definition deliberately stops before shipping.
+
+For "ship", the definition is a release sequence/rollback plan rather than actual deployment.
+
+---
+
+132. Repository Playbook as Local Knowledge
+
+The playbook is repository-specific knowledge.
+
+It must capture:
+
+- stack
+- architecture
+- conventions
+- testing
+- CI
+- branch conventions
+- commit conventions
+- open questions
+
+It should shape future briefs without becoming a hidden source of executable authority.
+
+---
+
+133. Lessons Governance
+
+Lessons are not automatically promoted into standards.
+
+Lifecycle:
+
+retro proposes
+      ↓
+human reviews
+      ↓
+accept/reject
+      ↓
+accepted lesson
+      ↓
+future brief
+
+This prevents an incorrect AI observation from silently becoming permanent policy.
+
+---
+
+134. Concurrency Governance
+
+Concurrency has multiple levels:
+
+Task ownership
+
+Hard OS lock.
+
+File intent
+
+Soft advisory lock.
+
+Directory conflict
+
+Deterministic prediction.
+
+Worktree
+
+Physical isolation.
+
+Epic child
+
+Independent worktree + tool/environment containment.
+
+This layered model prevents relying on a single optimistic coordination mechanism.
+
+---
+
+135. Failure Philosophy
+
+Failures must be visible.
+
+Alfred must not convert:
+
+unknown
+
+into:
+
+success
+
+Examples:
+
+- failed command ≠ green
+- missing evidence ≠ passed criterion
+- reviewer unable to verify ≠ approved
+- stale checkpoint ≠ valid approval
+- ambiguous project ≠ guessed project
+- failed PR creation ≠ delivered
+- failed push ≠ successful shipping
+- broken environment ≠ passing test
+
+---
+
+136. Human-in-the-Loop Boundaries
+
+Humans are explicitly required where deterministic safety cannot establish sufficient confidence.
+
+Examples:
+
+- guarded risk
+- exhausted arbitration
+- ambiguous target
+- dangerous command
+- Epic outside automatic-start conditions
+- gate requiring human approval
+- genuine merge conflict
+- release approval
+
+Human involvement is therefore a designed control boundary, not an exception to the architecture.
+
+---
+
+137. State Machine Philosophy
+
+Alfred is not fundamentally a chat orchestration system.
+
+It is a:
+
+«compiled, schema-validated, persona-bound, bounded state machine whose actors happen to be LLMs.»
+
+This distinction is architectural.
+
+The LLM does not determine:
+
+"What happens next?"
+
+The graph determines that.
+
+The LLM produces the output required by the current node.
+
+---
+
+138. Core Execution Pattern
+
+The canonical execution flow is:
+
+User
+ ↓
+Host / CLI / Mission Control
+ ↓
+alfred_route
+ ↓
+alfred_join
+ ↓
+alfred_workflow
+ ↓
+Compiled graph
+ ↓
+Persona-bound node
+ ↓
+Skill/standards brief
+ ↓
+Restricted tools
+ ↓
+Evidence
+ ↓
+alfred_submit
+ ↓
+Deterministic validation
+ ↓
+alfred_next
+ ↓
+Gate / loop / next persona
+
+For delivery:
+
+develop
+ ↓
+tests
+ ↓
+CI gates
+ ↓
+independent review
+ ↓
+fix loop
+ ↓
+verification
+ ↓
+risk/security gates
+ ↓
+release
+ ↓
+PR
+
+---
+
+139. Canonical Deliver Flow
+
+Request
+  ↓
+/alfred
+  ↓
+Route
+  ↓
+Onboard if needed
+  ↓
+Triage
+  ↓
+Groom
+  ↓
+Plan
+  ↓
+Create isolated worktree
+  ↓
+Developer
+  ↓
+TDD
+  ↓
+CI verification
+  ↓
+Fresh reviewer
+  ↓
+Fix/review loop
+  ↓
+QA criterion verification
+  ↓
+Risk lane
+  ↓
+Human approval if guarded
+  ↓
+Release persona
+  ↓
+Commit
+  ↓
+Push
+  ↓
+PR
+  ↓
+Ticket update
+  ↓
+Worktree cleanup
+  ↓
+Run summary
+
+---
+
+140. Architectural Non-Goals
+
+Alfred core must not become:
+
+- a cloud-hosted coordination server
+- a database-backed daemon
+- an unrestricted autonomous coding agent
+- a second implementation of each host's workflow logic
+- an LLM-controlled permission system
+- an automatic deployment engine
+- an uncontrolled self-learning standards engine
+- a reviewer that can silently patch its own findings
+
+---
+
+141. Key Structural Invariants
+
+The following are considered architecture-level invariants:
+
+1. LLMs are untrusted.
+2. Graphs determine execution.
+3. Personas determine capability identity.
+4. Tools enforce physical capability boundaries.
+5. Specs become immutable after planning.
+6. Review is independent of author context.
+7. Verification is acceptance-criterion based.
+8. Risk is deterministic.
+9. Dangerous commands require human approval.
+10. Work is physically isolated in worktrees.
+11. Coordination uses append-only journals.
+12. Task claims use OS-level locking.
+13. File intents remain advisory.
+14. Epics are bounded to eight concurrent workers.
+15. Workers cannot commit or approve their own work.
+16. Lessons require explicit promotion.
+17. Alfred core requires no external network.
+18. Host adapters remain thin.
+19. All user-facing state has explicit empty/loading/partial/error/success handling.
+20. All autonomous loops are bounded.
+21. All completed workflows produce auditable summaries.
+22. No generated Alfred content silently overwrites user-owned content.
+23. Failed operations must remain distinguishable from successful operations.
+24. Human approval is an explicit state transition.
+25. Acceptance criteria must map to evidence before delivery is considered complete.
+
+---
+
+142. Known Reconciliation / Implementation Audit Items
+
+The consolidated specification must preserve known areas where documentation and observed implementation need reconciliation.
+
+142.1 Configuration command
+
+Documentation describes:
+
+alfred config set
+
+Observed implementation indicated "setup.sh" writes:
+
+.alfred/config.yaml
+
+directly and the "alfred config set" command was not present.
+
+Action: reconcile specification and implementation before claiming the command as implemented.
+
+---
+
+142.2 Tool naming
+
+Persona grants refer conceptually to:
+
+read
+search
+edit
+shell
+alfred
+
+Concrete implementations are:
+
+read
+write
+edit
+bash
+glob
+grep
+walk
+
+The architecture should explicitly document the mapping:
+
+search → glob/grep/walk composition
+shell  → bash
+
+rather than pretending there are separate unimplemented "search" or "shell" tools.
+
+---
+
+142.3 Worktree ownership
+
+Standard chat worktrees are instructed through the generated brief rather than created by Alfred itself.
+
+Epic background workers are the deliberate exception because they require programmatic isolated worktree creation.
+
+---
+
+142.4 Gate writes
+
+Most workflow state flows through MCP.
+
+Mission Control gate approval deliberately bypasses MCP because it is a human operator control path.
+
+This is an intentional exception and must remain documented.
+
+---
+
+143. Overall Architecture Summary
+
+Alfred can be summarized as five major control planes.
+
+Control Plane 1 — Intent
+
+Request
+→ triage
+→ groom
+→ acceptance criteria
+
+Control Plane 2 — Planning
+
+spike
+→ architecture
+→ plan
+→ specification
+
+Control Plane 3 — Execution
+
+persona graph
+→ isolated worktree
+→ constrained tools
+→ TDD
+→ deterministic gates
+
+Control Plane 4 — Assurance
+
+risk
+→ independent review
+→ QA verification
+→ security
+→ human gates
+
+Control Plane 5 — Delivery
+
+release
+→ commit
+→ push
+→ PR
+→ ticket update
+→ audit artifacts
+
+All five operate against the same deterministic graph, ledger, capability model and evidence system.
+
+---
+
+144. Final Architectural Principle
+
+The defining property of Alfred is not that it gives an AI more autonomy.
+
+It is that it gives AI bounded autonomy with deterministic accountability.
+
+The intended model is:
+
+                 HUMAN INTENT
+                      │
+                      ▼
+              ┌───────────────┐
+              │    ALFRED     │
+              │               │
+              │ deterministic │
+              │ state machine │
+              │               │
+              │ capabilities  │
+              │ evidence      │
+              │ risk          │
+              │ gates         │
+              │ concurrency   │
+              │ audit         │
+              └───────┬───────┘
+                      │
+          ┌───────────┴───────────┐
+          ▼                       ▼
+       LLM ACTOR             HUMAN OPERATOR
+          │                       │
+          │ reasoning             │
+          │ implementation        │
+          │ analysis              │
+          ▼                       ▼
+       EVIDENCE  ───────────→  APPROVAL
+          │
+          ▼
+       NEXT GRAPH STATE
+
+The AI can reason, investigate, write and propose.
+
+Alfred decides what is structurally permitted, what evidence is required, what must be reviewed, what must be verified, what is risky, what requires human intervention, and whether the system is allowed to progress.
+
+That is the core architectural identity of Alfred v1.2.0.

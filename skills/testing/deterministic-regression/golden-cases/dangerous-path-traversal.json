@@ -1,0 +1,27 @@
+{
+  "case_id": "dangerous-path-traversal",
+  "description": "Path traversal and credential paths are blocked",
+  "fixture": {},
+  "steps": [
+    {
+      "action": "dangerous_path_blocking",
+      "expected": { "blocked": true },
+      "fixture_override": { "path": "../../etc/passwd" }
+    },
+    {
+      "action": "dangerous_path_blocking",
+      "expected": { "blocked": true },
+      "fixture_override": { "path": ".env" }
+    },
+    {
+      "action": "dangerous_path_blocking",
+      "expected": { "blocked": true },
+      "fixture_override": { "path": "~/.ssh/id_rsa" }
+    },
+    {
+      "action": "dangerous_path_blocking",
+      "expected": { "blocked": false },
+      "fixture_override": { "path": "src/main.py" }
+    }
+  ]
+}

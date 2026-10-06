@@ -135,6 +135,19 @@ Follow [`handoff-schema`](../reference/handoff-schema.md).
 - **Recipients:** defects go to `developer`; spec/code disagreements go to `product-planner` or
   `qa-derive` as QUESTIONs.
 
+## Quality Rubric
+
+Self-score before handoff. Each criterion is 0 (not met), 1 (partially met), or 2 (fully met).
+A total below 6 means the work is not ready for handoff.
+
+| # | Criterion | Scoring |
+|---|-----------|---------|
+| 1 | **Design fidelity** | 2 = every frozen scenario maps to a test and back to an AC; 1 = partial mapping; 0 = tests not traced to design |
+| 2 | **Impact plan** | 2 = manifest covers all files with CREATE/UPDATE/REUSE; 1 = partial manifest; 0 = no impact plan |
+| 3 | **Data hygiene** | 2 = synthetic data only, reserved values, seeds recorded; 1 = mostly synthetic; 0 = production or uncontrolled data |
+| 4 | **Determinism** | 2 = hermetic tiers use fake clock, fixed seeds, stubbed network; 1 = partial determinism; 0 = flaky by design |
+| 5 | **Suite integrity** | 2 = no weakened tests, shared fixtures additive, expectations keyed to AC hash; 1 = minor violations documented; 0 = integrity rules broken |
+
 ## Failure handling
 
 Follow [`failure-catalog`](../../grounding/agent-failure-modes/reference/failure-catalog.md).

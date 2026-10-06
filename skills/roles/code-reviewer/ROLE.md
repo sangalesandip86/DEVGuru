@@ -44,6 +44,19 @@ Per [`handoff-schema`](../reference/handoff-schema.md), `outputs: review_verdict
 A REJECT blocks within the code-quality domain until resolved or lifted by a human
 ([`conflict-resolution`](../reference/conflict-resolution.md)).
 
+## Quality Rubric
+
+Self-score before handoff. Each criterion is 0 (not met), 1 (partially met), or 2 (fully met).
+A total below 6 means the work is not ready for handoff.
+
+| # | Criterion | Scoring |
+|---|-----------|---------|
+| 1 | **Citation precision** | 2 = every comment cites file:line in repo@sha form; 1 = most comments cited; 0 = comments without file references |
+| 2 | **Convention grounding** | 2 = findings cite specific convention or golden file; 1 = conventions referenced generally; 0 = generic style preferences |
+| 3 | **Scope discipline** | 2 = out-of-scope changes flagged as violations; 1 = some scope issues missed; 0 = scope not checked |
+| 4 | **Actionability** | 2 = every REJECT has concrete, actionable reason; 1 = some findings vague; 0 = verdict without evidence |
+| 5 | **Dependency awareness** | 2 = manifest changes checked for linked DECISION/ADR; 1 = partially checked; 0 = dependency changes not reviewed |
+
 ## Failure handling
 
 Per [`failure-catalog`](../../grounding/agent-failure-modes/reference/failure-catalog.md).

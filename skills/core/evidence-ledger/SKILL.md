@@ -64,6 +64,18 @@ Ledger entries per the schema; `entry_id`s to cite in handoffs and summaries.
 | No agent sets APPROVED / VERIFIED | Tool surface: no such parameter value accepted from agent callers |
 | Schema validity | Server validates against `core/schemas/ledger-entry.schema.json` |
 
+## Visibility
+Every document and ledger entry has one of two visibility levels:
+
+| Level | Meaning |
+|---|---|
+| `INTERNAL` | Never appears in chat or deliverables; stored under `.adlc/` |
+| `DELIVERABLE` | May appear in chat and PRs |
+
+- **Default: `INTERNAL`.** Promote to `DELIVERABLE` only deliberately.
+- Context assembly (`skill-routing/context-assembly`) skips `INTERNAL` entries when building
+  human-facing responses.
+
 ## References
 - [reference/ledger-entry-schema.md](reference/ledger-entry-schema.md)
 - [reference/identity-and-auth.md](reference/identity-and-auth.md)

@@ -1,0 +1,24 @@
+{
+  "case_id": "risk-critical-auth-migration",
+  "description": "Large auth + migration change routes to CRITICAL tier",
+  "fixture": {
+    "lines_changed": 2000,
+    "files_changed": 50,
+    "file_paths": ["src/auth/login.py", "db/migrations/001.sql", "src/billing/invoice.py"]
+  },
+  "steps": [
+    {
+      "action": "risk_routing",
+      "expected": {
+        "tier": "CRITICAL",
+        "score_min": 0.75
+      }
+    },
+    {
+      "action": "sensitive_path_detection",
+      "expected": {
+        "count": 3
+      }
+    }
+  ]
+}

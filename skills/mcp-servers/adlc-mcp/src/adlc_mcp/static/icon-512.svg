@@ -1,0 +1,4 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <polygon points="256,20 476,140 476,372 256,492 36,372 36,140" fill="#16213e" stroke="#0dcaf0" stroke-width="10"/>
+  <text x="256" y="275" text-anchor="middle" fill="#e4e6eb" font-size="100" font-weight="700" font-family="system-ui, -apple-system, sans-serif">ADLC</text>
+</svg>

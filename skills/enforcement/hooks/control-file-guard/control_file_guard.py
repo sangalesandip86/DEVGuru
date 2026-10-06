@@ -78,8 +78,37 @@ def shell_write_targets(command: str) -> list[str]:
     return [c for c in candidates if c]
 
 
+READ_VERBS = {
+    "cat", "head", "tail", "less", "more", "view", "type", "bat", "nl", "tac", "strings", "xxd",
+    "od", "grep", "egrep", "rg", "cp", "scp", "source", ".",
+    "get-content", "gc", "select-string",
+}
+
+
+def _extract_read_targets(command: str) -> list[str]:
+    """Return candidate paths from a shell command that reads files (cat, head, ...).
+
+    Heuristic: when any token is a read verb, every non-flag token (and redirect-input
+    target) is a candidate. Over-matching is acceptable for a deny guard.
+    """
+    if not command.strip():
+        return []
+    toks = _tokens(command)
+    out: list[str] = [m for m in re.findall(r"<\s*['\"]?([^\s;&|'\"<>]+)", command)]
+    if any(t.lower() in READ_VERBS for t in toks):
+        for tok in toks:
+            for piece in re.split(r"[;&|><]+", tok):
+                piece = piece.strip("'\"()")
+                if piece and not piece.startswith("-"):
+                    out.append(piece)
+    return out
+
+
 def evaluate(event: ae.HookEvent, globs: list[str], repo_root: str) -> tuple[str, str] | None:
-    """Return (path, glob) of the first control-file write, or None if allowed."""
+    """Return (path, glob) of the first control-file write or dangerous-path access, or None.
+
+    Dangerous-path hits are returned with glob = "DANGEROUS:<pattern>".
+    """
     key = event.tool_key
     paths: list[str] = []
     if key in ae.FILE_WRITE_TOOLS:
@@ -90,6 +119,17 @@ def evaluate(event: ae.HookEvent, globs: list[str], repo_root: str) -> tuple[str
         g = ae.match_control_path(p, globs, repo_root)
         if g:
             return p, g
+
+    # Dangerous paths are denied on ALL operations, including reads.
+    all_paths = list(paths)
+    if key in ae.FILE_READ_TOOLS:
+        all_paths += event.file_paths()
+    if key in ae.SHELL_TOOLS:
+        all_paths += _extract_read_targets(event.command())
+    for p in all_paths:
+        dangerous = ae.match_dangerous_path(p)
+        if dangerous:
+            return p, f"DANGEROUS:{dangerous}"
     return None
 
 
@@ -117,11 +157,18 @@ def main() -> int:
     if hit is None:
         return 0
     path, glob = hit
-    reason = (
-        f"Blocked by {HOOK_NAME}: '{path}' is a platform control file (matches '{glob}'). "
-        "Control-file writes are CRITICAL tier and require human approval via a "
-        "CODEOWNERS-reviewed PR; agents may not write them. Record a PROPOSAL instead."
-    )
+    if glob.startswith("DANGEROUS:"):
+        reason = (
+            f"Blocked by {HOOK_NAME}: '{path}' is a dangerous path (matches "
+            f"'{glob[len('DANGEROUS:'):]}'): path traversal, secrets or credential material. "
+            "Reads and writes of these paths are denied; ask a human if access is required."
+        )
+    else:
+        reason = (
+            f"Blocked by {HOOK_NAME}: '{path}' is a platform control file (matches '{glob}'). "
+            "Control-file writes are CRITICAL tier and require human approval via a "
+            "CODEOWNERS-reviewed PR; agents may not write them. Record a PROPOSAL instead."
+        )
     ae.log_line(repo_root, "control-file-guard.log", {
         "decision": "deny", "tool": event.tool_name, "path": path, "glob": glob,
         "platform": event.platform, "session_id": event.session_id,

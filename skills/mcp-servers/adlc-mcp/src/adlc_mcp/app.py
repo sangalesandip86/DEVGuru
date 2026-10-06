@@ -17,7 +17,11 @@ from adlc_mcp.kernel.module import ModuleRegistry
 from adlc_mcp.kernel.role_permissions import allowed_tools
 from adlc_mcp.modules.change_management import api as change_management_api
 from adlc_mcp.modules.contract_registry import api as contract_registry_api
+from adlc_mcp.modules.event_journal import api as event_journal_api
 from adlc_mcp.modules.evidence_ledger import api as evidence_ledger_api
+from adlc_mcp.modules.concurrency import api as concurrency_api
+from adlc_mcp.modules.parallel_coordinator import api as parallel_coordinator_api
+from adlc_mcp.modules.stage_engine import api as stage_engine_api
 from adlc_mcp.modules.work_planning import api as work_planning_api
 
 SERVER_NAME = "adlc"
@@ -84,6 +88,14 @@ def build_modules(config: Config) -> ModuleRegistry:
         # module's NullEvaluator fails safe (readiness/done cannot be confirmed).
         registry.add(work_planning_api.create_module(
             config, evaluator=None, change_sets=ChangeSetStatusAdapter(cm) if cm else None))
+    if "event_journal" in enabled:
+        registry.add(event_journal_api.create_module(config))
+    if "stage_engine" in enabled:
+        registry.add(stage_engine_api.create_module(config))
+    if "concurrency" in enabled:
+        registry.add(concurrency_api.create_module(config))
+    if "parallel_coordinator" in enabled:
+        registry.add(parallel_coordinator_api.create_module(config))
     return registry
 
 
