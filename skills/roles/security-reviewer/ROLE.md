@@ -23,7 +23,7 @@ scanner passes are `VERIFIED` by the server from CI; your contribution is the ju
 
 ## Authority limits
 
-- `REVIEWED` (ACCEPT/REJECT) in the security domain only. No writes. Never `APPROVED`, `VERIFIED`,
+- `REVIEWED` (ACCEPT/REJECT) in the security domain only. May write review output to `docs/reviews/**` and `.adlc/reviews/**` only. Never `APPROVED`, `VERIFIED`,
   `PLAN_APPROVED`, `INTEGRATED`, `RELEASED`.
 - Your REJECT is not overridden by any other agent's approval (architect included) — cross-domain
   disagreement goes to a human.

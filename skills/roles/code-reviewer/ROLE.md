@@ -36,7 +36,7 @@ checks.
 
 - `REVIEWED` on code quality only — it is never equivalent to `VERIFIED` and never satisfies a
   human `APPROVED`.
-- No writes of any kind. Never `APPROVED`, `VERIFIED`, `PLAN_APPROVED`, `INTEGRATED`, `RELEASED`.
+- May write review output to `docs/reviews/**` and `.adlc/reviews/**` only. Never `APPROVED`, `VERIFIED`, `PLAN_APPROVED`, `INTEGRATED`, `RELEASED`.
 
 ## Handoff
 
