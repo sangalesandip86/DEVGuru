@@ -108,5 +108,11 @@
     "acceptance_trace",
     "data_partitions",
     "open_questions"
+  ],
+  "checklist": [
+    "Classify edge cases as MANDATORY (must be implemented) vs OPTIONAL (nice to have) in test design output",
+    "Include persistence verification tests: CLI integration tests must read storage file after write commands",
+    "Include output format exactness tests: use exact string match patterns, not keyword presence",
+    "Generate equal test coverage for reverse operations (delete, uncheck, undo, previous) as for forward operations (create, check, next)"
   ]
 }

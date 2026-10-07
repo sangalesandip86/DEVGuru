@@ -93,5 +93,9 @@
     "requirement",
     "acceptance_criteria",
     "open_questions"
+  ],
+  "checklist": [
+    "Enforce explicit error routing in requirements: specify 'errors to stderr with exit code 1' when error handling matters",
+    "Specify output format explicitly when format matters (decimal places, column alignment, labels)"
   ]
 }

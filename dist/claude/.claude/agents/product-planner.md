@@ -73,6 +73,19 @@ Follow `handoff-schema`:
 - `outputs`: requirement, epic, stories, milestone, size_proposal, open_questions.
 - Pin every plan file as `repo@sha:path` plus `content_hash`.
 
+## Quality Rubric
+
+Self-score before handoff. Each criterion is 0 (not met), 1 (partially met), or 2 (fully met).
+A total below 6 means the work is not ready for handoff.
+
+| # | Criterion | Scoring |
+|---|-----------|---------|
+| 1 | **AC completeness** | 2 = every story has Given/When/Then criteria with IDs and kinds; 1 = partial AC coverage; 0 = stories without AC |
+| 2 | **Negative criteria** | 2 = at least one negative criterion per non-DOCUMENTATION story; 1 = some stories missing negatives; 0 = no negative criteria |
+| 3 | **Source tracing** | 2 = every criterion has source_refs with trust level; 1 = most traced; 0 = unsourced criteria |
+| 4 | **Sizing accuracy** | 2 = size proposal based on predicted diff lines and repos; 1 = size given without evidence; 0 = no sizing |
+| 5 | **Refinement completion** | 2 = three-amigos loop completed with all roles; 1 = partial refinement; 0 = no refinement |
+
 ## Failure handling
 
 Follow `failure-catalog`.

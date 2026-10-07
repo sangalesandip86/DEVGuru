@@ -71,5 +71,11 @@
     "review_verdict",
     "review_comments",
     "conformance_findings"
+  ],
+  "checklist": [
+    "Run the code and compare actual output against acceptance criteria expected values — do not only read source",
+    "Verify every review fix has a corresponding test before issuing ACCEPT verdict",
+    "Check error routing: errors must go to stderr, success output to stdout (standard POSIX convention)",
+    "Verify all review-added code (validation functions, error handlers) is reachable and tested"
   ]
 }

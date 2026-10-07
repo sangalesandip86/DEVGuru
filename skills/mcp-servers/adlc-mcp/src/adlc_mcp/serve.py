@@ -71,8 +71,11 @@ class InsightHubHandler(BaseHTTPRequestHandler):
         self.send_header("Content-Type", "application/json; charset=utf-8")
         self.send_header("Content-Length", str(len(body)))
         self._cors_headers()
-        self.end_headers()
-        self.wfile.write(body)
+        try:
+            self.end_headers()
+            self.wfile.write(body)
+        except (ConnectionAbortedError, ConnectionResetError, BrokenPipeError):
+            return
 
     def _send_error_json(self, status: int, message: str) -> None:
         self._send_json({"error": message}, status)
@@ -140,8 +143,11 @@ class InsightHubHandler(BaseHTTPRequestHandler):
         self.send_header("Content-Length", str(len(body)))
         self.send_header("Cache-Control", "public, max-age=3600")
         self._cors_headers()
-        self.end_headers()
-        self.wfile.write(body)
+        try:
+            self.end_headers()
+            self.wfile.write(body)
+        except (ConnectionAbortedError, ConnectionResetError, BrokenPipeError):
+            return
 
     # ---------------------------------------------------------------- API: health
     def _api_health(self) -> None:

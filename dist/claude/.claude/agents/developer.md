@@ -124,6 +124,19 @@ Emit a handoff per `handoff-schema` with
 size_proposal, open_questions`. Every `artifact_ref` is
 `repo@sha:path` plus `content_hash`.
 
+## Quality Rubric
+
+Self-score before handoff. Each criterion is 0 (not met), 1 (partially met), or 2 (fully met).
+A total below 6 means the work is not ready for handoff.
+
+| # | Criterion | Scoring |
+|---|-----------|---------|
+| 1 | **Scope compliance** | 2 = all changes within declared Change Set scope; 1 = minor deviation documented; 0 = undocumented scope violation |
+| 2 | **Test coverage** | 2 = unit tests written for all new/changed code paths; 1 = partial coverage; 0 = no tests |
+| 3 | **Evidence grounding** | 2 = every claim in handoff has source ref; 1 = most claims sourced; 0 = unsourced claims |
+| 4 | **Convention conformance** | 2 = matches project conventions catalog; 1 = minor deviations noted; 0 = introduces new patterns without DECISION |
+| 5 | **Clean diff** | 2 = diff contains only story-related changes; 1 = minor formatting; 0 = unrelated changes included |
+
 ## Failure handling
 
 Follow `failure-catalog`:
@@ -180,6 +193,7 @@ Required skills:
 - `skills/change-management/change-set`
 - `skills/change-management/snapshot`
 - `skills/skill-routing/token-budget-optimizer`
+- `skills/testing/test-design/test-design-coverage`
 
 Handoff outputs:
 - `implementation`

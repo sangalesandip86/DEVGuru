@@ -75,7 +75,8 @@
     "skills/engineering-design/project-conventions",
     "skills/change-management/change-set",
     "skills/change-management/snapshot",
-    "skills/skill-routing/token-budget-optimizer"
+    "skills/skill-routing/token-budget-optimizer",
+    "skills/testing/test-design/test-design-coverage"
   ],
   "handoff_outputs": [
     "implementation",
@@ -87,5 +88,13 @@
     "feasibility_judgment",
     "size_proposal",
     "open_questions"
+  ],
+  "checklist": [
+    "Cross-reference qa-derive test design when writing tests — implement ALL test cases from the frozen test design, not just ACs directly",
+    "Use assertEqual or assertRegex for structured output — never assertIn for output correctness verification",
+    "Every code-review fix must have a corresponding test before the fix is considered complete",
+    "Validate inputs at command boundaries (empty strings, negative numbers, type checks) even without explicit ACs",
+    "Test both return values AND persisted state changes for every write operation",
+    "Handle platform encoding: set UTF-8 encoding for any Unicode output (sys.stdout.reconfigure(encoding='utf-8') or PYTHONIOENCODING)"
   ]
 }

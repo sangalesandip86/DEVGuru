@@ -69,13 +69,15 @@ class StageEngine:
         ts = now_iso()
 
         if not result.allowed:
-            self._store.record_transition(
+            self._store.record_violation(
                 entry_id, req, result,
                 identity.actor_type, identity.actor_id, ts)
-            return {"id": entry_id, "allowed": False, "reason": result.reason,
-                    "missing_outputs": result.missing_outputs,
-                    "missing_roles": result.missing_roles,
-                    "recorded_as": "VIOLATION"}
+            raise ValidationError(
+                f"transition {from_stage} -> {to_stage} denied: {result.reason}"
+                + (f" (missing outputs: {result.missing_outputs})"
+                   if result.missing_outputs else "")
+                + (f" (missing roles: {result.missing_roles})"
+                   if result.missing_roles else ""))
 
         self._store.record_transition(
             entry_id, req, result,

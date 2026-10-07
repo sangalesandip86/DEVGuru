@@ -73,5 +73,12 @@
   "handoff_outputs": [
     "review_verdict",
     "security_findings"
+  ],
+  "checklist": [
+    "Crypto algorithm review: XOR, ROT13, base64, Caesar cipher are NOT encryption — reject any project using these for security",
+    "Verify parameterized queries in ALL SQL paths including ORDER BY, GROUP BY, table names, column names — not just SELECT/INSERT/UPDATE/DELETE",
+    "Check platform encoding: flag cp1252/ASCII-only assumptions, verify UTF-8 BOM handling",
+    "Security constant assertions: PBKDF2 iterations >= 100K, key length >= 32 bytes, algorithm not in {md5, sha1}, session TTL reasonable",
+    "Check for hardcoded secrets, default credentials, and debug flags (e.g., 'or True' in conditionals)"
   ]
 }

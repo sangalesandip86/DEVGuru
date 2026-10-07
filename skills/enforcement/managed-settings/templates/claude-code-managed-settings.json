@@ -143,8 +143,6 @@
     "code-reviewer": {
       "permissions": {
         "deny": [
-          "Edit(**)",
-          "Write(**)",
           "Bash",
           "Edit",
           "Write"
@@ -280,8 +278,6 @@
     "security-reviewer": {
       "permissions": {
         "deny": [
-          "Edit(**)",
-          "Write(**)",
           "Edit",
           "Write"
         ]

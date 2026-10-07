@@ -130,6 +130,8 @@ class ChangeManagement:
     ) -> dict[str, Any]:
         cs = self._require(change_set_id)
         domain.check_manual_transition(identity, cs["status"], status, cs["blocked_from"], cs["block_kind"])
+        if status == "PLANNED" and not cs.get("story_refs"):
+            raise ValidationError("PLANNED requires story_refs \u2014 link stories to the Change Set before transitioning to PLANNED")
         if not reason:
             raise ValidationError("reason is required for every status change")
         if status == "BLOCKED":
@@ -277,6 +279,8 @@ class ChangeManagement:
         resolved: bool = False,
     ) -> dict[str, Any]:
         self._require(change_set_id)
+        if source == target:
+            raise ValidationError(f"self-dependency not allowed: {source} cannot depend on itself")
         if evidence_level not in ("DECLARED", "STATIC", "OBSERVED"):
             raise ValidationError("evidence_level must be DECLARED, STATIC or OBSERVED")
         if not 0.0 <= float(confidence) <= 1.0:
@@ -312,6 +316,8 @@ class ChangeManagement:
         cs = self._require(change_set_id)
         if tier_floor is not None and tier_floor not in RISK_TIERS:
             raise ValidationError(f"tier_floor must be one of {RISK_TIERS}")
+        if tier_floor is not None and identity.is_agent:
+            raise PermissionDenied("tier_floor can only be set by SYSTEM or HUMAN callers")
         rules, default, source = domain.load_path_tiers(self._repo_root)
         result = domain.compute_tier(list(paths or []), list(reason_codes or []), list(assessed_tiers or []),
                                      rules, default)
@@ -370,6 +376,8 @@ class ChangeManagement:
     ) -> dict[str, Any]:
         cs = self._require(change_set_id)
         from_role = identity.agent_role if identity.is_agent else f"{identity.actor_type.lower()}:{identity.actor_id}"
+        if from_role == to_role:
+            raise ValidationError(f"self-handoff not allowed: {from_role} cannot hand off to itself")
         if to_role not in AGENT_ROLES and not to_role.startswith("human:"):
             raise ValidationError("to_role must be an agent role or a human:<role> (Degraded Mode stand-in)")
         if verdict is not None and verdict not in domain.VERDICTS:
@@ -412,9 +420,22 @@ class ChangeManagement:
         if status not in domain.TASK_STATUSES:
             raise ValidationError(f"status must be one of {domain.TASK_STATUSES}")
         existing = self._store.get_task(change_set_id, task_id)
+        if existing and existing["status"] == "DONE" and status != "DONE":
+            raise ValidationError(f"task {task_id} is DONE \u2014 status cannot regress from DONE to {status}")
         if existing and existing["status"] == "BLOCKED" and status != "BLOCKED" and existing["blocked_reason"] \
                 and existing["blocked_reason"].startswith("ESCALATE") and not identity.is_human:
             raise PermissionDenied("task was escalated; only a human can unblock it")
+        if existing and existing["owner_role"] != owner_role:
+            handoffs = self._store.handoffs(change_set_id)
+            has_handoff = any(
+                h["to_role"] == owner_role and h["from_role"] == existing["owner_role"]
+                for h in handoffs
+            )
+            if not has_handoff:
+                raise ValidationError(
+                    f"owner_role change from {existing['owner_role']} to {owner_role} requires a prior "
+                    f"record_handoff from {existing['owner_role']} to {owner_role}"
+                )
         if status == "IN_PROGRESS":
             if cs["status"] != "EXECUTING":
                 raise ValidationError("tasks start only while the Change Set is EXECUTING (after PLAN_APPROVED)")

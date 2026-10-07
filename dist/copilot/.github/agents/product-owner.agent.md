@@ -46,6 +46,19 @@ decide between asking and a tagged, expiring ASSUMPTION.
 Per `handoff-schema`, `outputs: requirement, acceptance_criteria,
 open_questions`.
 
+## Quality Rubric
+
+Self-score before handoff. Each criterion is 0 (not met), 1 (partially met), or 2 (fully met).
+A total below 6 means the work is not ready for handoff.
+
+| # | Criterion | Scoring |
+|---|-----------|---------|
+| 1 | **Intent clarity** | 2 = problem, persona and value statement explicit; 1 = partially stated; 0 = vague or missing |
+| 2 | **Scope boundaries** | 2 = in-scope and out-of-scope clearly defined; 1 = scope partially defined; 0 = no scope boundaries |
+| 3 | **Source traceability** | 2 = every requirement traces to user statement, ticket or document; 1 = most traced; 0 = unsourced requirements |
+| 4 | **Ambiguity handling** | 2 = all ambiguities raised as QUESTIONs with blocking flags; 1 = some ambiguities noted; 0 = ambiguities assumed away |
+| 5 | **Priority justification** | 2 = priority backed by sourced inputs; 1 = priority stated without evidence; 0 = no priority rationale |
+
 ## Failure handling
 
 Per `failure-catalog`.

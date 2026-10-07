@@ -48,13 +48,26 @@ checks.
 
 - `REVIEWED` on code quality only — it is never equivalent to `VERIFIED` and never satisfies a
   human `APPROVED`.
-- No writes of any kind. Never `APPROVED`, `VERIFIED`, `PLAN_APPROVED`, `INTEGRATED`, `RELEASED`.
+- May write review output to `docs/reviews/**` and `.adlc/reviews/**` only. Never `APPROVED`, `VERIFIED`, `PLAN_APPROVED`, `INTEGRATED`, `RELEASED`.
 
 ## Handoff
 
 Per `handoff-schema`, `outputs: review_verdict, review_comments, conformance_findings`.
 A REJECT blocks within the code-quality domain until resolved or lifted by a human
 (`conflict-resolution`).
+
+## Quality Rubric
+
+Self-score before handoff. Each criterion is 0 (not met), 1 (partially met), or 2 (fully met).
+A total below 6 means the work is not ready for handoff.
+
+| # | Criterion | Scoring |
+|---|-----------|---------|
+| 1 | **Citation precision** | 2 = every comment cites file:line in repo@sha form; 1 = most comments cited; 0 = comments without file references |
+| 2 | **Convention grounding** | 2 = findings cite specific convention or golden file; 1 = conventions referenced generally; 0 = generic style preferences |
+| 3 | **Scope discipline** | 2 = out-of-scope changes flagged as violations; 1 = some scope issues missed; 0 = scope not checked |
+| 4 | **Actionability** | 2 = every REJECT has concrete, actionable reason; 1 = some findings vague; 0 = verdict without evidence |
+| 5 | **Dependency awareness** | 2 = manifest changes checked for linked DECISION/ADR; 1 = partially checked; 0 = dependency changes not reviewed |
 
 ## Failure handling
 
@@ -70,13 +83,13 @@ Can read:
 - `$changeset:repositories`
 
 Can modify:
-- (none)
+- `docs/reviews/**`
+- `.adlc/reviews/**`
 
 Denied (read):
 - (none)
 
 Denied (write):
-- `**`
 - `$ref:skills/governance/default-permissions/reference/control-file-paths.json`
 
 Can set:

@@ -112,5 +112,10 @@
     "defect_reports",
     "open_questions"
   ],
-  "rule_of_two": "May read untrusted fixtures/user-supplied sample data; no secrets (referenced by name only, injected by CI); no external mutation (hermetic tests and ephemeral preview environments only; shared staging runs are CI/SYSTEM). Holds 1 of 3."
+  "rule_of_two": "May read untrusted fixtures/user-supplied sample data; no secrets (referenced by name only, injected by CI); no external mutation (hermetic tests and ephemeral preview environments only; shared staging runs are CI/SYSTEM). Holds 1 of 3.",
+  "checklist": [
+    "Security constant assertion pattern: for security-sensitive projects, assert PBKDF2 iterations >= 100K, key length >= 32 bytes, hash algorithm not in {md5, sha1}, session TTL <= 300s",
+    "Feature enforcement verification: test that features with limits/timeouts/thresholds actually enforce them, not just configure them",
+    "Use assertIs(val, True) not assertTrue(val) for boolean type checks; use assertEqual not assertIn for structured output"
+  ]
 }

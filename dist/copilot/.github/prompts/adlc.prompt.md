@@ -124,6 +124,43 @@ It does three things:
 - **Parsing the request and choosing the smallest backfill** are guidelines. A misparsed range
   cannot bypass a gate. It can only waste work.
 
+## Standalone Mode (outside DEVGuru repo)
+
+When the ADLC skills infrastructure (`skills/` tree) is not present in the current project:
+
+1. **Do not run** `resolve_workspace.py` or `stage_preflight.py` — these require the skills tree.
+2. **Use the embedded stage graph** above to orchestrate work through stages.
+3. **Delegate to agent roles directly** using `@developer`, `@architect`, `@code-reviewer`, etc.
+4. **Skip CI gate scripts** that depend on the skills tree. Record evidence through MCP tools when available.
+5. The MCP server tools (`mcp__adlc__*`) work from any project when installed globally (`--scope user`).
+
+### Standalone Preflight Checklist
+
+In standalone mode, use this lightweight checklist instead of `stage_preflight.py`. Before entering
+each stage, verify the required artifacts exist:
+
+| Stage | Required Artifacts | Check |
+|-------|--------------------|-------|
+| INTAKE | User request or requirement document | A `.md`, `.yaml`, or `.txt` file describing what to build exists in `docs/` or was provided inline. |
+| ARCHITECTURE | Requirement reviewed by product-owner | `docs/` contains a PO assessment or the requirement is marked READY_FOR_APPROVAL. |
+| PLAN | Architecture decisions recorded | `docs/architecture.md` or equivalent ADR exists. |
+| DESIGN | Stories with acceptance criteria | `docs/stories.md` or story files exist with typed stories and ACs. |
+| IMPLEMENT | Stories are READY with passing preflight | Stories exist, architecture is decided, and no BLOCK conditions remain. |
+| TEST | Implementation exists with unit tests | Source code and at least one test file exist. Tests pass. |
+| REVIEW | Tests pass, implementation complete | `python -m unittest` (or equivalent) exits 0. All stories' ACs are addressed in code. |
+
+If a required artifact is missing, either **backfill** (extend the run backwards) or **block** with
+a clear message naming the missing items.
+
+### Standalone Conductor Hygiene
+
+When running in standalone mode:
+
+- **Add `.claude/worktrees/` and `__pycache__/` to `.gitignore`** before dispatching agents.
+- **Ensure at least one commit** exists before dispatching agents in worktree isolation (empty repos cause `git rev-parse HEAD` failures).
+- **Copy artifacts from worktrees** to the main tree after each agent completes, then the worktree can be cleaned.
+- **Persist review outputs** from read-only agents (code-reviewer, security-reviewer) — they cannot write files themselves. Save their handback content to `docs/`.
+
 ## References
 - reference/run-examples.md: worked scenarios.
 - reference/request-grammar.md · reference/checkpoint-format.md

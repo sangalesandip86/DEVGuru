@@ -99,6 +99,22 @@ class StageEngineStore:
                 "from_stage": req.from_stage, "to_stage": req.to_stage,
                 "allowed": result.allowed, "gate": result.gate}
 
+
+    def record_violation(self, entry_id: str, req: TransitionRequest,
+                         result: TransitionResult, actor_type: str, actor_id: str,
+                         timestamp: str) -> None:
+        """Record a VIOLATION without updating stage_current."""
+        self._conn.execute(
+            "INSERT INTO stage_transitions "
+            "(id, change_set_id, from_stage, to_stage, actor_type, actor_id, actor_role, "
+            "outputs, evidence_ids, gate_result, timestamp) "
+            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            (entry_id, req.change_set_id, req.from_stage, req.to_stage,
+             actor_type, actor_id, req.actor_role,
+             json.dumps(req.outputs), json.dumps(req.evidence_ids),
+             "VIOLATION", timestamp))
+        self._conn.commit()
+
     def get_current_stage(self, change_set_id: str) -> StageState:
         row = self._conn.execute(
             "SELECT current_stage, previous_stage FROM stage_current WHERE change_set_id = ?",

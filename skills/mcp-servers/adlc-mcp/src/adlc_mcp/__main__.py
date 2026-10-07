@@ -55,12 +55,13 @@ def main(argv: list[str] | None = None) -> int:
             from adlc_mcp.serve import start_hub, stop_hub
             _, registry, _ = build_server(config, identity, server=_Recorder())
             http_server, port, _ = start_hub(registry, config, port=args.port)
-            print(f"Insight Hub UI: http://127.0.0.1:{port}/ui/")
+            print(f"Insight Hub UI: http://127.0.0.1:{port}/ui/", flush=True)
             stop_event = Event()
             signal.signal(signal.SIGINT, lambda *_: stop_event.set())
             signal.signal(signal.SIGTERM, lambda *_: stop_event.set())
             try:
-                stop_event.wait()
+                while not stop_event.wait(timeout=1.0):
+                    pass
             finally:
                 stop_hub(http_server)
                 registry.close()

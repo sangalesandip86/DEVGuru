@@ -85,6 +85,19 @@ Follow `handoff-schema`.
   behaviour.
 - **Pinning:** pin the design as `repo@sha:path` plus `content_hash`.
 
+## Quality Rubric
+
+Self-score before handoff. Each criterion is 0 (not met), 1 (partially met), or 2 (fully met).
+A total below 6 means the work is not ready for handoff.
+
+| # | Criterion | Scoring |
+|---|-----------|---------|
+| 1 | **AC coverage** | 2 = every acceptance criterion maps to at least one scenario; 1 = partial AC coverage; 0 = unmapped criteria |
+| 2 | **Traceability** | 2 = every scenario cites its AC IDs with expected outcome and data partitions; 1 = partial tracing; 0 = untraced scenarios |
+| 3 | **Design technique** | 2 = partitioning, boundary, decision table or state transition applied; 1 = basic happy-path only; 0 = ad-hoc scenarios |
+| 4 | **Code blindness** | 2 = design derived entirely from spec and contracts; 1 = minor implementation leakage; 0 = implementation-aware scenarios |
+| 5 | **Freeze integrity** | 2 = design keyed to ac_hash with REVIEWED recorded; 1 = hash present but no REVIEWED; 0 = no freeze or hash |
+
 ## Failure handling
 
 Follow `failure-catalog`.

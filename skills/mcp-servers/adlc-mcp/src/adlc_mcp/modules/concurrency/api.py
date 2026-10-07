@@ -7,7 +7,7 @@ from __future__ import annotations
 import sqlite3
 import uuid
 from dataclasses import asdict
-from typing import Any
+from typing import Any, Protocol
 
 from adlc_mcp.kernel import db
 from adlc_mcp.kernel.config import Config
@@ -18,12 +18,24 @@ from adlc_mcp.kernel.util import now_iso
 from .domain import CoordMessage, DEFAULT_INTENT_TTL_MINUTES
 from .store import ConcurrencyStore
 
+
+class TaskRegistryPort(Protocol):
+    def task_exists(self, task_id: str) -> bool: ...
+
+
+class NullTaskRegistry:
+    """Fail open when registry not connected."""
+    def task_exists(self, task_id: str) -> bool:
+        return True
+
+
 NAME = "concurrency"
 
 
 class ConcurrencyPrimitives:
-    def __init__(self, conn: sqlite3.Connection) -> None:
+    def __init__(self, conn: sqlite3.Connection, task_registry: TaskRegistryPort | None = None) -> None:
         self._store = ConcurrencyStore(conn)
+        self._task_registry = task_registry or NullTaskRegistry()
 
     def migrate(self) -> list[str]:
         return self._store.migrate()
@@ -31,6 +43,8 @@ class ConcurrencyPrimitives:
     def claim_task(self, identity: Identity, *, task_id: str) -> dict[str, Any]:
         if not task_id:
             raise ValidationError("task_id is required")
+        if not self._task_registry.task_exists(task_id):
+            raise ValidationError(f"task {task_id!r} does not exist \u2014 cannot claim a nonexistent task")
         ok, claim = self._store.claim_task(task_id, identity.actor_id)
         result: dict[str, Any] = {"task_id": task_id, "claimed": ok}
         if claim:
@@ -82,9 +96,9 @@ class ConcurrencyPrimitives:
 class ConcurrencyModule:
     name = NAME
 
-    def __init__(self, config: Config) -> None:
+    def __init__(self, config: Config, task_registry: TaskRegistryPort | None = None) -> None:
         self._conn = db.connect(config.db_path(NAME))
-        self._api = ConcurrencyPrimitives(self._conn)
+        self._api = ConcurrencyPrimitives(self._conn, task_registry)
 
     def migrate(self, conn: sqlite3.Connection | None = None) -> None:
         self._api.migrate()
@@ -101,7 +115,7 @@ class ConcurrencyModule:
         self._conn.close()
 
 
-def create_module(config: Config) -> ConcurrencyModule:
-    module = ConcurrencyModule(config)
+def create_module(config: Config, task_registry: TaskRegistryPort | None = None) -> ConcurrencyModule:
+    module = ConcurrencyModule(config, task_registry)
     module.migrate()
     return module

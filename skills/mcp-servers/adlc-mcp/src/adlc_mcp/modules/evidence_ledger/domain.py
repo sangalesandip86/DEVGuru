@@ -100,6 +100,39 @@ IDENTITY_TRUST_CEILING: dict[str, str] = {
 }
 
 
+AGENT_ALLOWED_SOURCE_TYPES = frozenset({
+    "file_read", "agent_analysis", "repo_file", "git_metadata", "agents_md",
+    "contract_spec", "external_api", "issue_text", "pr_comment",
+    "web_page", "external_doc", "generated_log",
+})
+
+SYSTEM_ONLY_SOURCE_TYPES = frozenset({
+    "command_output", "tool_output", "hook_observation",
+    "platform_policy", "ci_result", "scanner_result", "forge_event",
+})
+
+HUMAN_ONLY_SOURCE_TYPES = frozenset({
+    "org_policy", "org_document", "user_statement",
+})
+
+
+def validate_source_type(source_type: str, identity: Identity) -> None:
+    """Ensure the caller's actor_type is consistent with the claimed source_type (F-13, F-14)."""
+    if source_type not in SOURCE_TYPE_TRUST:
+        return
+    if identity.is_agent and source_type in SYSTEM_ONLY_SOURCE_TYPES:
+        raise PermissionDenied(
+            f"AGENT callers cannot claim source_type {source_type!r} "
+            f"\u2014 reserved for SYSTEM writers (hooks, CI)"
+        )
+    if identity.is_agent and source_type in HUMAN_ONLY_SOURCE_TYPES:
+        raise PermissionDenied(
+            f"AGENT callers cannot claim source_type {source_type!r} "
+            f"\u2014 reserved for HUMAN callers"
+        )
+
+
+
 def derive_trust(source_type: str, referenced: list[dict[str, Any]], identity: Identity | None = None) -> str:
     """Trust = lowest of identity ceiling, source level, and every referenced entry (taint).
 

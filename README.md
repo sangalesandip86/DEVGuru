@@ -75,6 +75,26 @@ Enforcement ships from an **organization-managed** location, not from each repo.
    settings (replace `{{ADLC_ENFORCEMENT_DIR}}`).
 2. Register the MCP server `adlc` (`skills/mcp-servers/adlc-mcp/`); tools appear as
    `mcp__adlc__<tool>`. One credential per role.
+   Use `claude mcp add-json --scope local` for auto-start (no approval prompt):
+   ```bash
+   claude mcp add-json --scope local adlc '{
+     "command": "<python-path>",
+     "args": ["-m", "adlc_mcp"],
+     "env": {
+       "PYTHONPATH": "<repo>/skills/mcp-servers/adlc-mcp/src",
+       "ADLC_MODULES": "evidence_ledger,change_management,contract_registry,work_planning,event_journal,stage_engine,concurrency,parallel_coordinator",
+       "ADLC_SKILLS_ROOT": "<repo>/skills",
+       "ADLC_TOKEN": "<your-token>"
+     }
+   }'
+   ```
+   Verify with `claude mcp get adlc` — should show `✔ Connected`.
+
+   **MCP config locations (Claude Code 2.1+):**
+   - `local` scope → `~/.claude.json` (per-project, auto-start, no approval)
+   - `project` scope → `<repo>/.mcp.json` (shared, requires one-time approval)
+   - **Not read** for MCP: `.claude/settings.json` `mcpServers` key (hooks/permissions only),
+     `~/.claude/.mcp.json` (stale in 2.1+)
 3. Install skills as Claude Code skills (each `SKILL.md` folder) — or package each top-level
    `skills/<group>` as a plugin.
 4. Copy `dist/claude/.claude/agents/*.md` into the target repo (via CODEOWNERS-reviewed PR).
