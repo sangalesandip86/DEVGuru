@@ -16,6 +16,7 @@ import os
 import threading
 import time
 from http.server import BaseHTTPRequestHandler, HTTPServer
+from socketserver import ThreadingMixIn
 from pathlib import Path
 from typing import Any
 from urllib.parse import parse_qs, urlparse
@@ -118,6 +119,16 @@ class InsightHubHandler(BaseHTTPRequestHandler):
             return self._api_workers(qs)
         if path == "/api/trace":
             return self._api_trace(qs)
+        if path == "/api/handoffs":
+            return self._api_handoffs(qs)
+        if path == "/api/tasks":
+            return self._api_tasks(qs)
+        if path == "/api/status-history":
+            return self._api_status_history(qs)
+        if path == "/api/risk-history":
+            return self._api_risk_history(qs)
+        if path == "/api/overview":
+            return self._api_overview()
         self._send_error_json(404, "not found")
 
     # ---------------------------------------------------------------- static files
@@ -141,7 +152,7 @@ class InsightHubHandler(BaseHTTPRequestHandler):
         self.send_response(200)
         self.send_header("Content-Type", ct)
         self.send_header("Content-Length", str(len(body)))
-        self.send_header("Cache-Control", "public, max-age=3600")
+        self.send_header("Cache-Control", "no-cache, no-store, must-revalidate")
         self._cors_headers()
         try:
             self.end_headers()
@@ -264,21 +275,151 @@ class InsightHubHandler(BaseHTTPRequestHandler):
         except Exception as exc:
             self._send_error_json(500, str(exc))
 
-    # ---------------------------------------------------------------- API: trace
+    # ---------------------------------------------------------------- API: trace (ALL events)
     def _api_trace(self, qs: dict) -> None:
         journal = self._module_api("event_journal")
         if journal is None:
             return self._send_error_json(404, "module not enabled: event_journal")
         cs_id = qs.get("change_set_id", [""])[0]
+        event_type = qs.get("event_type", [""])[0]
         try:
-            events = journal.query_journal(change_set_id=cs_id or None, limit=500)
-            trace_types = {"stage.enter", "stage.exit", "stage.gate_pass", "stage.gate_fail",
-                           "evidence.decision", "coord.message", "task.deliver",
-                           "task.start", "task.claim", "session.heartbeat"}
-            trace = [e for e in events if e.get("event_type", "") in trace_types]
-            self._send_json(trace)
+            events = journal.query_journal(
+                change_set_id=cs_id or None,
+                event_type=event_type or None,
+                limit=1000,
+            )
+            self._send_json(events)
         except Exception as exc:
             self._send_error_json(500, str(exc))
+
+    # ---------------------------------------------------------------- API: handoffs
+    def _api_handoffs(self, qs: dict) -> None:
+        cm = self._module_api("change_management")
+        if cm is None:
+            return self._send_error_json(404, "module not enabled: change_management")
+        cs_id = qs.get("change_set_id", [""])[0]
+        try:
+            if cs_id:
+                rows = cm._store.handoffs(cs_id)
+            else:
+                raw = cm._store.conn.execute(
+                    "SELECT * FROM handoffs ORDER BY seq DESC LIMIT 200"
+                ).fetchall()
+                rows = [dict(r) for r in raw]
+                for row in rows:
+                    if isinstance(row.get("payload"), str):
+                        try:
+                            row["payload"] = json.loads(row["payload"])
+                        except (TypeError, ValueError):
+                            pass
+            self._send_json(rows)
+        except Exception as exc:
+            self._send_error_json(500, str(exc))
+
+    # ---------------------------------------------------------------- API: tasks
+    def _api_tasks(self, qs: dict) -> None:
+        cm = self._module_api("change_management")
+        if cm is None:
+            return self._send_error_json(404, "module not enabled: change_management")
+        cs_id = qs.get("change_set_id", [""])[0]
+        try:
+            if cs_id:
+                rows = cm._store.tasks(cs_id)
+            else:
+                raw = cm._store.conn.execute(
+                    "SELECT * FROM tasks ORDER BY updated_at DESC LIMIT 200"
+                ).fetchall()
+                rows = [dict(r) for r in raw]
+            self._send_json(rows)
+        except Exception as exc:
+            self._send_error_json(500, str(exc))
+
+    # ---------------------------------------------------------------- API: status-history
+    def _api_status_history(self, qs: dict) -> None:
+        cm = self._module_api("change_management")
+        if cm is None:
+            return self._send_error_json(404, "module not enabled: change_management")
+        cs_id = qs.get("change_set_id", [""])[0]
+        try:
+            if cs_id:
+                rows = cm._store.history(cs_id)
+            else:
+                raw = cm._store.conn.execute(
+                    "SELECT * FROM status_history ORDER BY seq DESC LIMIT 200"
+                ).fetchall()
+                rows = [dict(r) for r in raw]
+            self._send_json(rows)
+        except Exception as exc:
+            self._send_error_json(500, str(exc))
+
+    # ---------------------------------------------------------------- API: risk-history
+    def _api_risk_history(self, qs: dict) -> None:
+        cm = self._module_api("change_management")
+        if cm is None:
+            return self._send_error_json(404, "module not enabled: change_management")
+        cs_id = qs.get("change_set_id", [""])[0]
+        try:
+            if cs_id:
+                rows = cm._store.risk_history(cs_id)
+            else:
+                raw = cm._store.conn.execute(
+                    "SELECT * FROM risk_assessments ORDER BY seq DESC LIMIT 200"
+                ).fetchall()
+                rows = [dict(r) for r in raw]
+                for row in rows:
+                    for k in ("reason_codes", "detail"):
+                        if isinstance(row.get(k), str):
+                            try:
+                                row[k] = json.loads(row[k])
+                            except (TypeError, ValueError):
+                                pass
+            self._send_json(rows)
+        except Exception as exc:
+            self._send_error_json(500, str(exc))
+
+    # ---------------------------------------------------------------- API: overview (aggregate)
+    def _api_overview(self) -> None:
+        result = {"change_sets": 0, "evidence": 0, "handoffs": 0, "tasks": 0,
+                  "journal_events": 0, "roles": [], "stages_seen": []}
+        cm = self._module_api("change_management")
+        if cm:
+            try:
+                r = cm._store.conn.execute("SELECT COUNT(*) as c FROM change_sets").fetchone()
+                result["change_sets"] = r["c"] if r else 0
+                r = cm._store.conn.execute("SELECT COUNT(*) as c FROM handoffs").fetchone()
+                result["handoffs"] = r["c"] if r else 0
+                r = cm._store.conn.execute("SELECT COUNT(*) as c FROM tasks").fetchone()
+                result["tasks"] = r["c"] if r else 0
+                rows = cm._store.conn.execute(
+                    "SELECT DISTINCT from_role AS r FROM handoffs UNION SELECT DISTINCT to_role FROM handoffs"
+                ).fetchall()
+                result["roles"] = sorted(set(r["r"] for r in rows if r["r"]))
+            except Exception:
+                pass
+        ledger = self._module_api("evidence_ledger")
+        if ledger:
+            try:
+                r = ledger._store.conn.execute("SELECT COUNT(*) as c FROM evidence").fetchone()
+                result["evidence"] = r["c"] if r else 0
+            except Exception:
+                pass
+        journal = self._module_api("event_journal")
+        if journal:
+            try:
+                r = journal._store.conn.execute("SELECT COUNT(*) as c FROM journal_entries").fetchone()
+                result["journal_events"] = r["c"] if r else 0
+                rows = journal._store.conn.execute(
+                    "SELECT DISTINCT json_extract(payload, '$.stage') as s FROM journal_entries "
+                    "WHERE event_type IN ('stage.enter','stage.exit') AND s IS NOT NULL"
+                ).fetchall()
+                result["stages_seen"] = sorted(set(r["s"] for r in rows if r["s"]))
+            except Exception:
+                pass
+        self._send_json(result)
+
+
+class _ThreadingHTTPServer(ThreadingMixIn, HTTPServer):
+    daemon_threads = True
 
 
 def _make_handler(registry: ModuleRegistry, static_dir: Path | None = None) -> type:
@@ -293,7 +434,7 @@ def _make_handler(registry: ModuleRegistry, static_dir: Path | None = None) -> t
 def start_hub(registry: ModuleRegistry, config: Any = None,
               port: int = 0, static_dir: Path | None = None) -> tuple[HTTPServer, int, threading.Thread]:
     handler_cls = _make_handler(registry, static_dir)
-    server = HTTPServer(("127.0.0.1", port), handler_cls)
+    server = _ThreadingHTTPServer(("127.0.0.1", port), handler_cls)
     actual_port = server.server_address[1]
     thread = threading.Thread(target=server.serve_forever, daemon=True)
     thread.start()

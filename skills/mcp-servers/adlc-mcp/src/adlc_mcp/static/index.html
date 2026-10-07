@@ -4,28 +4,32 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>ADLC Insight Hub</title>
-<link rel="stylesheet" href="app.css">
+<link rel="stylesheet" href="app.css?v=1791396062">
 <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#1a1a2e">
+<meta name="theme-color" content="#0f0f23">
 </head>
 <body>
 <a href="#main" class="skip-link">Skip to content</a>
 <nav id="sidebar" role="navigation" aria-label="Main navigation">
-  <div class="sidebar-brand">ADLC Insight Hub</div>
+  <div class="sidebar-brand">
+    <span class="brand-icon">&#9670;</span>
+    <span class="brand-text">ADLC Hub</span>
+  </div>
   <ul>
-    <li><a href="#/" class="nav-link active" data-view="dashboard">Dashboard</a></li>
-    <li><a href="#/workspace" class="nav-link" data-view="workspace">Workspace</a></li>
-    <li><a href="#/workitem" class="nav-link" data-view="workitem">Work Item</a></li>
-    <li><a href="#/trace" class="nav-link" data-view="trace">Trace</a></li>
-    <li><a href="#/parallel" class="nav-link" data-view="parallel">Parallel</a></li>
+    <li><a href="#/" class="nav-link active" data-view="dashboard"><span class="nav-icon">&#9632;</span> Dashboard</a></li>
+    <li><a href="#/workitems" class="nav-link" data-view="workitems"><span class="nav-icon">&#9654;</span> Work Items</a></li>
+    <li><a href="#/agents" class="nav-link" data-view="agents"><span class="nav-icon">&#9733;</span> Agent Flow</a></li>
+    <li><a href="#/evidence" class="nav-link" data-view="evidence"><span class="nav-icon">&#9830;</span> Evidence</a></li>
+    <li><a href="#/trace" class="nav-link" data-view="trace"><span class="nav-icon">&#9776;</span> Trace</a></li>
   </ul>
   <div class="sidebar-footer">
     <span id="connection-status" class="badge badge-success">Connected</span>
+    <span class="sidebar-version">v4.0</span>
   </div>
 </nav>
 <main id="main" role="main">
   <div id="view-container"></div>
 </main>
-<script src="app.js"></script>
+<script src="app.js?v=1791396062"></script>
 </body>
 </html>
