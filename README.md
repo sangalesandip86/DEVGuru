@@ -136,6 +136,80 @@ Legend: `[x]` exists and tested; `[~]` exists with noted gaps; `[ ]` absent.
 
 All 83 test suites pass (enforcement: 40, MCP: 82, planning-gates: 31). No item has run against a real pilot repo yet.
 
+## Insight Hub UI Setup
+
+The ADLC MCP server ships with a built-in web dashboard called **Insight Hub**.
+The installer (`python installer/install.py`) handles skills + MCP wiring but
+does not yet issue credentials or start the UI — follow these steps manually.
+
+### 1. Issue a credential (one-time)
+
+Sets up `~/.adlc/credentials.json` with a hashed token. The plaintext token is
+printed once — save it.
+
+**PowerShell (Windows):**
+```powershell
+$env:PYTHONPATH = "skills\mcp-servers\adlc-mcp\src"
+python -c "from adlc_mcp.kernel.identity import issue_credential; token = issue_credential('HUMAN', 'sandip', human_roles=['human:tech-lead']); print(f'Your token: {token}')"
+```
+
+**Bash (macOS/Linux):**
+```bash
+PYTHONPATH=skills/mcp-servers/adlc-mcp/src \
+python3 -c "from adlc_mcp.kernel.identity import issue_credential; token = issue_credential('HUMAN', 'sandip', human_roles=['human:tech-lead']); print(f'Your token: {token}')"
+```
+
+Valid `human_roles` (must include the `human:` prefix):
+`human:tech-lead`, `human:security-lead`, `human:product-owner`, `human:release-manager`
+
+### 2. Start the UI server
+
+**PowerShell (Windows):**
+```powershell
+$env:PYTHONPATH = "skills\mcp-servers\adlc-mcp\src"
+$env:ADLC_MODULES = "evidence_ledger,change_management,contract_registry,work_planning,event_journal,stage_engine,concurrency,parallel_coordinator"
+$env:ADLC_TOKEN = "<paste-your-token-here>"
+
+python -m adlc_mcp --serve-ui --port 8080
+```
+
+**Bash (macOS/Linux):**
+```bash
+export PYTHONPATH=skills/mcp-servers/adlc-mcp/src
+export ADLC_MODULES=evidence_ledger,change_management,contract_registry,work_planning,event_journal,stage_engine,concurrency,parallel_coordinator
+export ADLC_TOKEN=<paste-your-token-here>
+
+python3 -m adlc_mcp --serve-ui --port 8080
+```
+
+Open **http://127.0.0.1:8080/ui/** in your browser.
+
+UI views: **Dashboard** (overview), **Workspace** (repos), **Work Item** (change sets/tasks),
+**Trace** (evidence ledger + stage transitions), **Parallel** (coordinator activity).
+
+### 3. Terminal dashboard (alternative)
+
+```powershell
+# PowerShell
+$env:PYTHONPATH = "skills\mcp-servers\adlc-mcp\src"
+python skills\mcp-servers\adlc-mcp\cli\adlc_watch.py --db .adlc\event_journal.db
+```
+
+```bash
+# Bash
+PYTHONPATH=skills/mcp-servers/adlc-mcp/src \
+python3 skills/mcp-servers/adlc-mcp/cli/adlc_watch.py --db .adlc/event_journal.db
+```
+
+### Common issues
+
+| Error | Fix |
+|---|---|
+| `no credential presented` | `$env:ADLC_TOKEN` not set — PowerShell uses `$env:VAR`, not `set VAR=` (cmd) |
+| `credential not recognised` | Token not in `~/.adlc/credentials.json` — re-run step 1 |
+| `invalid human role 'tech-lead'` | Use the full prefixed form: `human:tech-lead` |
+| `ModuleNotFoundError: adlc_mcp` | `PYTHONPATH` not set or wrong — must point to `skills/mcp-servers/adlc-mcp/src` |
+
 ## Tests
 
 ```sh
