@@ -1,0 +1,24 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit|NotebookEdit|Bash|PowerShell",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python \"C:/copies/git projects/DEVGuru/skills/enforcement/hooks/control-file-guard/control_file_guard.py\"",
+            "timeout": 10000
+          }
+        ]
+      }
+    ]
+  },
+  "permissions": {
+    "deny": [
+      "Edit(dist/**)",
+      "Write(dist/**)",
+      "Edit(AGENTS.md)",
+      "Write(AGENTS.md)"
+    ]
+  }
+}

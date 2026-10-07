@@ -1,0 +1,92 @@
+
+Already completed (committed):
+
+┌─────────┬─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+│ Commit  │                                                                               What was fixed                                                                                │
+├─────────┼─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│ e329009 │ 7 review findings fixed: maxTurns raised, cold-start bootstrap, dead links removed, standalone mode added, installer created, extended tests (+41), eval harness (70 tests) │
+├─────────┼─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│ 50d843a │ Test quality issues + contract registry expansion                                                                                                                           │
+├─────────┼─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│ a0bec03 │ Waves 3-4: stage engine, concurrency, parallel coordinator, Insight Hub, CLI toolkit, installer                                                                             │
+└─────────┴─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+
+Currently pending (uncommitted):
+- installer/install.py — small fix: changed len(mcp_check.get('tools', [])) to mcp_check.get('tools', 0) (tool count display)
+
+Remaining deferred work (from docs/testing-roadmap-deferred.md):
+1. Migration scenario + spike scenario YAMLs (2 of 5 planned)
+2. Scaling scenario with synthetic 50-story epic
+3. Live mode runner — framework ready, needs LLM API wiring
+4. Layer C: Prompt Regression Testing — entire layer still deferred (fingerprinting, cross-model testing, drift detection)
+5. Wire composition tests into CI as nightly/weekly
+
+
+Core Engine Work
+
+- ProgressEngine — Persistent per-game best-score tracking, replacing the current session-only UserProgressProvider.addStars(). This is the foundation that unlocks everything else below.
+
+Features (depend on ProgressEngine)
+
+┌──────────────────────────────────┬───────────────────────────────────────────────────────────────────────────┐
+│             Feature              │                                Description                                │
+├──────────────────────────────────┼───────────────────────────────────────────────────────────────────────────┤
+│ F1: Learning Path Map (प्रवास नकाशा) │ Visual journey map showing the child's progression through the curriculum │
+├──────────────────────────────────┼───────────────────────────────────────────────────────────────────────────┤
+│ F2: Daily Challenge (आजचे आव्हान)   │ One daily puzzle/task with streaks and rewards                            │
+├──────────────────────────────────┼───────────────────────────────────────────────────────────────────────────┤
+│ Achievement Engine               │ 25+ JSON-driven badges with unlock rules                                  │
+├──────────────────────────────────┼───────────────────────────────────────────────────────────────────────────┤
+│ Parent Dashboard                 │ Progress reports for parents to see how the child is doing                │
+└──────────────────────────────────┴───────────────────────────────────────────────────────────────────────────┘
+
+3 Asset-Heavy Games (need illustrated artwork)
+
+┌───────────────────┬──────────────────────────────────────┐
+│       Game        │            What's Needed             │
+├───────────────────┼──────────────────────────────────────┤
+│ C4: Whack-a-Mole  │ Mole sprites + hole graphics         │
+├───────────────────┼──────────────────────────────────────┤
+│ C5: Jigsaw Reveal │ 10-15 reward images to slice         │
+├───────────────────┼──────────────────────────────────────┤
+│ C7: Treasure Hunt │ 3 scene backgrounds + object sprites │
+└───────────────────┴──────────────────────────────────────┘
+
+Remaining Phase 4 Deferrals
+
+- P4-17: Hub mascot "continue" bubble
+- P4-54/55: Accessibility contrast fixes + settings screen
+- Splash Mascot: Proper mascot illustration for splash/hub screens
+
+Other
+
+- Ship-blockers (S1-S7 from exec summary) — security/legal phase items
+
+The critical path is ProgressEngine first — F1, F2, achievements, and the parent dashboard all depend on it. The 3 asset-heavy games are blocked on artwork, not code.
+
+
+
+
+/adlc Initialize a new project: Task Tracker CLI - a Python CLI tool with commands: add, list, done, stats. This is a test project to exercise the full ADLC lifecycle.
+
+Run the COMPLETE stage pipeline: INTAKE → ARCHITECTURE → PLAN → IMPLEMENT → TEST → REVIEW (code + security).
+
+For each stage, use the designated agent role:
+- INTAKE: @product-owner — review the requirement, identify gaps, mark READY_FOR_APPROVAL
+- ARCHITECTURE: @architect — produce ADR with technology decisions, data model, module layout
+- PLAN: @product-planner — decompose into epic/stories with typed acceptance criteria
+- IMPLEMENT: @developer — build the CLI with all stories' ACs met, include unit tests
+- TEST (design): @qa-derive — produce implementation-blind test design from ACs only
+- REVIEW: @code-reviewer + @security-reviewer — parallel review of implementation
+
+Requirements for Task Tracker CLI:
+- REQ-001: Build a command-line task tracker
+- Commands: add <description>, list [--status done|todo|all], done <id>, stats
+- Storage: JSON file (~/.task-tracker/tasks.json)
+- Each task has: id (auto-increment), description, status (todo/done), created_at, completed_at
+- Stats shows: total, done, todo, completion percentage
+
+Use MCP tools (record_evidence, record_handoff, etc.) at every stage transition.
+Use worktree isolation for each agent.
+Save all stage outputs to docs/.
+Log any issues encountered during the run.
