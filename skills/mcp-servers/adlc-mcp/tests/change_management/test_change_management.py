@@ -23,8 +23,9 @@ class CMTestCase(unittest.TestCase):
         self.registry.close()
         self.env.close()
 
-    def new_cs(self, repos=("repo-a",)):
-        return self.cm.create_change_set(DEVELOPER, title="t", requirements=["REQ-1"], repositories=list(repos))
+    def new_cs(self, repos=("repo-a",), story_refs=("ST-1",)):
+        return self.cm.create_change_set(DEVELOPER, title="t", requirements=["REQ-1"],
+                                         repositories=list(repos), story_refs=list(story_refs))
 
     def drive_to(self, cs_id, target, tier_paths=("README.md",)):
         """Walk the lifecycle the legitimate way."""
@@ -171,7 +172,8 @@ class Lifecycle(CMTestCase):
         reg = build_modules(env.config)
         try:
             cm = reg.get("change_management").api
-            cs = cm.create_change_set(DEVELOPER, title="t", requirements=["R"], repositories=["repo-a"])
+            cs = cm.create_change_set(DEVELOPER, title="t", requirements=["R"],
+                                      repositories=["repo-a"], story_refs=["ST-1"])
             for s in ("SCOPED",):
                 cm.update_status(DEVELOPER, change_set_id=cs["id"], status=s, reason="x")
             cm.compute_risk_tier(DEVELOPER, change_set_id=cs["id"], paths=["README.md"])

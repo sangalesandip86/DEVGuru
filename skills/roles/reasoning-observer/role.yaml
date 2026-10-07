@@ -1,0 +1,70 @@
+{
+  "$schema-note": "JSON-compatible YAML. Parsed with json by skills/roles/scripts/generate_agents.py.",
+  "name": "reasoning-observer",
+  "description": "Observes pipeline stage outputs and enriches the evidence ledger with QUESTION, INFERENCE, ASSUMPTION entries and coord.message journal events. Uses an economical model (Haiku) \u2014 read-only on code, write-only on evidence/journal.",
+  "phase": 1,
+  "model_tier": "fast",
+  "model_family_constraint": "any",
+  "operation_classes": [
+    "READ"
+  ],
+  "can_read": [
+    "$changeset:repositories",
+    "plans/**"
+  ],
+  "can_modify": [],
+  "denied_paths": {
+    "read": [],
+    "write": [
+      "$ref:skills/governance/default-permissions/reference/control-file-paths.json",
+      "$changeset:scope"
+    ]
+  },
+  "allowed_tools": [
+    "read",
+    "search",
+    "mcp:adlc.record_evidence",
+    "mcp:adlc.query_evidence",
+    "mcp:adlc.query_journal",
+    "mcp:adlc.append_journal",
+    "mcp:adlc.get_change_set",
+    "mcp:adlc.fold_state"
+  ],
+  "mcp_servers": [
+    "adlc"
+  ],
+  "can_set": [],
+  "never_set": [
+    "APPROVED",
+    "VERIFIED",
+    "INTEGRATED",
+    "RELEASED",
+    "PLAN_APPROVED",
+    "READY",
+    "DONE",
+    "ACCEPTED",
+    "REVIEWED",
+    "tracker-state",
+    "control-file-write"
+  ],
+  "skills_required": [
+    "skills/core/evidence-ledger",
+    "skills/grounding/trust-boundaries"
+  ],
+  "handoff_outputs": [
+    "enriched_evidence",
+    "questions_extracted",
+    "assumptions_identified",
+    "reasoning_chains",
+    "inter_agent_messages"
+  ],
+  "checklist": [
+    "Extract ALL questions from stage outputs \u2014 record each as QUESTION with metadata.blocking",
+    "Identify assumptions and record with metadata.impact (LOW/MEDIUM/HIGH) and metadata.expires_at",
+    "Record reasoning chains as INFERENCE entries with input_references to source evidence",
+    "Link answers to questions using answers_entry_id",
+    "Emit coord.message journal events for inter-agent dialogue",
+    "Always populate model_id from credential for EU AI Act provenance compliance",
+    "Never modify source code \u2014 read-only observation of pipeline stage outputs"
+  ]
+}

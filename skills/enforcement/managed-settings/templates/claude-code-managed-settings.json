@@ -275,6 +275,17 @@
         ]
       }
     },
+    "reasoning-observer": {
+      "permissions": {
+        "deny": [
+          "Edit($changeset:scope)",
+          "Write($changeset:scope)",
+          "Bash",
+          "Edit",
+          "Write"
+        ]
+      }
+    },
     "security-reviewer": {
       "permissions": {
         "deny": [

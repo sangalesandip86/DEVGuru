@@ -11,6 +11,18 @@
           }
         ]
       }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write|Bash|PowerShell|NotebookEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python -I \"C:\\copies\\git projects\\DEVGuru\\.claude\\hooks\\adlc_session_capture.py\"",
+            "timeout": 3000
+          }
+        ]
+      }
     ]
   },
   "permissions": {

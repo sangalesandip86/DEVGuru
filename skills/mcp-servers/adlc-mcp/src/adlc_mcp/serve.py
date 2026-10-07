@@ -63,7 +63,7 @@ class InsightHubHandler(BaseHTTPRequestHandler):
             self.send_header("Access-Control-Allow-Origin", origin)
         else:
             self.send_header("Access-Control-Allow-Origin", "http://127.0.0.1")
-        self.send_header("Access-Control-Allow-Methods", "GET, OPTIONS")
+        self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
         self.send_header("Access-Control-Allow-Headers", "Content-Type")
 
     def _send_json(self, data: Any, status: int = 200) -> None:
@@ -130,6 +130,43 @@ class InsightHubHandler(BaseHTTPRequestHandler):
         if path == "/api/overview":
             return self._api_overview()
         self._send_error_json(404, "not found")
+
+
+    def do_POST(self) -> None:
+        parsed = urlparse(self.path)
+        path = parsed.path.rstrip("/") or "/"
+        if path == "/api/capture":
+            return self._api_capture()
+        self._send_error_json(404, "not found")
+
+    # ---------------------------------------------------------------- API: capture (session hook)
+    def _api_capture(self) -> None:
+        """Accept tool-call events from PostToolUse hooks. Zero LLM token cost."""
+        journal = self._module_api("event_journal")
+        if journal is None:
+            return self._send_error_json(404, "module not enabled: event_journal")
+        try:
+            length = int(self.headers.get("Content-Length", 0))
+            body = json.loads(self.rfile.read(length)) if length else {}
+        except (ValueError, TypeError):
+            return self._send_error_json(400, "invalid JSON body")
+
+        event_type = body.get("event_type", "session.tool_call")
+        payload = body.get("payload", {})
+        change_set_id = body.get("change_set_id", "")
+        run_id = body.get("run_id", "session-capture")
+
+        if not isinstance(payload, dict):
+            return self._send_error_json(400, "payload must be an object")
+
+        try:
+            result = journal.append_journal(
+                _IDENTITY, run_id=run_id, event_type=event_type,
+                payload=payload, change_set_id=change_set_id,
+            )
+            self._send_json(result, 201)
+        except Exception as exc:
+            self._send_error_json(400, str(exc))
 
     # ---------------------------------------------------------------- static files
     def _serve_static(self, path: str) -> None:

@@ -91,7 +91,7 @@ class TestStaticFiles(unittest.TestCase):
 
     def test_cache_control_header(self):
         resp, _ = _get(self.port, "/ui/app.css")
-        self.assertIn("max-age", resp.getheader("Cache-Control", ""))
+        self.assertIn("no-cache", resp.getheader("Cache-Control", ""))
 
     def test_missing_file_404(self):
         resp, _ = _get(self.port, "/ui/nope.js")

@@ -11,6 +11,7 @@ EVENT_TYPES = {
     "evidence.fact", "evidence.inference", "evidence.decision",
     "coord.intent_claim", "coord.intent_release", "coord.conflict", "coord.message",
     "system.halt", "system.resume", "system.error",
+    "session.tool_call", "session.prompt",
 }
 
 ACTOR_TYPES = {"HUMAN", "AGENT", "SYSTEM"}
