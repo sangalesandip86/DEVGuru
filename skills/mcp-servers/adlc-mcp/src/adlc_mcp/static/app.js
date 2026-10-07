@@ -396,7 +396,10 @@
       ]));
 
       // Tabbed sections
+      var stageCount = 0;
+      journal.forEach(function(e) { if (e.event_type === "stage.enter") stageCount++; });
       container.appendChild(tabPanel([
+        {label: "Stage Reasoning", count: stageCount, render: function(el) { renderStageReasoning(el, evidence, journal, handoffs); }},
         {label: "Agent Flow", count: handoffs.length, render: function(el) { renderHandoffFlow(el, handoffs); }},
         {label: "Evidence", count: evidence.length, render: function(el) { renderEvidenceList(el, evidence); }},
         {label: "Timeline", count: evidence.length + journal.length, render: function(el) { renderUnifiedTimeline(el, evidence, journal); }},
@@ -406,6 +409,192 @@
       ]));
     }).catch(function(err) {
       container.innerHTML = ""; container.appendChild(h("div",{className:"empty-state"},"Error: " + err.message));
+    });
+  }
+
+
+  /* ─── Stage Reasoning (per-stage agent thoughts) ─── */
+  function renderStageReasoning(el, evidence, journal, handoffs) {
+    var STAGES = ["INTAKE","ARCHITECTURE","PLAN","DESIGN","IMPLEMENT","TEST","REVIEW","INTEGRATE","RELEASE","LEARN"];
+    var stageRanges = [];
+    var enters = {}, exits = {};
+    journal.forEach(function(e) {
+      var p = parsePayload(e.payload);
+      if (e.event_type === "stage.enter" && p.stage) enters[p.stage] = {time: e.timestamp, lead: p.lead_role || (p.lead_roles || []).join(", "), payload: p};
+      if (e.event_type === "stage.exit" && p.stage) exits[p.stage] = {time: e.timestamp, reason: p.stop_reason || "", payload: p};
+      if (e.event_type === "stage.gate_pass" && p.stage) {
+        if (!exits[p.stage]) exits[p.stage] = {};
+        exits[p.stage].gate = p;
+      }
+      if (e.event_type === "stage.gate_fail" && p.stage) {
+        if (!exits[p.stage]) exits[p.stage] = {};
+        exits[p.stage].gateFail = p;
+      }
+    });
+    var activeStages = STAGES.filter(function(s) { return enters[s]; });
+    if (!activeStages.length) {
+      el.appendChild(h("div", {className: "empty-state"}, "No stage activity. Run an ADLC pipeline to see per-stage reasoning here."));
+      return;
+    }
+    el.appendChild(h("div", {className: "card-subtitle"}, "What each agent thought, decided, and handed off at every stage — the full decision-making record"));
+
+    activeStages.forEach(function(stage) {
+      var stageCard = h("div", {className: "reasoning-stage"});
+      var enter = enters[stage] || {};
+      var exit = exits[stage] || {};
+      // Stage header
+      var isComplete = !!exit.time;
+      var statusIcon = isComplete ? "\u2714" : exit.gateFail ? "\u2718" : "\u25CF";
+      var statusColor = isComplete ? "var(--color-success)" : exit.gateFail ? "var(--color-danger)" : "var(--color-warning)";
+      stageCard.appendChild(h("div", {className: "reasoning-stage-header"}, [
+        h("span", {className: "reasoning-stage-icon", style: "color:" + statusColor}, statusIcon),
+        h("span", {className: "reasoning-stage-name"}, stage),
+        enter.lead ? h("span", {className: "reasoning-stage-lead"}, [h("span",{style:"color:var(--color-text-dim)"},"Lead: "), roleTag(enter.lead)]) : null,
+        enter.time ? h("span", {className: "reasoning-stage-time"}, shortTime(enter.time) + (exit.time ? " \u2192 " + shortTime(exit.time) : " (active)")) : null
+      ]));
+
+      var body = h("div", {className: "reasoning-stage-body"});
+
+      // Stage rationale — why this stage ended
+      if (exit.reason) {
+        body.appendChild(h("div", {className: "reasoning-block"}, [
+          h("div", {className: "reasoning-label"}, "\u{1F4AD} Agent\'s Conclusion"),
+          h("div", {className: "reasoning-text"}, exit.reason)
+        ]));
+      }
+
+      // Gate results
+      if (exit.gate) {
+        var gateLines = [];
+        if (exit.gate.code_review_verdict) gateLines.push("Code Review: " + exit.gate.code_review_verdict);
+        if (exit.gate.security_review_verdict) gateLines.push("Security Review: " + exit.gate.security_review_verdict);
+        if (exit.gate.gate) gateLines.push("Gate: " + exit.gate.gate);
+        if (gateLines.length) {
+          body.appendChild(h("div", {className: "reasoning-block reasoning-gate"}, [
+            h("div", {className: "reasoning-label"}, "\u2705 Gate Result"),
+            h("div", {className: "reasoning-text"}, gateLines.join("\n"))
+          ]));
+        }
+      }
+      if (exit.gateFail) {
+        body.appendChild(h("div", {className: "reasoning-block reasoning-gate-fail"}, [
+          h("div", {className: "reasoning-label"}, "\u274C Gate Failed"),
+          h("div", {className: "reasoning-text"}, JSON.stringify(exit.gateFail, null, 2))
+        ]));
+      }
+
+      // Evidence at this stage — filter by timestamp range
+      var stageEvidence = evidence.filter(function(e) {
+        if (!enter.time) return false;
+        var t = e.timestamp || "";
+        if (exit.time) return t >= enter.time && t <= exit.time;
+        return t >= enter.time;
+      });
+      if (stageEvidence.length) {
+        body.appendChild(h("div", {className: "reasoning-block"}, [
+          h("div", {className: "reasoning-label"}, "\u{1F4DD} Agent Notes & Decisions (" + stageEvidence.length + ")")
+        ]));
+        stageEvidence.forEach(function(e) {
+          var noteCard = h("div", {className: "reasoning-note cls-" + (e.classification || "")});
+          noteCard.appendChild(h("div", {className: "reasoning-note-header"}, [
+            clsBadge(e.classification),
+            roleTag(e.agent_role || e.actor_type),
+            e.source ? h("span", {style: "font-size:11px;color:var(--color-text-dim);margin-left:auto"}, e.source) : null
+          ]));
+          noteCard.appendChild(h("div", {className: "reasoning-note-content"}, e.content || "(no content)"));
+          body.appendChild(noteCard);
+        });
+      }
+
+      // Handoffs at this stage
+      var stageHandoffs = handoffs.filter(function(ho) {
+        if (!enter.time) return false;
+        var t = ho.timestamp || "";
+        if (exit.time) return t >= enter.time && t <= exit.time;
+        return t >= enter.time;
+      });
+      if (stageHandoffs.length) {
+        body.appendChild(h("div", {className: "reasoning-block"}, [
+          h("div", {className: "reasoning-label"}, "\u{1F91D} Handoffs at This Stage (" + stageHandoffs.length + ")")
+        ]));
+        stageHandoffs.forEach(function(ho) {
+          var p = parsePayload(ho.payload);
+          var hoCard = h("div", {className: "reasoning-handoff"});
+          hoCard.appendChild(h("div", {style: "display:flex;align-items:center;gap:var(--space-2);flex-wrap:wrap"}, [
+            roleTag(ho.from_role), h("span",{style:"color:var(--color-text-dim)"},"\u2192"), roleTag(ho.to_role),
+            ho.verdict ? badge(ho.verdict, ho.verdict === "ACCEPT" ? "success" : ho.verdict === "REJECT" ? "danger" : "warning") : null
+          ]));
+          if (p.summary) hoCard.appendChild(h("div", {className: "reasoning-text", style: "margin-top:var(--space-2)"}, p.summary));
+          if (p.open_questions && p.open_questions.length) {
+            hoCard.appendChild(h("div", {className: "reasoning-questions"}, [
+              h("div", {className: "reasoning-sub-label"}, "\u2753 Open Questions"),
+              h("ul", null, p.open_questions.map(function(q) { return h("li", null, q); }))
+            ]));
+          }
+          if (p.pending && p.pending.length) {
+            hoCard.appendChild(h("div", {className: "reasoning-pending"}, [
+              h("div", {className: "reasoning-sub-label"}, "\u23F3 Pending Items"),
+              h("ul", null, p.pending.map(function(item) { return h("li", null, item); }))
+            ]));
+          }
+          if (p.inputs && p.inputs.length) {
+            hoCard.appendChild(h("div", {className: "reasoning-artifacts"}, [
+              h("div", {className: "reasoning-sub-label"}, "\u{1F4E5} Inputs"),
+              h("ul", null, p.inputs.map(function(inp) {
+                var text = typeof inp === "string" ? inp : (inp.artifact_ref || inp.ref || "");
+                if (inp.description) text += " \u2014 " + inp.description;
+                return h("li", {style: "word-break:break-all"}, text);
+              }))
+            ]));
+          }
+          if (p.outputs && p.outputs.length) {
+            hoCard.appendChild(h("div", {className: "reasoning-artifacts"}, [
+              h("div", {className: "reasoning-sub-label"}, "\u{1F4E4} Outputs"),
+              h("ul", null, p.outputs.map(function(out) {
+                var text = typeof out === "string" ? out : (out.artifact_ref || out.ref || "");
+                if (out.description) text += " \u2014 " + out.description;
+                return h("li", {style: "word-break:break-all"}, text);
+              }))
+            ]));
+          }
+          body.appendChild(hoCard);
+        });
+      }
+
+      // Other journal events at this stage (not enter/exit)
+      var stageJournal = journal.filter(function(e) {
+        if (!enter.time) return false;
+        if (e.event_type === "stage.enter" || e.event_type === "stage.exit") return false;
+        var t = e.timestamp || "";
+        if (exit.time) return t >= enter.time && t <= exit.time;
+        return t >= enter.time;
+      });
+      if (stageJournal.length) {
+        body.appendChild(h("div", {className: "reasoning-block"}, [
+          h("div", {className: "reasoning-label"}, "\u{1F4CB} Other Events (" + stageJournal.length + ")")
+        ]));
+        stageJournal.forEach(function(je) {
+          var p = parsePayload(je.payload);
+          var jeCard = h("div", {className: "reasoning-event"});
+          jeCard.appendChild(h("div", {style: "display:flex;align-items:center;gap:var(--space-2)"}, [
+            badge(je.event_type, "neutral"),
+            roleTag(je.agent_role || je.actor_type),
+            h("span", {style: "font-size:11px;color:var(--color-text-dim);margin-left:auto"}, shortTime(je.timestamp))
+          ]));
+          var details = Object.keys(p).filter(function(k) { return k !== "stage"; });
+          if (details.length) {
+            var text = details.map(function(k) { return k + ": " + (typeof p[k] === "object" ? JSON.stringify(p[k]) : p[k]); }).join("\n");
+            jeCard.appendChild(h("div", {className: "reasoning-text"}, text));
+          }
+          body.appendChild(jeCard);
+        });
+      }
+
+      if (!body.childNodes.length) {
+        body.appendChild(h("div", {style: "font-style:italic;color:var(--color-text-dim)"}, "No detailed reasoning captured for this stage."));
+      }
+      stageCard.appendChild(body);
+      el.appendChild(stageCard);
     });
   }
 
@@ -429,6 +618,9 @@
         h("span", {className: "flow-time"}, shortDate(ho.timestamp))
       ]));
       if (p.summary) card.appendChild(h("div", {className: "flow-summary"}, p.summary));
+      var hasDetail = (p.inputs && p.inputs.length) || (p.outputs && p.outputs.length) || (p.open_questions && p.open_questions.length) || (p.pending && p.pending.length);
+      var expandHint = h("div", {className: "flow-expand-hint"}, hasDetail ? "\u25BC Click for inputs, outputs & questions" : "");
+      card.appendChild(expandHint);
 
       // Expandable detail
       var detail = h("div", {className: "flow-detail", style: "display:none"});
@@ -480,6 +672,7 @@
         var showing = detail.style.display !== "none";
         detail.style.display = showing ? "none" : "block";
         card.classList.toggle("expanded", !showing);
+        if (hasDetail) expandHint.textContent = showing ? "\u25BC Click for inputs, outputs & questions" : "\u25B2 Hide details";
       });
       item.appendChild(card);
       flow.appendChild(item);
@@ -490,7 +683,7 @@
   /* ─── Evidence List ─── */
   function renderEvidenceList(el, evidence) {
     if (!evidence.length) { el.appendChild(h("div",{className:"empty-state"},"No evidence recorded.")); return; }
-    el.appendChild(h("div", {className: "card-subtitle"}, "Agent notes, decisions, facts, and questions \u2014 click to expand"));
+    el.appendChild(h("div", {className: "card-subtitle"}, "Agent notes, decisions, facts, and questions \u2014 click to expand full reasoning"));
     evidence.forEach(function(e) {
       var card = h("div", {className: "evidence-card cls-" + (e.classification || "")});
       card.appendChild(h("div", {className: "evidence-header"}, [
@@ -502,13 +695,35 @@
       ]));
       var contentEl = h("div", {className: "evidence-content"}, e.content || "(no content)");
       card.appendChild(contentEl);
+      var expandBtn = null;
       if (e.content && e.content.length > 100) {
-        card.appendChild(h("div", {className: "evidence-expand"}, "Click to expand"));
+        expandBtn = h("div", {className: "evidence-expand"}, "\u25BC Show full reasoning");
+        card.appendChild(expandBtn);
       }
       if (e.source) {
-        card.appendChild(h("div", {style: "font-size:11px;color:var(--color-text-dim);margin-top:var(--space-2)"}, "Source: " + e.source));
+        card.appendChild(h("div", {className: "evidence-source"}, "\u2192 Source: " + e.source));
       }
-      card.addEventListener("click", function() { card.classList.toggle("expanded"); });
+      // Show extra metadata when expanded
+      var meta = h("div", {className: "evidence-meta"});
+      if (e.lifecycle_state) meta.appendChild(h("div", null, [h("strong",null,"Lifecycle State: "), h("span",null,e.lifecycle_state)]));
+      if (e.outcome_status) meta.appendChild(h("div", null, [h("strong",null,"Outcome: "), h("span",null,e.outcome_status)]));
+      if (e.model_id) meta.appendChild(h("div", null, [h("strong",null,"Model: "), h("span",null,e.model_id)]));
+      if (e.change_set_id) meta.appendChild(h("div", null, [h("strong",null,"Change Set: "), h("a",{href:"#/workitems/"+e.change_set_id,style:"color:var(--color-primary)"},e.change_set_id)]));
+      if (e.input_references) {
+        var refs = typeof e.input_references === "string" ? e.input_references : JSON.stringify(e.input_references);
+        if (refs && refs !== "null" && refs !== "[]") meta.appendChild(h("div", null, [h("strong",null,"Input Refs: "), h("span",null,refs)]));
+      }
+      if (e.output_references) {
+        var orefs = typeof e.output_references === "string" ? e.output_references : JSON.stringify(e.output_references);
+        if (orefs && orefs !== "null" && orefs !== "[]") meta.appendChild(h("div", null, [h("strong",null,"Output Refs: "), h("span",null,orefs)]));
+      }
+      if (meta.childNodes.length > 0) card.appendChild(meta);
+
+      card.addEventListener("click", function(ev) {
+        ev.stopPropagation();
+        var isExpanded = card.classList.toggle("expanded");
+        if (expandBtn) expandBtn.textContent = isExpanded ? "\u25B2 Collapse" : "\u25BC Show full reasoning";
+      });
       el.appendChild(card);
     });
   }
@@ -534,7 +749,13 @@
       if (p.stop_reason) content += " | Stop: " + p.stop_reason;
       if (p.code_review_verdict) content += " | Code review: " + p.code_review_verdict;
       if (p.security_review_verdict) content += " | Security: " + p.security_review_verdict;
-      if (!content) content = JSON.stringify(p).slice(0, 200);
+      if (p.rationale) content += "\nRationale: " + p.rationale;
+      if (p.notes) content += "\nNotes: " + p.notes;
+      if (p.gate) content += " | Gate: " + p.gate;
+      if (p.error) content += " | Error: " + p.error;
+      if (p.conflict_detail) content += "\nConflict: " + p.conflict_detail;
+      if (p.message) content += "\nMessage: " + p.message;
+      if (!content) content = JSON.stringify(p, null, 2);
       var icon = e.event_type.indexOf("stage.enter") >= 0 ? "\u25B6" :
                  e.event_type.indexOf("stage.exit") >= 0 ? "\u23F9" :
                  e.event_type.indexOf("task.") >= 0 ? "\u2611" :
@@ -562,7 +783,7 @@
         ]),
         h("div", {className: "timeline-body"}, [
           h("div", {className: "timeline-header"}, headerBadges),
-          item.content ? h("div", {className: "timeline-content"}, String(item.content).slice(0, 500)) : null
+          item.content ? h("div", {className: "timeline-content"}, String(item.content)) : null
         ])
       ]));
     });
@@ -843,7 +1064,7 @@
         roles[role].forEach(function(item) {
           var node = h("div", {className: "trace-node"});
           node.appendChild(h("strong", {style: "font-size:var(--text-xs)"}, item.type));
-          if (item.content) node.appendChild(h("div", {className: "trace-content"}, String(item.content).slice(0, 80)));
+          if (item.content) node.appendChild(h("div", {className: "trace-content"}, String(item.content).slice(0, 160)));
           if (item.payload && item.payload.stage) node.appendChild(h("div", {className: "trace-content"}, "Stage: " + item.payload.stage));
           node.appendChild(h("div", {style: "font-size:10px;color:var(--color-text-dim);margin-top:4px"}, shortTime(item.time)));
           if (item.cs) node.appendChild(h("a", {href: "#/workitems/" + item.cs, style: "font-size:10px;color:var(--color-primary);text-decoration:none"}, item.cs));

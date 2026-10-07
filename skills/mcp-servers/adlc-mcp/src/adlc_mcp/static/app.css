@@ -445,3 +445,98 @@ caption { text-align: left; font-weight: 600; font-size: var(--text-lg); margin-
   .metric-grid { grid-template-columns: repeat(2, 1fr); }
 }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; animation: none !important; } }
+
+/* ─── Stage Reasoning ─── */
+.reasoning-stage {
+  border: 1px solid var(--color-border); border-radius: var(--radius-md);
+  margin-bottom: var(--space-4); overflow: hidden;
+  background: var(--color-surface-alt);
+}
+.reasoning-stage-header {
+  display: flex; align-items: center; gap: var(--space-3); flex-wrap: wrap;
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-surface); border-bottom: 1px solid var(--color-border);
+  font-weight: 600;
+}
+.reasoning-stage-icon { font-size: 18px; }
+.reasoning-stage-name { font-size: var(--text-lg); letter-spacing: 0.5px; }
+.reasoning-stage-lead { display: flex; align-items: center; gap: var(--space-1); font-weight: 400; font-size: var(--text-sm); }
+.reasoning-stage-time { margin-left: auto; font-size: var(--text-xs); color: var(--color-text-dim); font-weight: 400; }
+.reasoning-stage-body { padding: var(--space-4); }
+.reasoning-block { margin-bottom: var(--space-4); }
+.reasoning-label {
+  font-weight: 700; font-size: var(--text-sm); color: var(--color-text);
+  margin-bottom: var(--space-2); display: flex; align-items: center; gap: var(--space-2);
+}
+.reasoning-sub-label {
+  font-weight: 600; font-size: var(--text-xs); color: var(--color-text-muted);
+  margin-top: var(--space-3); margin-bottom: var(--space-1);
+}
+.reasoning-text {
+  font-size: var(--text-sm); color: var(--color-text-muted); line-height: 1.7;
+  white-space: pre-wrap; word-break: break-word;
+  background: var(--color-surface); border-radius: var(--radius-sm);
+  padding: var(--space-3); border-left: 3px solid var(--color-primary);
+}
+.reasoning-note {
+  background: var(--color-surface); border-radius: var(--radius-sm);
+  padding: var(--space-3); margin-bottom: var(--space-3);
+  border-left: 3px solid var(--color-border);
+}
+.reasoning-note.cls-DECISION { border-left-color: var(--color-warning); }
+.reasoning-note.cls-FACT { border-left-color: var(--color-success); }
+.reasoning-note.cls-QUESTION { border-left-color: var(--color-danger); }
+.reasoning-note.cls-ASSUMPTION { border-left-color: var(--role-architect); }
+.reasoning-note-header {
+  display: flex; align-items: center; gap: var(--space-2); flex-wrap: wrap;
+  margin-bottom: var(--space-2);
+}
+.reasoning-note-content {
+  font-size: var(--text-sm); color: var(--color-text-muted); line-height: 1.7;
+  white-space: pre-wrap; word-break: break-word;
+}
+.reasoning-handoff {
+  background: var(--color-surface); border-radius: var(--radius-sm);
+  padding: var(--space-3); margin-bottom: var(--space-3);
+  border-left: 3px solid var(--role-architect);
+}
+.reasoning-questions, .reasoning-pending, .reasoning-artifacts {
+  margin-top: var(--space-2);
+}
+.reasoning-questions ul, .reasoning-pending ul, .reasoning-artifacts ul {
+  margin: var(--space-1) 0 0 var(--space-4); padding: 0;
+  font-size: var(--text-sm); color: var(--color-text-muted); line-height: 1.6;
+}
+.reasoning-event {
+  background: var(--color-surface); border-radius: var(--radius-sm);
+  padding: var(--space-2) var(--space-3); margin-bottom: var(--space-2);
+  border-left: 3px solid var(--color-text-dim);
+}
+.reasoning-gate { border-left-color: var(--color-success) !important; }
+.reasoning-gate .reasoning-text { border-left-color: var(--color-success); }
+.reasoning-gate-fail .reasoning-text { border-left-color: var(--color-danger); }
+
+/* ─── Evidence Meta (shown on expand) ─── */
+.evidence-meta {
+  display: none; margin-top: var(--space-3); padding-top: var(--space-3);
+  border-top: 1px dashed var(--color-border);
+  font-size: var(--text-xs); color: var(--color-text-dim); line-height: 1.8;
+}
+.evidence-meta strong { color: var(--color-text-muted); margin-right: var(--space-1); }
+.evidence-card.expanded .evidence-meta { display: block; }
+.evidence-source {
+  font-size: 11px; color: var(--color-text-dim); margin-top: var(--space-2);
+  font-style: italic;
+}
+
+/* ─── Handoff expand indicator ─── */
+.flow-expand-hint {
+  font-size: var(--text-xs); color: var(--color-primary); margin-top: var(--space-2);
+  opacity: 0.7; transition: opacity 0.2s;
+}
+.flow-card:hover .flow-expand-hint { opacity: 1; }
+
+/* ─── Timeline content full display ─── */
+.timeline-content {
+  white-space: pre-wrap; word-break: break-word; line-height: 1.6;
+}
